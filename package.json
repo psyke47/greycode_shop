@@ -19,6 +19,7 @@
         "@inertiajs/core": "^2.3.6",
         "@inertiajs/inertia": "^0.11.1",
         "@inertiajs/react": "^2.3.6",
+        "lucide-react": "^0.562.0",
         "react": "^19.2.3",
         "react-dom": "^19.2.3"
     }
