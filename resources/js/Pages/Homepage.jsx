@@ -2,7 +2,7 @@ import React from 'react';
 
 const Homepage = () => {
     return (
-        <div>
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
             <h1 className="text-4xl font-bold mb-4">Welcome to the Greycode Store</h1>
         </div>
     );
