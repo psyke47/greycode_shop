@@ -2,7 +2,9 @@ import React from 'react';
 import { Head } from '@inertiajs/react';
 import MainLayout from '../Layouts/MainLayout';
 import SecondaryNav from '../Components/SecondaryNav';
-import { ClockIcon, PhoneIcon} from "lucide-react"
+import { ClockIcon, PhoneIcon} from "lucide-react";
+import SocialIcons from '../Components/SocialIcons';
+
 
 
 const Contact = () => {
@@ -58,7 +60,8 @@ const Contact = () => {
                         </div>
                 </div>
               </div>
-
+              
+        <SocialIcons />
             
                 
             
