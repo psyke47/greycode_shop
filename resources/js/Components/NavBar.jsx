@@ -78,7 +78,7 @@ const NavBar = () => {
                     </svg>
                 </button> */}
                 
-                <a className="hidden md:flex bg-indigo-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition" href="#">
+                <a className="hidden md:flex bg-greycode-light-blue text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition" href="#">
                     Sign up
                 </a>
 

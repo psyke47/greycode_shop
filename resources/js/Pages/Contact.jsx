@@ -38,7 +38,7 @@ const Contact = () => {
                             <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="message">Message</label>
                             <textarea id="message" rows="4" className="w-full border border-gray-300 rounded-md p-2" placeholder="Your Message"></textarea>
                         </div>
-                        <button type="submit" className="bg-blue-600 text-white px-6 py-3 rounded-xl text-lg font-medium hover:bg-indigo-700 transition ">Send Message</button>
+                        <button type="submit" className="bg-greycode-light-blue text-white px-6 py-3 rounded-xl text-lg font-medium hover:bg-indigo-700 transition ">Send Message</button>
                     </form>
                     </div> 
 
