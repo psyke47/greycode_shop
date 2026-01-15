@@ -37,7 +37,7 @@ const NavBar = () => {
                 <a className="hover:text-indigo-600" href="#">
                     Tracking
                 </a>
-                <a className="hover:text-indigo-600" href="#">
+                <a className="hover:text-indigo-600" href="/contact">
                     Contact Us
                 </a>
                 <button 
