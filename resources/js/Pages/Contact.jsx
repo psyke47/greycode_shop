@@ -26,7 +26,7 @@ const Contact = () => {
                             <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="name">Name</label>
                             <input type="text" id="name" className="w-full border border-gray-300 rounded-md p-2" placeholder="Your Name" />
                         </div>
-                         <div className="mb-4">
+                        <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="surname">Surname</label>
                             <input type="text" id="surname" className="w-full border border-gray-300 rounded-md p-2" placeholder="Your Surname" />
                         </div>
@@ -41,11 +41,9 @@ const Contact = () => {
                         <button type="submit" className="bg-blue-600 text-white px-6 py-3 rounded-xl text-lg font-medium hover:bg-indigo-700 transition ">Send Message</button>
                     </form>
                     </div> 
-               
-     
 
                     <div className="bg-gray-200 rounded-lg p-8 max-w-md w-full text-center mt-12 lg:mt-0">
-                                       <h1 className="text-4xl font-bold mb-4 text-center">Talk with us</h1>
+                        <h1 className="text-4xl font-bold mb-4 text-center">Talk with us</h1>
                         <p className="text-lg text-gray-600  mb-6 text-left">
                             <PhoneIcon className="inline-block w-5 h-5 text-blue-600 mr-2" />
                             <span className='font-bold'>Phone:</span> <a href="tel:+274813515" className="text-blue-600 hover:underline">+27 12 481 3515</a><br />
@@ -53,17 +51,16 @@ const Contact = () => {
                             <span className='font-bold'>Email:</span> <a href="mailto:sales@greycode.co.za" className="text-blue-600 hover:underline">sales@greycode.co.za</a><br />
                             <ClockIcon className="inline-block w-5 h-5 text-blue-600 mr-2" />
                             <span className='font-bold'>Working Hours:</span> <br />
-                                        <span className='font-medium'>Monday - Thursday,</span> 8:00 AM - 4:00 PM <br />
-                                        <span className='font-medium'>Friday,</span> 8:00 AM - 1:00 PM <br />
-                                        <span className='font-medium'>Saturday & Sunday</span>- Closed <br />
+                            <span className='font-medium'>Monday - Thursday,</span> 8:00 AM - 4:00 PM <br />
+                            <span className='font-medium'>Friday,</span> 8:00 AM - 1:00 PM <br />
+                            <span className='font-medium'>Saturday & Sunday</span>- Closed <br />
                         </p>
-                                </div>
-                            </div>
-                        </div>
+                    </div>
+            </div>
+            </div>
                 </div>
-              </div>
-              
-        <SocialIcons />
+            </div>
+            <SocialIcons />
             
                 
             
