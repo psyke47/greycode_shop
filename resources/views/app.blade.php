@@ -11,6 +11,8 @@
 </head>
 <body>
     @inertia
-    <h1 class="text-4xl">Greycode Shop</h1>
+    <div class="min-h-screen flex flex-col items-center justify-center bg-gray-500">
+        <h1 class="text-9xl text-white">Greycode Shop</h1>
+    </div>
 </body>
 </html>
