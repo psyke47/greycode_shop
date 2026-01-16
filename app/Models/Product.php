@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;  
 
 
-class products extends Model
+class Product extends Model
 {
     use HasFactory;
 
@@ -19,8 +19,8 @@ class products extends Model
         'is_featured',
         'is_active',
     ];
-    public function categories()
+    public function category()
     {
-        return $this->belongsTo(categories::class, 'category_id');
+        return $this->belongsTo(Category::class, 'category_id');
     }
 }

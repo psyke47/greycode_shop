@@ -18,19 +18,18 @@ return new class extends Migration
             $table->string('last_name');
             $table->string('email')->unique();
             $table->string('password');    
-            $table->string('phone',10)->unique();
+            $table->char('phone',10)->unique();
             $table->date('date_of_birth');
             $table->boolean('is_admin')->default(false);
-            $table->timestamp('created_at')->nullable();
-            $table->timestamp('updated_at')->nullable();
-            $table->timestamp('deleted_at')->nullable();
-
-            $table->rememberToken();
             $table->timestamps();
+            $table->softDeletes();
+            /*
+            Note: If you want to use Laravel's built-in "remember me" functionality,
+            $table->rememberToken(); */
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
-            $table->string('email')->primary();
+            $table->string('email')->index();
             $table->string('token');
             $table->timestamp('created_at')->nullable();
         });

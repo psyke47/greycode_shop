@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class address extends Model
+class Address extends Model
 {
     protected $table = 'addresses';
 
@@ -16,7 +16,7 @@ class address extends Model
         'city',
         'province',
         'postal_code',
-        'Country',
+        'country',
         'phone_number',
     ];
     public function user()
