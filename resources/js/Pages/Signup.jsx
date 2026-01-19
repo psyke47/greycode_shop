@@ -24,7 +24,7 @@ export default function SignUp() {
       <div className="w-full flex flex-col items-center justify-center p-4">
         <form className="md:w-96 w-80 flex flex-col items-center justify-center">
           <h2 className="text-4xl text-gray-900 font-medium">Sign up</h2>
-          <p className="text-sm text-gray-500/90 mt-3">Create your account to get started</p>
+          <p className="text-sm text-gray-500/90 mt-3">Create your account to get started</p><br /><br />
           
           
           
