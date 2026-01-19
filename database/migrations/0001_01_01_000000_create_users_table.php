@@ -13,16 +13,23 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('username')->unique();
+            $table->string('first_name');
+            $table->string('last_name');
             $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->rememberToken();
+            $table->string('password');    
+            $table->char('phone',10)->unique();
+            $table->date('date_of_birth');
+            $table->boolean('is_admin')->default(false);
             $table->timestamps();
+            $table->softDeletes();
+            /*
+            Note: If you want to use Laravel's built-in "remember me" functionality,
+            $table->rememberToken(); */
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
-            $table->string('email')->primary();
+            $table->string('email')->index();
             $table->string('token');
             $table->timestamp('created_at')->nullable();
         });

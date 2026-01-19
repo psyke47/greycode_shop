@@ -34,11 +34,14 @@ Route::get('/order-details', function () {
 Route::get('/user-profile', function () {
     return Inertia::render('UserProfile');
 });
+Route::get('/tracking', function () {
+    return Inertia::render('Tracking');
+});
 
 /* Login and Sign up routes are commented out for future implementation */
-/* Route::get('/login', function () {
+Route::get('/login', function () {
     return Inertia::render('Login');
 });
-Route::get('/register', function () {
-    return Inertia::render('Register');
-}); */
+Route::get('/signup', function () {
+    return Inertia::render('Signup');
+});

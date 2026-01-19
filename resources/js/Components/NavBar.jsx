@@ -28,16 +28,16 @@ const NavBar = () => {
                     isMenuOpen ? 'max-md:w-full' : 'max-md:w-0'
                 }`}
             >
-                <a className="hover:text-indigo-600" href="#">
+                <a className="hover:text-indigo-600" href="/products">
                     Products
                 </a>
-                <a className="hover:text-indigo-600" href="#">
+                <a className="hover:text-indigo-600" href="/order-history">
                     Order History
                 </a>
-                <a className="hover:text-indigo-600" href="#">
+                <a className="hover:text-indigo-600" href="/tracking">
                     Tracking
                 </a>
-                <a className="hover:text-indigo-600" href="#">
+                <a className="hover:text-indigo-600" href="/contact">
                     Contact Us
                 </a>
                 <button 
@@ -78,7 +78,7 @@ const NavBar = () => {
                     </svg>
                 </button> */}
                 
-                <a className="hidden md:flex bg-indigo-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition" href="#">
+                <a className="hidden md:flex bg-greycode-light-blue text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition" href="#">
                     Sign up
                 </a>
 
