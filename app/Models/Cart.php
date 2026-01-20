@@ -17,12 +17,17 @@ class Cart extends Model
         'discount_amount',
         'expires_at',
     ];
+
+    protected $casts =[
+        'discount_amount' => 'decimal:2',
+        'expires_at' => 'timestamp',
+    ];
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function items()
+    public function cartItems()
     {
         return $this->hasMany(CartItem::class,'cart_id');
     }

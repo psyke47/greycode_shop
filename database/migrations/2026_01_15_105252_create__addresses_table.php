@@ -15,8 +15,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->enum('address_type', ['Shipping', 'Billing', 'Both']);    
+            $table->boolean('is_default')->default(false);
             $table->string('address_line1');
             $table->string('address_line2')->nullable();
+            $table->string('surburb');
             $table->string('city');
             $table->enum('province', [
                 'Gauteng', 'Western Cape', 'KwaZulu-Natal', 'Eastern Cape',
