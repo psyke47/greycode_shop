@@ -19,8 +19,30 @@ class Product extends Model
         'is_featured',
         'is_active',
     ];
+
+    protected $casts=[
+        'price'=>'decimal:2',
+        'stock_quantity'=>'integer',
+        'is_featured'=>'boolean',
+        'is_active'=>'boolean',
+    ];
+
     public function category()
     {
-        return $this->belongsTo(Category::class, 'category_id');
+        return $this->belongsTo(Category::class);
+    }
+
+    public function cartItems()
+    {
+        return $this->hasMany(CartItem::class);
+    }
+
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+    public function productImages()
+    {
+        return $this->hasMany(ProductImage::class);
     }
 }

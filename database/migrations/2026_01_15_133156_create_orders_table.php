@@ -14,17 +14,18 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->string('order_number')->unique();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('shipping_address_id')->constrained('addresses')->onDelete('cascade');
             $table->foreignId('billing_address_id')->constrained('addresses')->onDelete('cascade');
             $table->enum('order_status', ['pending','paid', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded']);
             $table->enum('payment_status', ['unpaid', 'paid','refunded']);
             $table->decimal('subtotal',12,2);
-            $table->decimal('tax_amount', 12,2);
+            $table->decimal('vat', 12,2);
             $table->decimal('shipping_amount', 12,2);
             $table->decimal('discount_amount',12,2)->default(0);
             $table->decimal('total_amount',12,2);
-            $table->string('payment_method');
+            $table->string('currency',3)->default('ZAR');
+            $table->string('payment_method',50);
             $table->text('notes')->nullable();
             $table->text('customer_note')->nullable();
             $table->timestamps();
