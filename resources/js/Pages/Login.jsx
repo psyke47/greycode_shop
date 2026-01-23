@@ -1,4 +1,135 @@
-import { Head } from '@inertiajs/react'
+import { Head, useForm, Link } from '@inertiajs/react';
+import React from 'react';
+
+export default function Login() {
+  const { data, setData, post, processing, errors } = useForm({
+    email: '',
+    password: '',
+    remember: false,
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    post('/login');
+  };
+
+  return (
+    <div className="min-h-screen flex">
+      <Head title="Login" />
+      
+      {/* Left side - only visible on larger screens */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="w-full flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-64 h-64 mx-auto mb-8 rounded-full bg-gradient-to-r from-blue-200 to-indigo-300 flex items-center justify-center">
+              <svg className="w-32 h-32 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <h2 className="text-3xl font-bold text-gray-800 mb-4">Welcome Back</h2>
+            <p className="text-gray-600 px-12">
+              Sign in to access your account and continue your journey with us.
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      {/* Right side - login form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8">
+          <div>
+            <h2 className="text-center text-3xl font-bold text-gray-900">
+              Sign in to your account
+            </h2>
+            <p className="mt-2 text-center text-sm text-gray-600">
+              Or{' '}
+              <Link href="/signup" className="font-medium text-indigo-600 hover:text-indigo-500">
+                create a new account
+              </Link>
+            </p>
+          </div>
+          
+          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+            {errors.email && (
+              <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                <p className="text-red-600 text-sm">{errors.email}</p>
+              </div>
+            )}
+            
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="email" className="sr-only">Email address</label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={data.email}
+                  onChange={(e) => setData('email', e.target.value)}
+                  className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                  placeholder="Email address"
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="password" className="sr-only">Password</label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  value={data.password}
+                  onChange={(e) => setData('password', e.target.value)}
+                  className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                  placeholder="Password"
+                />
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  id="remember"
+                  name="remember"
+                  type="checkbox"
+                  checked={data.remember}
+                  onChange={(e) => setData('remember', e.target.checked)}
+                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                />
+                <label htmlFor="remember" className="ml-2 block text-sm text-gray-900">
+                  Remember me
+                </label>
+              </div>
+              
+              <div className="text-sm">
+                <a href="#" className="font-medium text-indigo-600 hover:text-indigo-500">
+                  Forgot your password?
+                </a>
+              </div>
+            </div>
+            
+            <div>
+              <button
+                type="submit"
+                disabled={processing}
+                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              >
+                {processing ? 'Signing in...' : 'Sign in'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+
+
+/* import { Head } from '@inertiajs/react'
 import React from 'react'
 
 export default function Login() {
@@ -7,8 +138,8 @@ export default function Login() {
       <Head title="Login" />
       
       <div className="w-full hidden md:inline-block">
-        {/* Left side placeholder */}
-        <div className="h-full bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        {/* Left side placeholder */
+        /* <div className="h-full bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
           <div className="text-center p-8">
             <div className="w-64 h-64 mx-auto mb-6 rounded-full bg-gradient-to-r from-blue-200 to-indigo-300 flex items-center justify-center">
               <svg className="w-32 h-32 text-indigo-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -57,5 +188,5 @@ export default function Login() {
         </form>
       </div>
     </div>
-  )
-}
+  );
+} */
