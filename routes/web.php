@@ -50,3 +50,11 @@ Route::get('/signup', function () {
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
+
+Route::get('/test-redirect', function () {
+    return redirect('/test-destination');
+});
+
+Route::get('/test-destination', function () {
+    return Inertia::render('Test', ['message' => 'Redirect worked!']);
+});
