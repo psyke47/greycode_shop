@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\ProductController;
+
 
 Route::get('/', function () {
     return Inertia::render('Homepage', ['name' => 'Greycode Shop']);
@@ -45,3 +47,13 @@ Route::get('/login', function () {
 Route::get('/signup', function () {
     return Inertia::render('Signup');
 });
+
+
+/* Product routes */
+//Route::resource('products', ProductController::class);
+Route::post('/products/category/', [ProductController::class, 'getByCategory']);
+Route::post('/products/search/', [ProductController::class, 'search']);
+Route::post('/products/sort', [ProductController::class, 'sort']);
+Route::post('/products/filter/price', [ProductController::class, 'filterByPriceRange']);
+
+/* Additional routes can be added here */
