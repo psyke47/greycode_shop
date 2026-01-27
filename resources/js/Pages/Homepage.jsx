@@ -17,7 +17,7 @@ const Homepage = () => {
                         </p>
                     </div>
                     <div className="text-center">
-                        <button className="bg-greycode-light-blue text-white px-6 py-3 rounded-xl text-lg font-medium hover:bg-indigo-700 transition shadow-greycode-dark-blue hover:shadow-lg">Shop Products</button>
+                        <button className="bg-greycode-light-blue text-white px-6 py-3 rounded-xl text-lg font-medium hover:bg-indigo-700 transition shadow-greycode-dark-blue hover:shadow-xl hover:transform hover:scale-110">Shop Products</button>
                     </div>
                 </div>
             </div>
