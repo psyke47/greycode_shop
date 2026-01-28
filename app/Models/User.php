@@ -6,11 +6,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -24,7 +25,7 @@ class User extends Authenticatable
         'email',
         'phone',
         'date_of_birth',
-        'is_admin',
+        'password'
     ];
 
     /**
@@ -50,17 +51,27 @@ class User extends Authenticatable
         ];
     }
     
+    
+    public function cart() 
+    {
+         return $this->hasOne(Cart::class); 
+    }
     public function orders() 
     {
          return $this->hasMany(Order::class); 
     }
+
+    /**
+            * Get the user's latest order.
+    */
+    public function latestOrder()
+    {
+        return $this->hasOne(Order::class)->latestOrder();
+    }
+
     public function addresses() 
     {
          return $this->hasMany(Address::class); 
-    }
-    public function carts() 
-    {
-         return $this->hasMany(Cart::class); 
     }
     
 }
