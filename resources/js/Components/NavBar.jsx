@@ -78,11 +78,11 @@ const NavBar = () => {
                     </svg>
                 </button> */}
                 
-                <a className="hidden md:flex bg-greycode-light-blue text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition" href="#">
+                <a className="hidden md:flex bg-greycode-light-blue text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition" href="/signup">
                     Sign up
                 </a>
 
-                <a className="hidden md:flex bg-black text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition" href="#">
+                <a className="hidden md:flex bg-black text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition" href="/login">
                     Log in
                 </a>
                 

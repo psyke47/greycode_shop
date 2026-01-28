@@ -1,452 +1,399 @@
-import React, { useState } from 'react'
-import { Head, Link } from '@inertiajs/react'
+import React, { useState, useEffect } from 'react'
+import { Head, usePage, Link } from '@inertiajs/react'
 import MainLayout from '../Layouts/MainLayout'
 import SecondaryNav from '../Components/SecondaryNav'
 
-// SVG placeholder component
-const PlaceholderImage = ({ className = "w-full h-full" }) => (
-  <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
-    <rect width="300" height="300" fill="#f3f4f6" />
-    <text 
-      x="150" 
-      y="150" 
-      fontFamily="Arial" 
-      fontSize="16" 
-      textAnchor="middle" 
-      fill="#9ca3af"
-      dy=".3em"
-    >
-      Product Image
-    </text>
-  </svg>
-)
+const placeholderSVG = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI0U1RTVFNSIvPjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOTk5Ij5Qcm9kdWN0IEltYWdlPC90ZXh0Pjwvc3ZnPg=='
 
-export default function ProductDetails() {
-  const [selectedImage, setSelectedImage] = useState(0)
+export default function ProductDetail({ product: initialProduct, relatedProducts: initialRelated }) {
+  const { props } = usePage()
+  const product = props.product || initialProduct
+  const relatedProducts = props.relatedProducts || initialRelated || []
+  
   const [quantity, setQuantity] = useState(1)
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
 
-  // Mock product data
-  const product = {
-    id: 1,
-    name: 'Greycode IoT Development Board',
-    category: 'DIY',
-    price: 900,
-    oldPrice: 1100,
-    rating: 4.7,
-    reviewCount: 128,
-    description: 'A powerful IoT development board designed for prototyping and production IoT applications. Features built-in WiFi, Bluetooth, and multiple GPIO pins for connecting sensors and actuators.',
-    features: [
-      'Dual-core 32-bit LX6 microprocessor',
-      'Built-in WiFi 802.11 b/g/n',
-      'Bluetooth 4.2 with BLE',
-      '40+ GPIO pins',
-      '16 MB Flash memory',
-      '8 MB PSRAM',
-      'USB-C programming interface',
-      'Low power consumption modes'
-    ],
-    specifications: {
-      'Processor': 'ESP32-S3 Dual-core',
-      'Clock Speed': '240 MHz',
-      'Flash Memory': '16 MB',
-      'RAM': '8 MB PSRAM',
-      'Wireless': 'WiFi 802.11 b/g/n, Bluetooth 4.2',
-      'GPIO Pins': '42',
-      'ADC': '18 channels, 12-bit',
-      'DAC': '2 channels, 8-bit',
-      'USB': 'USB-C for programming and power',
-      'Operating Voltage': '3.3V',
-      'Dimensions': '65mm x 45mm'
-    },
-    images: [
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800',
-      'https://images.unsplash.com/photo-1624124544403-6c7a1d5950a6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800',
-      'https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&auto=format&fit=crop&w=800',
-      'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800'
-    ],
-    inStock: true,
-    stockCount: 42,
-    sku: 'GC-IOT-001',
-    tags: ['IoT', 'ESP32', 'Development', 'Microcontroller', 'Wireless'],
-    reviews: [
-      {
-        id: 1,
-        name: 'Alex Johnson',
-        rating: 5,
-        date: '2024-01-15',
-        comment: 'Excellent board for IoT projects. Very stable WiFi connection and plenty of GPIO pins.',
-        verified: true
-      },
-      {
-        id: 2,
-        name: 'Sam Wilson',
-        rating: 4,
-        date: '2024-01-10',
-        comment: 'Great value for money. Documentation could be better, but overall very satisfied.',
-        verified: true
-      },
-      {
-        id: 3,
-        name: 'Taylor Smith',
-        rating: 5,
-        date: '2024-01-05',
-        comment: 'Perfect for my home automation projects. Easy to program with Arduino IDE.',
-        verified: false
-      }
-    ],
-    relatedProducts: [
-      { id: 2, name: 'Arduino Starter Kit', price: 650, category: 'DIY' },
-      { id: 3, name: 'Raspberry Pi 4', price: 1200, category: 'Components' },
-      { id: 4, name: 'ESP32 Development Board', price: 450, category: 'Components' },
-      { id: 5, name: 'Sensor Pack', price: 350, category: 'Components' }
-    ]
+  if (!product) {
+    return (
+      <MainLayout>
+        <Head title="Product Not Found" />
+        <SecondaryNav />
+        <div className="py-20 text-center">
+          <h1 className="text-2xl font-bold text-gray-900">Product not found</h1>
+          <Link href="/products" className="mt-4 inline-block text-blue-600 hover:text-blue-800">
+            ← Back to Products
+          </Link>
+        </div>
+      </MainLayout>
+    )
   }
 
-  const incrementQuantity = () => setQuantity(prev => prev + 1)
-  const decrementQuantity = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1))
+  // Get all product images
+  const productImages = product.product_images || []
+  const mainImage = productImages.length > 0 ? productImages[selectedImageIndex] : null
 
-  const addToCart = () => {
-    alert(`Added ${quantity} × ${product.name} to cart!`)
-    // In a real app, this would dispatch to a cart store
+  // Get product image URL
+  const getImageUrl = (image) => {
+    if (!image) return placeholderSVG
+    
+    const filename = image.url.split('\\').pop().split('/').pop()
+    return `/images/${filename}`
   }
 
-  const buyNow = () => {
-    alert(`Proceeding to checkout with ${quantity} × ${product.name}`)
-    // In a real app, this would redirect to checkout
+  // Get category
+  const category = product.category || {}
+  
+  // Format price
+  const formatPrice = (price) => {
+    return parseFloat(price).toLocaleString('en-ZA', {
+      style: 'currency',
+      currency: 'ZAR',
+      minimumFractionDigits: 2
+    })
   }
+
+  // Handle quantity changes
+  const handleQuantityChange = (e) => {
+    const value = parseInt(e.target.value)
+    if (value > 0 && value <= (product.stock_quantity || 999)) {
+      setQuantity(value)
+    }
+  }
+
+  const incrementQuantity = () => {
+    if (quantity < (product.stock_quantity || 999)) {
+      setQuantity(quantity + 1)
+    }
+  }
+
+  const decrementQuantity = () => {
+    if (quantity > 1) {
+      setQuantity(quantity - 1)
+    }
+  }
+
+  // Handle add to cart
+  const handleAddToCart = () => {
+    console.log(`Added ${quantity} of ${product.name} to cart`)
+    // Inertia.post('/cart/add', { product_id: product.id, quantity })
+  }
+
+  // Related product image URL helper
+  const getRelatedProductImage = (product) => {
+    if (product.product_images && product.product_images.length > 0) {
+      const image = product.product_images[0]
+      const filename = image.url.split('\\').pop().split('/').pop()
+      return `/images/${filename}`
+    }
+    return placeholderSVG
+  }
+
+  const handleAddToCart = async () => {
+    try {
+        const response = await fetch(`/cart/add/${product.id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ quantity: quantity })
+        });
+        
+        if (response.ok) {
+            alert('Product added to cart!');
+            // Optionally redirect to cart or update cart badge
+        } else {
+            alert('Failed to add to cart. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error adding to cart:', error);
+        alert('An error occurred. Please try again.');
+    }
+};
 
   return (
     <MainLayout>
       <Head title={product.name} />
       <SecondaryNav />
       
-      <section className="py-8 px-4 sm:px-6 lg:px-8">
+      <div className="py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Breadcrumb */}
-          <nav className="mb-8">
-            <ol className="flex flex-wrap items-center text-sm text-gray-600">
+          <nav className="mb-6">
+            <ol className="flex items-center space-x-2 text-sm text-gray-600">
               <li>
-                <Link href="/" className="hover:text-blue-600 transition-colors duration-300">
-                  Home
-                </Link>
+                <Link href="/" className="hover:text-blue-600">Home</Link>
               </li>
-              <li className="mx-2">/</li>
+              <li className="text-gray-400">/</li>
               <li>
-                <Link href="/products" className="hover:text-blue-600 transition-colors duration-300">
-                  Products
-                </Link>
+                <Link href="/products" className="hover:text-blue-600">Products</Link>
               </li>
-              <li className="mx-2">/</li>
-              <li>
-                <Link href="#" className="hover:text-blue-600 transition-colors duration-300">
-                  {product.category}
-                </Link>
-              </li>
-              <li className="mx-2">/</li>
-              <li className="text-gray-900 font-medium">{product.name}</li>
+              <li className="text-gray-400">/</li>
+              {category.name && (
+                <>
+                  <li>
+                    <Link href={`/products?category=${category.id}`} className="hover:text-blue-600">
+                      {category.name}
+                    </Link>
+                  </li>
+                  <li className="text-gray-400">/</li>
+                </>
+              )}
+              <li className="text-gray-900 font-medium truncate">{product.name}</li>
             </ol>
           </nav>
 
-          <div className="flex flex-col lg:flex-row gap-12">
-            {/* Left Column - Images */}
-            <div className="lg:w-1/2">
-              <div className="bg-white rounded-2xl shadow-lg p-4 mb-4">
-                <div className="relative h-96 mb-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+            {/* Product Images */}
+            <div>
+              {/* Main Image */}
+              <div className="bg-white rounded-xl shadow-lg p-4 mb-4">
+                <div className="relative h-80 sm:h-96 flex items-center justify-center bg-gray-50 rounded-lg overflow-hidden">
                   <img
-                    src={product.images[selectedImage]}
+                    src={getImageUrl(mainImage)}
                     alt={product.name}
-                    className="w-full h-full object-contain rounded-lg"
+                    className="w-full h-full object-contain p-4"
                     onError={(e) => {
-                      e.target.style.display = 'none'
-                      e.target.parentNode.innerHTML = '<div class="w-full h-full flex items-center justify-center bg-gray-100 rounded-lg"><PlaceholderImage className="w-48 h-48" /></div>'
+                      e.target.src = placeholderSVG
                     }}
                   />
-                  {product.oldPrice && (
-                    <span className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-                      Save R {(product.oldPrice - product.price).toLocaleString()}
-                    </span>
+                  {product.is_featured && (
+                    <div className="absolute top-4 left-4">
+                      <span className="px-3 py-1 bg-red-500 text-white text-xs font-medium rounded-full">
+                        Featured
+                      </span>
+                    </div>
                   )}
                 </div>
-                
-                {/* Thumbnail Images */}
-                <div className="flex space-x-4 overflow-x-auto pb-2">
-                  {product.images.map((img, index) => (
+              </div>
+
+              {/* Thumbnail Images */}
+              {productImages.length > 1 && (
+                <div className="flex space-x-2 overflow-x-auto pb-2">
+                  {productImages.map((image, index) => (
                     <button
-                      key={index}
-                      onClick={() => setSelectedImage(index)}
+                      key={image.id}
+                      onClick={() => setSelectedImageIndex(index)}
                       className={`flex-shrink-0 w-20 h-20 rounded-lg border-2 overflow-hidden ${
-                        selectedImage === index 
-                          ? 'border-blue-500 ring-2 ring-blue-200' 
+                        selectedImageIndex === index 
+                          ? 'border-blue-500' 
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
                       <img
-                        src={img}
-                        alt={`${product.name} view ${index + 1}`}
+                        src={getImageUrl(image)}
+                        alt={`${product.name} - ${index + 1}`}
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                          e.target.style.display = 'none'
-                          e.target.parentNode.innerHTML = '<div class="w-full h-full bg-gray-100 flex items-center justify-center"><PlaceholderImage className="w-10 h-10" /></div>'
+                          e.target.src = placeholderSVG
                         }}
                       />
                     </button>
                   ))}
                 </div>
-              </div>
-
-              {/* Tags */}
-              <div className="flex flex-wrap gap-2">
-                {product.tags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-medium"
-                  >
-                    #{tag}
-                  </span>
-                ))}
-              </div>
+              )}
             </div>
 
-            {/* Right Column - Product Info */}
-            <div className="lg:w-1/2">
-              <div className="mb-6">
-                <span className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium mb-4">
-                  {product.category}
-                </span>
+            {/* Product Information */}
+            <div>
+              <div className="bg-white rounded-xl shadow-lg p-6 lg:p-8">
+                {/* Category Badge */}
+                {category.name && (
+                  <div className="mb-4">
+                    <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
+                      {category.name}
+                    </span>
+                  </div>
+                )}
+
+                {/* Product Name */}
                 <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
                   {product.name}
                 </h1>
-                
-                {/* Rating */}
-                <div className="flex items-center mb-4">
-                  <div className="flex items-center">
-                    {[...Array(5)].map((_, i) => (
-                      <svg
-                        key={i}
-                        className={`w-5 h-5 ${i < Math.floor(product.rating) ? 'text-yellow-400' : 'text-gray-300'}`}
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                    ))}
-                    <span className="ml-2 text-gray-600 font-medium">
-                      {product.rating} ({product.reviewCount} reviews)
-                    </span>
-                  </div>
-                </div>
 
-                {/* Price */}
+                {/* Product Price */}
                 <div className="mb-6">
-                  <div className="flex items-center">
-                    <span className="text-4xl font-bold text-gray-900">
-                      R {product.price.toLocaleString()}
-                    </span>
-                    {product.oldPrice && (
-                      <span className="ml-4 text-xl text-gray-500 line-through">
-                        R {product.oldPrice.toLocaleString()}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-gray-600">VAT included</p>
-                </div>
-
-                {/* Stock Status */}
-                <div className="mb-6">
-                  {product.inStock ? (
-                    <div className="flex items-center text-green-600">
-                      <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      <span className="font-medium">In Stock</span>
-                      <span className="ml-2 text-gray-600">({product.stockCount} available)</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center text-red-600">
-                      <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                      </svg>
-                      <span className="font-medium">Out of Stock</span>
-                    </div>
+                  <p className="text-3xl font-bold text-gray-900">
+                    {formatPrice(product.price)}
+                  </p>
+                  {product.stock_quantity !== undefined && (
+                    <p className={`mt-2 text-sm font-medium ${
+                      product.stock_quantity > 10 
+                        ? 'text-green-600' 
+                        : product.stock_quantity > 0 
+                          ? 'text-yellow-600' 
+                          : 'text-red-600'
+                    }`}>
+                      {product.stock_quantity > 10 
+                        ? '✓ In Stock' 
+                        : product.stock_quantity > 0 
+                          ? `⚠ Only ${product.stock_quantity} left in stock`
+                          : '✗ Out of Stock'
+                      }
+                    </p>
                   )}
-                  <p className="text-sm text-gray-600 mt-1">SKU: {product.sku}</p>
                 </div>
 
-                {/* Description */}
-                <div className="mb-8">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Description</h3>
-                  <p className="text-gray-700 leading-relaxed">{product.description}</p>
-                </div>
+                {/* Product Description */}
+                {product.description && (
+                  <div className="mb-8">
+                    <h2 className="text-xl font-semibold text-gray-900 mb-3">Description</h2>
+                    <div className="prose max-w-none text-gray-600">
+                      <p className="whitespace-pre-line">{product.description}</p>
+                    </div>
+                  </div>
+                )}
 
-                {/* Features */}
+                {/* Quantity and Add to Cart */}
                 <div className="mb-8">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Key Features</h3>
-                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {product.features.map((feature, index) => (
-                      <li key={index} className="flex items-start">
-                        <svg className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                        <span className="text-gray-700">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Quantity and Actions */}
-                <div className="mb-8">
-                  <div className="flex flex-wrap items-center gap-4 mb-6">
+                  <div className="flex items-center space-x-4 mb-6">
                     <div className="flex items-center border border-gray-300 rounded-lg">
                       <button
                         onClick={decrementQuantity}
-                        className="px-4 py-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                        disabled={quantity <= 1}
+                        className="px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         −
                       </button>
-                      <span className="px-4 py-3 text-lg font-medium">{quantity}</span>
+                      <input
+                        type="number"
+                        min="1"
+                        max={product.stock_quantity || 999}
+                        value={quantity}
+                        onChange={handleQuantityChange}
+                        className="w-16 text-center border-0 focus:ring-0 focus:outline-none"
+                      />
                       <button
                         onClick={incrementQuantity}
-                        className="px-4 py-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                        disabled={quantity >= (product.stock_quantity || 999)}
+                        className="px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         +
                       </button>
                     </div>
-                    <div className="text-gray-600">
-                      Total: <span className="text-2xl font-bold text-gray-900">R {(product.price * quantity).toLocaleString()}</span>
+                    <div className="text-sm text-gray-600">
+                      Available: {product.stock_quantity !== undefined ? product.stock_quantity : 'N/A'}
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap gap-4">
+                  <div className="flex flex-col sm:flex-row gap-4">
                     <button
-                      onClick={addToCart}
-                      className="flex-1 min-w-[200px] bg-blue-600 text-white py-3 px-8 rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-300 flex items-center justify-center"
+                      onClick={handleAddToCart}
+                      disabled={product.stock_quantity === 0}
+                      className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
                     >
-                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                      </svg>
-                      Add to Cart
+                      {product.stock_quantity === 0 ? 'Out of Stock' : 'Add to Cart'}
                     </button>
-                    <button
-                      onClick={buyNow}
-                      className="flex-1 min-w-[200px] bg-green-600 text-white py-3 px-8 rounded-lg font-semibold hover:bg-green-700 transition-colors duration-300"
-                    >
-                      Buy Now
+                    <button className="flex-1 bg-gray-100 text-gray-700 py-3 px-6 rounded-lg font-medium hover:bg-gray-200 transition-colors duration-300">
+                      Add to Wishlist
                     </button>
                   </div>
+                </div>
+
+                {/* Product Details */}
+                <div className="border-t border-gray-200 pt-6">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-4">Product Details</h2>
+                  <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {category.name && (
+                      <>
+                        <dt className="text-sm font-medium text-gray-600">Category</dt>
+                        <dd className="text-sm text-gray-900">{category.name}</dd>
+                      </>
+                    )}
+                    <dt className="text-sm font-medium text-gray-600">Status</dt>
+                    <dd className="text-sm">
+                      <span className={`px-2 py-1 rounded-full ${
+                        product.is_active 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {product.is_active ? 'Active' : 'Inactive'}
+                      </span>
+                    </dd>
+                    <dt className="text-sm font-medium text-gray-600">Featured</dt>
+                    <dd className="text-sm">
+                      <span className={`px-2 py-1 rounded-full ${
+                        product.is_featured 
+                          ? 'bg-blue-100 text-blue-800' 
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {product.is_featured ? 'Yes' : 'No'}
+                      </span>
+                    </dd>
+                  </dl>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Tabs Section */}
-          <div className="mt-12">
-            <div className="border-b border-gray-200">
-              <nav className="flex space-x-8">
-                <button className="py-4 px-1 border-b-2 border-blue-500 text-blue-600 font-medium text-lg">
-                  Specifications
-                </button>
-                <button className="py-4 px-1 text-gray-500 hover:text-gray-700 font-medium text-lg">
-                  Reviews ({product.reviewCount})
-                </button>
-                <button className="py-4 px-1 text-gray-500 hover:text-gray-700 font-medium text-lg">
-                  Shipping & Returns
-                </button>
-              </nav>
-            </div>
-
-            {/* Specifications Table */}
-            <div className="py-8">
-              <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-                <table className="w-full">
-                  <tbody>
-                    {Object.entries(product.specifications).map(([key, value]) => (
-                      <tr key={key} className="border-b border-gray-100 last:border-b-0">
-                        <td className="py-4 px-6 bg-gray-50 font-semibold text-gray-700 w-1/3">
-                          {key}
-                        </td>
-                        <td className="py-4 px-6 text-gray-600">
-                          {value}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          {/* Related Products Section */}
+          {relatedProducts.length > 0 && (
+            <div className="mt-16">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-2xl font-bold text-gray-900">Related Products</h2>
+                <Link 
+                  href="/products" 
+                  className="text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  View All →
+                </Link>
               </div>
-            </div>
-
-            {/* Reviews */}
-            <div className="py-8">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">
-                Customer Reviews ({product.reviewCount})
-              </h3>
-              <div className="space-y-6">
-                {product.reviews.map((review) => (
-                  <div key={review.id} className="bg-white rounded-xl shadow-sm p-6">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h4 className="font-semibold text-gray-900">{review.name}</h4>
-                        <div className="flex items-center mt-1">
-                          <div className="flex">
-                            {[...Array(5)].map((_, i) => (
-                              <svg
-                                key={i}
-                                className={`w-4 h-4 ${i < review.rating ? 'text-yellow-400' : 'text-gray-300'}`}
-                                fill="currentColor"
-                                viewBox="0 0 20 20"
-                              >
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                              </svg>
-                            ))}
-                          </div>
-                          {review.verified && (
-                            <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-800 text-xs font-medium rounded">
-                              Verified Purchase
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <span className="text-gray-500 text-sm">{review.date}</span>
-                    </div>
-                    <p className="text-gray-700">{review.comment}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Related Products */}
-            <div className="py-8">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">Related Products</h3>
+              
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {product.relatedProducts.map((related) => (
-                  <Link
-                    key={related.id}
-                    href={`/products/${related.id}`}
+                {relatedProducts.slice(0, 4).map((relatedProduct) => (
+                  <Link 
+                    key={relatedProduct.id}
+                    href={`/products/${relatedProduct.id}`}
                     className="group block bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100"
                   >
                     <div className="relative h-48 bg-gray-100 flex items-center justify-center">
-                      <PlaceholderImage className="w-32 h-32" />
-                      <div className="absolute top-4 left-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          related.category === 'DIY' ? 'bg-blue-100 text-blue-800' :
-                          'bg-green-100 text-green-800'
-                        }`}>
-                          {related.category}
+                      <img 
+                        src={getRelatedProductImage(relatedProduct)}
+                        alt={relatedProduct.name}
+                        className="w-full h-full object-contain p-4"
+                        onError={(e) => {
+                          e.target.src = placeholderSVG
+                        }}
+                      />
+                      {relatedProduct.is_featured && (
+                        <div className="absolute top-3 left-3">
+                          <span className="px-2 py-1 bg-red-500 text-white text-xs font-medium rounded-full">
+                            Featured
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="p-4">
+                      <h3 className="text-md font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-300 mb-2 line-clamp-2">
+                        {relatedProduct.name}
+                      </h3>
+                      <div className="flex items-center justify-between">
+                        <p className="text-lg font-bold text-gray-900">
+                          {formatPrice(relatedProduct.price)}
+                        </p>
+                        <span className="text-blue-600 group-hover:text-blue-800 font-medium text-sm">
+                          View →
                         </span>
                       </div>
-                    </div>
-                    <div className="p-4">
-                      <h4 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-300 mb-2 line-clamp-2">
-                        {related.name}
-                      </h4>
-                      <p className="text-lg font-bold text-gray-900">R {related.price.toLocaleString()}</p>
                     </div>
                   </Link>
                 ))}
               </div>
             </div>
+          )}
+
+          {/* Back to Products Link */}
+          <div className="mt-8 text-center">
+            <Link 
+              href="/products" 
+              className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium text-lg"
+            >
+              ← Back to All Products
+            </Link>
           </div>
         </div>
-      </section>
+      </div>
     </MainLayout>
   )
 }
