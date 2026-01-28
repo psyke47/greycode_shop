@@ -73,10 +73,10 @@ export default function ProductDetail({ product: initialProduct, relatedProducts
   }
 
   // Handle add to cart
-  const handleAddToCart = () => {
-    console.log(`Added ${quantity} of ${product.name} to cart`)
+  /* const handleAddToCart = () => {
+    console.log(`Added ${quantity} of ${product.name} to cart`) */
     // Inertia.post('/cart/add', { product_id: product.id, quantity })
-  }
+  /* }// */
 
   // Related product image URL helper
   const getRelatedProductImage = (product) => {
