@@ -342,7 +342,7 @@ class StockListSeeder extends Seeder
             // Create product image
             ProductImage::create([
                 'product_id' => $product->id,
-                'url' => $productData['image_url'],
+                'url' => basename($productData['image_url']),
                 'alt_text' => $productData['name'],
                 'is_primary' => true,
                 'sort_order' => 1,
