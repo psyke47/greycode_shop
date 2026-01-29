@@ -274,7 +274,7 @@ class OrderController extends Controller
      */
     private function transformPayments($payments)
     {
-        return $payments->map(function($payment) { 
+        return $payments->map(function($payment) {
         // Convert integer timestamp to Carbon instance
         $paymentDate = \Carbon\Carbon::createFromTimestamp($payment->payment_date);
         

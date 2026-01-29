@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Head, Link, usePage } from '@inertiajs/react'
+import { Head, Link, usePage, router } from '@inertiajs/react'
 import MainLayout from '../Layouts/MainLayout'
 import SecondaryNav from '../Components/SecondaryNav'
 
@@ -41,81 +41,53 @@ export default function Cart({ cart: initialCart }) {
     })
   }
 
-  // Update quantity in cart
-  const updateQuantity = async (itemId, newQuantity) => {
-    if (newQuantity < 1) return
-    
-    try {
-      // Update local state first for instant feedback
-      setCartItems(items => 
-        items.map(item => 
+  // Update quantity using Inertia router
+  const updateQuantity = (itemId, newQuantity) => {
+    router.put(`/cart/update/${itemId}`, {
+      quantity: newQuantity
+    }, {
+      preserveScroll: true,
+      onSuccess: (page) => {
+        // Update local state if needed
+        setCartItems(prev => prev.map(item => 
           item.id === itemId ? { ...item, quantity: newQuantity } : item
-        )
-      )
-      
-      // Send API request to update in database
-      const response = await fetch(`/cart/update/${itemId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: JSON.stringify({ quantity: newQuantity })
-      })
-      
-      if (!response.ok) {
-        throw new Error('Failed to update quantity')
+        ));
+      },
+      onError: (errors) => {
+        alert(errors.message || 'Failed to update quantity');
       }
-    } catch (error) {
-      console.error('Error updating quantity:', error)
-      // Optionally show error message to user
-    }
+    })
   }
 
-  // Remove item from cart
-  const removeItem = async (itemId) => {
-    try {
-      // Send API request to remove item
-      const response = await fetch(`/cart/remove/${itemId}`, {
-        method: 'DELETE',
-        headers: {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        }
-      })
-      
-      if (response.ok) {
+  // Remove item from cart using Inertia router
+  const removeItem = (itemId) => {
+    if (!confirm('Are you sure you want to remove this item?')) return
+    
+    router.delete(`/cart/remove/${itemId}`, {
+      preserveScroll: true,
+      onSuccess: () => {
         // Update local state
         setCartItems(items => items.filter(item => item.id !== itemId))
-      } else {
-        throw new Error('Failed to remove item')
+      },
+      onError: (errors) => {
+        alert(errors.message || 'Failed to remove item');
       }
-    } catch (error) {
-      console.error('Error removing item:', error)
-      alert('Failed to remove item. Please try again.')
-    }
+    })
   }
 
-  // Clear entire cart
-  const clearCart = async () => {
+  // Clear entire cart using Inertia router
+  const clearCart = () => {
     if (!confirm('Are you sure you want to clear your cart?')) return
     
-    try {
-      const response = await fetch('/cart/clear', {
-        method: 'DELETE',
-        headers: {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        }
-      })
-      
-      if (response.ok) {
+    router.delete('/cart/clear', {
+      preserveScroll: true,
+      onSuccess: () => {
         setCartItems([])
-      } else {
-        throw new Error('Failed to clear cart')
+      },
+      onError: (errors) => {
+        alert(errors.message || 'Failed to clear cart');
       }
-    } catch (error) {
-      console.error('Error clearing cart:', error)
-      alert('Failed to clear cart. Please try again.')
-    }
+    })
   }
 
   // Calculate totals based on database data
@@ -135,7 +107,7 @@ export default function Cart({ cart: initialCart }) {
       setCouponApplied(true)
       alert('Coupon applied! 10% discount added.')
     } else {
-      alert('Invalid coupon code. Try "GREYCODE10"')
+      alert('Invalid coupon code.')
     }
   }
 
@@ -148,18 +120,18 @@ export default function Cart({ cart: initialCart }) {
       alert('Your cart is empty')
       return
     }
-    
+
     // Check if any items are out of stock
     const outOfStockItems = cartItems.filter(item => {
       const stock = item.product?.stock_quantity || 0
       return stock === 0 || item.quantity > stock
     })
-    
+
     if (outOfStockItems.length > 0) {
       alert('Please remove out-of-stock items before checkout')
       return
     }
-    
+
     // Redirect to checkout
     window.location.href = '/checkout'
   }
@@ -197,7 +169,7 @@ export default function Cart({ cart: initialCart }) {
     <MainLayout>
       <Head title="Shopping Cart" />
       <SecondaryNav />
-      
+
       <section className="py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
@@ -219,13 +191,13 @@ export default function Cart({ cart: initialCart }) {
                 Looks like you haven't added any products to your cart yet.
               </p>
               <div className="space-x-4">
-                <Link 
+                <Link
                   href="/products"
                   className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors duration-300"
                 >
                   Browse Products
                 </Link>
-                <button 
+                <button
                   onClick={continueShopping}
                   className="inline-block bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors duration-300"
                 >
@@ -240,7 +212,7 @@ export default function Cart({ cart: initialCart }) {
                 <div className="bg-white rounded-xl shadow-sm overflow-hidden">
                   <div className="p-6 border-b border-gray-100 flex justify-between items-center">
                     <h2 className="text-xl font-bold text-gray-900">Cart Items</h2>
-                    <button 
+                    <button
                       onClick={clearCart}
                       className="text-red-600 hover:text-red-800 font-medium flex items-center"
                     >
@@ -432,7 +404,7 @@ export default function Cart({ cart: initialCart }) {
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">VAT (14%)</span>
+                      <span className="text-gray-600">VAT (15%)</span>
                       <span className="font-medium">R {formatPrice(tax)}</span>
                     </div>
                     {couponApplied && (
