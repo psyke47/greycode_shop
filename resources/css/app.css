@@ -9,5 +9,10 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 
+    /* Define your custom colors with the --color- prefix */
     --color-greycode-light-blue: #2C7DE6;
+    --color-greycode-dark-blue: #042940;
+    --color-greycode-mid-blue: #0578A6;
+    --color-greycode-gray: #575757;
+    --color-greycode-light-gray: #DCDCDC;
 }
