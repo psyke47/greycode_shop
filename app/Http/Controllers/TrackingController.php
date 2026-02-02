@@ -24,8 +24,9 @@ class TrackingController extends Controller
     public function track(Request $request)
     {
         $request->validate([
-            'order_id' => 'nullable|string|max:50',
-            'tracking_number' => 'nullable|string|max:50',
+            'search_input' => 'nullable|string|max:50',
+            'order_id' => 'nullable|string|max:50',      // For auto-detected order ID
+            'tracking_number' => 'nullable|string|max:50', // For auto-detected tracking
             'email' => 'nullable|email',
         ]);
 
@@ -37,45 +38,64 @@ class TrackingController extends Controller
             'user'
         ]);
 
-        // Build search conditions
-        $conditions = [];
+            // Use search_input if provided, otherwise use individual fields
+    $searchInput = $request->search_input;
+    $orderId = $request->order_id;
+    $trackingNumber = $request->tracking_number;
 
-        if ($request->filled('order_id')) {
-            $conditions[] = ['order_number', 'like', '%' . $request->order_id . '%'];
+    // Build search conditions
+    $conditions = [];
+
+    if ($searchInput) {
+        // User entered something in the single input field
+        $conditions[] = ['order_number', 'like', '%' . $searchInput . '%'];
+        $conditions[] = ['tracking_number', 'like', '%' . $searchInput . '%'];
+        
+        // Also try to find by numeric ID if input is just numbers
+        if (is_numeric($searchInput)) {
+            $conditions[] = ['id', '=', (int) $searchInput];
         }
-
-        if ($request->filled('tracking_number')) {
-            $conditions[] = ['tracking_number', 'like', '%' . $request->tracking_number . '%'];
+    } else {
+        // User entered individual fields (backward compatibility)
+        if ($orderId) {
+            $conditions[] = ['order_number', 'like', '%' . $orderId . '%'];
         }
-
-        if ($request->filled('email') && !$user) {
-            // If email provided and user not logged in, find by email
-            $conditions[] = ['email', 'like', '%' . $request->email . '%'];
+        
+        if ($trackingNumber) {
+            $conditions[] = ['tracking_number', 'like', '%' . $trackingNumber . '%'];
         }
+    }
 
-        if ($user) {
-            // If user is logged in, restrict to their orders
-            $query->where('user_id', $user->id);
-        }
-
-        if (empty($conditions)) {
-            return back()->withErrors(['tracking' => 'Please enter either Order ID or Tracking Number']);
-        }
-
-        // Apply conditions
-        $query->where(function($q) use ($conditions) {
-            foreach ($conditions as $condition) {
-                $q->orWhere($condition[0], $condition[1], $condition[2]);
-            }
+    if ($request->filled('email') && !$user) {
+        // If email provided and user not logged in, find by email via user relationship
+        $query->whereHas('user', function($q) use ($request) {
+            $q->where('email', 'like', '%' . $request->email . '%');
         });
+    }
 
-        $order = $query->first();
+    if ($user) {
+        // If user is logged in, restrict to their orders
+        $query->where('user_id', $user->id);
+    }
 
-        if (!$order) {
-            return back()->withErrors([
-                'tracking' => 'Order not found. Please check your details and try again.'
-            ]);
+    if (empty($conditions)) {
+        return back()->withErrors(['tracking' => 'Please enter an Order ID or Tracking Number']);
+    }
+
+    // Apply conditions
+    $query->where(function($q) use ($conditions) {
+        foreach ($conditions as $condition) {
+            $q->orWhere($condition[0], $condition[1], $condition[2]);
         }
+    });
+
+    $order = $query->first();
+
+    if (!$order) {
+        return back()->withErrors([
+            'tracking' => 'Order not found. Please check your details and try again.'
+        ]);
+    }
 
         // Generate timeline based on order status and dates
         $timeline = $this->generateTimeline($order);
@@ -87,7 +107,7 @@ class TrackingController extends Controller
             'statusText' => $this->getStatusText($order->order_status),
             'estimatedDelivery' => $order->estimated_delivery?->format('M d, Y'),
             'actualDelivery' => $order->delivery_date?->format('M d, Y'),
-            'shippedDate' => $this->getShippedDate($order),
+            'shippedDate' => $this->getShippedDate($order)->format('M d, Y'),
             'carrier' => 'FastShip SA', // You can make this a database field
             'service' => 'Standard Shipping',
             'weight' => $this->calculateOrderWeight($order),

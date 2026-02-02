@@ -305,7 +305,7 @@ export default function Cart({ cart: initialCart }) {
                                       >
                                         −
                                       </button>
-                                      <span className="px-4 py-1 text-lg font-medium min-w-[3rem] text-center">
+                                      <span className="px-4 py-1 text-lg font-medium min-w-12 text-center">
                                         {item.quantity}
                                       </span>
                                       <button

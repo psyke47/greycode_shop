@@ -7,14 +7,48 @@ export default function Tracking({ trackingInfo: initialTrackingInfo, searchPara
   const [isLoading, setIsLoading] = useState(false)
   
   const { data, setData, post, errors, processing } = useForm({
+    search_input: searchParams.search_input || '',
     order_id: searchParams.order_id || '',
     tracking_number: searchParams.tracking_number || '',
     email: searchParams.email || '',
   })
 
   const handleSubmit = (e) => {
-    e.preventDefault()
+        e.preventDefault()
+    
+    // Determine if input is order number or tracking number
+    const searchValue = data.search_input.trim()
+    
+    if (!searchValue) {
+      post('/tracking', {
+        data: { ...data, search_input: '' },
+        preserveScroll: true,
+        onStart: () => setIsLoading(true),
+        onFinish: () => setIsLoading(false),
+      })
+      return
+    }
+
+    // Auto-detect what type of input it is
+    const isOrderNumber = searchValue.startsWith('GC-ORD-') || /^\d+$/.test(searchValue)
+    const isTrackingNumber = searchValue.startsWith('TRK') || /^[A-Z0-9]{10,}$/.test(searchValue)
+
+    let formData = { ...data }
+    
+    if (isOrderNumber) {
+      formData.order_id = searchValue
+      formData.tracking_number = ''
+    } else if (isTrackingNumber) {
+      formData.tracking_number = searchValue
+      formData.order_id = ''
+    } else {
+      // If ambiguous, try both
+      formData.order_id = searchValue
+      formData.tracking_number = searchValue
+    }
+
     post('/tracking', {
+      data: formData,
       preserveScroll: true,
       onStart: () => setIsLoading(true),
       onFinish: () => setIsLoading(false),
@@ -59,41 +93,36 @@ export default function Tracking({ trackingInfo: initialTrackingInfo, searchPara
             <div className="bg-white rounded-2xl shadow-lg p-8">
               <form onSubmit={handleSubmit}>
                 <div className="space-y-6">
-                  {/* Order ID */}
+                  {/* Single Smart Input Field */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Order ID
+                      Order or Tracking Number *
                     </label>
-                    <input
-                      type="text"
-                      value={data.order_id}
-                      onChange={(e) => setData('order_id', e.target.value)}
-                      placeholder="e.g., GC-ORD-2401010001"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                    {errors.order_id && (
-                      <p className="mt-1 text-sm text-red-600">{errors.order_id}</p>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={data.search_input}
+                        onChange={(e) => setData('search_input', e.target.value)}
+                        placeholder="Enter GC-ORD-XXXX, TRKXXXXXX, or order number"
+                        className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                      <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
+                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="mt-2 text-sm text-gray-500">
+                      <p>✓ Accepts: <span className="font-medium">GC-ORD-1234</span> (Order ID)</p>
+                      <p>✓ Accepts: <span className="font-medium">TRK789012345</span> (Tracking number)</p>
+                      <p>✓ Accepts: <span className="font-medium">1234</span> (Order number)</p>
+                    </div>
+                    {errors.search_input && (
+                      <p className="mt-1 text-sm text-red-600">{errors.search_input}</p>
                     )}
                   </div>
 
-                  {/* Tracking Number */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Tracking Number
-                    </label>
-                    <input
-                      type="text"
-                      value={data.tracking_number}
-                      onChange={(e) => setData('tracking_number', e.target.value)}
-                      placeholder="e.g., TRK789012345"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                    {errors.tracking_number && (
-                      <p className="mt-1 text-sm text-red-600">{errors.tracking_number}</p>
-                    )}
-                  </div>
-
-                  {/* Email (Optional) */}
+                  {/* Email (Optional) - Show only for guest tracking */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Email Address (Optional)
@@ -106,6 +135,9 @@ export default function Tracking({ trackingInfo: initialTrackingInfo, searchPara
                       placeholder="john@example.com"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
+                    <p className="mt-1 text-sm text-gray-500">
+                      Only needed if you placed the order as a guest
+                    </p>
                     {errors.email && (
                       <p className="mt-1 text-sm text-red-600">{errors.email}</p>
                     )}
@@ -119,7 +151,7 @@ export default function Tracking({ trackingInfo: initialTrackingInfo, searchPara
 
                   <button
                     type="submit"
-                    disabled={processing || isLoading}
+                    disabled={processing || isLoading || !data.search_input.trim()}
                     className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-bold text-lg hover:bg-blue-700 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                   >
                     {processing || isLoading ? (
@@ -245,68 +277,75 @@ export default function Tracking({ trackingInfo: initialTrackingInfo, searchPara
                 </div>
               )}
 
-              {/* Timeline */}
-              <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-                <div className="p-8">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Tracking Timeline</h2>
+{/* Timeline - Mobile Optimized */}
+<div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+  <div className="p-6 md:p-8">
+    <h2 className="text-2xl font-bold text-gray-900 mb-6">Tracking Timeline</h2>
+  </div>
+  <div className="p-6 md:p-8 max-w-xl justify-center mx-auto">
+    
 
-                  <div className="relative">
-                    {/* Vertical Line */}
-                    <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-0.5 bg-blue-200 transform md:-translate-x-1/2"></div>
+    <div className="space-y-6">
+      {trackingInfo.timeline.map((event, index) => (
+        <div key={index} className="flex">
+          {/* Left side - Circle and connecting line (except last) */}
+          <div className="flex flex-col items-center mr-4">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+              event.completed
+                ? (event.status === 'Delivered' ? 'bg-green-500' :
+                   event.status === 'Shipped' ? 'bg-blue-500' :
+                   event.status === 'In Transit' ? 'bg-purple-500' :
+                   'bg-gray-500')
+                : 'bg-gray-300 border-2 border-gray-400'
+            }`}>
+              {event.completed ? (
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              ) : (
+                <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+              )}
+            </div>
+            
+            {/* Connecting line (except for last item) */}
+            {index < trackingInfo.timeline.length - 1 && (
+              <div className="flex-1 w-0.5 bg-gray-200 mt-2"></div>
+            )}
+          </div>
 
-                    {trackingInfo.timeline.map((event, index) => (
-                      <div key={index} className={`relative mb-12 last:mb-0 ${
-                        index % 2 === 0 ? 'md:pr-1/2 md:pl-8' : 'md:pl-1/2 md:pr-8'
-                      }`}>
-                        <div className={`flex items-start ${index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'}`}>
-                          {/* Circle */}
-                          <div className={`z-10 w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-                            event.completed 
-                              ? (event.status === 'Delivered' ? 'bg-green-500' :
-                                 event.status === 'Shipped' ? 'bg-blue-500' :
-                                 event.status === 'In Transit' ? 'bg-purple-500' :
-                                 'bg-gray-500')
-                              : 'bg-gray-300 border-2 border-gray-400'
-                          }`}>
-                            {event.completed ? (
-                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                              </svg>
-                            ) : (
-                              <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                            )}
-                          </div>
-
-                          {/* Content */}
-                          <div className={`ml-6 md:ml-6 ${index % 2 === 0 ? 'md:text-right' : 'md:text-left'}`}>
-                            <div className={`rounded-xl p-6 ${
-                              event.completed 
-                                ? (event.status === 'Delivered' ? 'bg-green-50 border-l-4 border-green-500' :
-                                   event.status === 'Shipped' ? 'bg-blue-50 border-l-4 border-blue-500' :
-                                   'bg-gray-50 border-l-4 border-gray-500')
-                                : 'bg-gray-50 border-l-4 border-gray-300'
-                            }`}>
-                              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3">
-                                <h3 className="font-bold text-gray-900 text-lg">{event.status}</h3>
-                                <span className="text-gray-600">
-                                  {event.date} {event.time !== '--:--' ? `at ${event.time}` : ''}
-                                </span>
-                              </div>
-                              <p className="text-gray-700 mb-2">{event.description}</p>
-                              <div className="flex items-center text-gray-600">
-                                <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                                </svg>
-                                <span className="text-sm">{event.location}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+          {/* Right side - Content */}
+          <div className="flex-1 pb-6">
+            <div className={`rounded-xl p-5 ${
+              event.completed
+                ? (event.status === 'Delivered' ? 'bg-green-50 border-l-4 border-green-500' :
+                   event.status === 'Shipped' ? 'bg-blue-50 border-l-4 border-blue-500' :
+                   'bg-gray-50 border-l-4 border-gray-500')
+                : 'bg-gray-50 border-l-4 border-gray-300'
+            }`}>
+              <div className="mb-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between">
+                  <h3 className="font-bold text-gray-900 text-lg">{event.status}</h3>
+                  <span className="text-sm text-gray-600 mt-1 sm:mt-0">
+                    {event.date} {event.time !== '--:--' && `• ${event.time}`}
+                  </span>
                 </div>
               </div>
+              
+              <p className="text-gray-700 mb-3">{event.description}</p>
+              
+              <div className="flex items-center text-gray-600">
+                <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                </svg>
+                <span className="text-sm">{event.location}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
 
               {/* Package Details */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
