@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\TrackingController;
 
 Route::get('/', function () {
     return Inertia::render('Homepage', ['name' => 'Greycode Shop']);
@@ -97,3 +98,7 @@ Route::middleware(['auth'])->group(function () {
     // Remove the duplicate route: orders/{order}
 });
 Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+
+// Tracking routes
+Route::get('/tracking', [TrackingController::class, 'index'])->name('tracking');
+Route::post('/tracking', [TrackingController::class, 'track'])->name('tracking.track');
