@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Head, Link } from '@inertiajs/react'
 import MainLayout from '../Layouts/MainLayout'
-import SecondaryNav from '../Components/SecondaryNav'
+
 
 export default function Tracking() {
   const [trackingNumber, setTrackingNumber] = useState('')
@@ -118,7 +118,7 @@ export default function Tracking() {
   return (
     <MainLayout>
       <Head title="Track Your Order" />
-      <SecondaryNav />
+
       
       <section className="py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">

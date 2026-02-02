@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Head, Link, usePage, router } from '@inertiajs/react'
 import MainLayout from '../Layouts/MainLayout'
-import SecondaryNav from '../Components/SecondaryNav'
+
 
 const placeholderSVG = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI0U1RTVFNSIvPjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOTk5Ij5Qcm9kdWN0PC90ZXh0Pjwvc3ZnPg=='
 
@@ -156,7 +156,7 @@ export default function Cart({ cart: initialCart }) {
     return (
       <MainLayout>
         <Head title="Loading Cart..." />
-        <SecondaryNav />
+        
         <div className="py-20 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading your cart...</p>
@@ -168,7 +168,7 @@ export default function Cart({ cart: initialCart }) {
   return (
     <MainLayout>
       <Head title="Shopping Cart" />
-      <SecondaryNav />
+      
 
       <section className="py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">

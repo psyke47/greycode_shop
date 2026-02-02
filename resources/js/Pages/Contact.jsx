@@ -1,7 +1,6 @@
 import React from 'react';
 import { Head } from '@inertiajs/react';
 import MainLayout from '../Layouts/MainLayout';
-import SecondaryNav from '../Components/SecondaryNav';
 import { ClockIcon, PhoneIcon, MailIcon } from "lucide-react";
 import SocialIcons from '../Components/SocialIcons';
 
@@ -10,7 +9,7 @@ import SocialIcons from '../Components/SocialIcons';
 const Contact = () => {
     return (
         <MainLayout title="Contact">
-        <SecondaryNav />
+            
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-left pb-16 pt-8">
                     <h1 className="text-5xl font-bold mb-4">Get in touch with sales team</h1>

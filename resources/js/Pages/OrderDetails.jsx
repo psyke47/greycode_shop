@@ -1,7 +1,7 @@
 import React from 'react'
 import { Head, Link, usePage, router } from '@inertiajs/react'
 import MainLayout from '../Layouts/MainLayout'
-import SecondaryNav from '../Components/SecondaryNav'
+
 
 export default function OrderDetails() {
   const { order, flash } = usePage().props
@@ -10,7 +10,7 @@ export default function OrderDetails() {
     return (
       <MainLayout>
         <Head title="Order Not Found" />
-        <SecondaryNav />
+       
         <div className="py-12 text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Order Not Found</h1>
           <Link href="/orders" className="text-blue-600 hover:text-blue-800">
@@ -45,7 +45,7 @@ export default function OrderDetails() {
   return (
     <MainLayout>
       <Head title={`Order ${order.order_number}`} />
-      <SecondaryNav />
+      
 
       <section className="py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">

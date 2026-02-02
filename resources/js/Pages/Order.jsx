@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Head, Link, usePage, router, useForm } from '@inertiajs/react'
 import MainLayout from '../Layouts/MainLayout'
-import SecondaryNav from '../Components/SecondaryNav'
+
 
 export default function Order() {
   const { orders, filters, pagination, stats, flash } = usePage().props
@@ -129,7 +129,7 @@ export default function Order() {
   return (
     <MainLayout>
       <Head title="My Orders" />
-      <SecondaryNav />
+
 
       <section className="py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
