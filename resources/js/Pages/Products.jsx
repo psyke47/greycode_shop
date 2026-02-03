@@ -230,7 +230,7 @@ export default function Products({ products: initialProducts, categories: initia
             
             {/* Left Sidebar - Filters */}
             <div className={`${isFiltersOpen ? 'block' : 'hidden'} lg:block lg:w-1/4`}>
-              <div className="bg-white rounded-xl shadow-lg p-6 lg:sticky lg:top-6">
+              <div className="bg-white rounded-xl shadow-lg p-6 lg:sticky lg:top-6 accent-greycode-light-blue">
                 <div className="flex justify-between items-center mb-6 pb-4 border-b">
                   <div>
                     <h2 className="text-xl font-bold text-gray-900">Filters</h2>
