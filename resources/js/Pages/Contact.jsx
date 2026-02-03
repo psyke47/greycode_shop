@@ -4,6 +4,7 @@ import MainLayout from '../Layouts/MainLayout';
 import SecondaryNav from '../Components/SecondaryNav';
 import { ClockIcon, PhoneIcon, MailIcon } from "lucide-react";
 import SocialIcons from '../Components/SocialIcons';
+import Footer from '../Components/Footer';
 
 
 
@@ -60,7 +61,7 @@ const Contact = () => {
             </div>
                 </div>
             </div>
-            <SocialIcons />
+            <Footer/>
             
                 
             
