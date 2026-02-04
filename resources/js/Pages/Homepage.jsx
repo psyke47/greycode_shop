@@ -21,7 +21,9 @@ const Homepage = () => {
                     </div>
                 </div>
             </div>
+            <Footer />
         </MainLayout>
+        
     );
 }
 
