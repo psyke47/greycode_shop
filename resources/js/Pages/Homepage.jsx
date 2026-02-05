@@ -1,7 +1,7 @@
 import React from 'react';
 import { Head } from '@inertiajs/react';
 import MainLayout from '../Layouts/MainLayout';
-import Footer from '../Components/Footer';
+
 
 
 
@@ -22,7 +22,6 @@ const Homepage = () => {
                     </div>
                 </div>
             </div>
-            <Footer />
         </MainLayout>
         
     );
