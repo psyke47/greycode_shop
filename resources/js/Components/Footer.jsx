@@ -1,7 +1,4 @@
-import React from "react";
-import blackLogo from "../../images/Greycode_G_Logo_black.png";
-import whiteLogo from "/public/images/greycode-white-logo.png";
-import blueLogo from "/public/images/blueGreycodeLogo.png";
+import React from "react";;
 import blackGreycodeLogo from "/public/images/Black-Greycode-Logo.png";
 import SocialIcons from "./SocialIcons";
 
