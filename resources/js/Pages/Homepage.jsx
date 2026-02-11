@@ -1,13 +1,14 @@
 import React from 'react';
 import { Head } from '@inertiajs/react';
 import MainLayout from '../Layouts/MainLayout';
-import SecondaryNav from '../Components/SecondaryNav';
+
+
 
 
 const Homepage = () => {
     return (
         <MainLayout title="Home">
-            <SecondaryNav />
+            
             <div className="min-h-[70vh] flex flex-col justify-center">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center py-16">
@@ -22,6 +23,7 @@ const Homepage = () => {
                 </div>
             </div>
         </MainLayout>
+        
     );
 }
 

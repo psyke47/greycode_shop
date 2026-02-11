@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Head, usePage } from '@inertiajs/react'
 import MainLayout from '../Layouts/MainLayout'
-import SecondaryNav from '../Components/SecondaryNav'
+
 
 // Define the SVG data URL as a string
 const placeholderSVG = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI0U1RTVFNSIvPjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOTk5Ij5Qcm9kdWN0IEltYWdlPC90ZXh0Pjwvc3ZnPg=='
@@ -198,7 +198,7 @@ export default function Products({ products: initialProducts, categories: initia
   return (
     <MainLayout>
       <Head title="Products" />
-      <SecondaryNav />
+
       
       <section className="py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
@@ -230,7 +230,7 @@ export default function Products({ products: initialProducts, categories: initia
             
             {/* Left Sidebar - Filters */}
             <div className={`${isFiltersOpen ? 'block' : 'hidden'} lg:block lg:w-1/4`}>
-              <div className="bg-white rounded-xl shadow-lg p-6 lg:sticky lg:top-6">
+              <div className="bg-white rounded-xl shadow-lg p-6 lg:sticky lg:top-6 accent-greycode-light-blue">
                 <div className="flex justify-between items-center mb-6 pb-4 border-b">
                   <div>
                     <h2 className="text-xl font-bold text-gray-900">Filters</h2>

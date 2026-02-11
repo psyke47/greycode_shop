@@ -35,9 +35,40 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        return [
-            ...parent::share($request),
-            //
-        ];
+        return array_merge(parent::share($request), [
+            'auth' => [
+                'user' => $request->user() ? [
+                    'id' => $request->user()->id,
+                    'username' => $request->user()->username,
+                    'first_name' => $request->user()->first_name,
+                    'last_name' => $request->user()->last_name,
+                    'email' => $request->user()->email,
+                    'phone' => $request->user()->phone,
+                    'is_admin' => $request->user()->is_admin,
+                ] : null,
+                'cart_count' => function () use ($request) {
+                    if (!$request->user()) {
+                        return 0;
+                    }
+                    
+                    // CORRECT: Using cartItems() not cart_items()
+                    $cart = \App\Models\Cart::with('cartItems')
+                        ->where('user_id', $request->user()->id)
+                        ->first();
+                    
+                    if (!$cart) {
+                        return 0;
+                    }
+                    
+                    // Access the relationship
+                    return $cart->cartItems->sum('quantity');
+                },
+            ],
+            'flash' => [
+                'message' => fn () => $request->session()->get('message'),
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+            ],
+        ]);
     }
 }

@@ -1,14 +1,23 @@
 import React, { useState, useEffect } from 'react'
-import { Head, usePage, Link } from '@inertiajs/react'
+import { Head, usePage, Link, router } from '@inertiajs/react'
 import MainLayout from '../Layouts/MainLayout'
-import SecondaryNav from '../Components/SecondaryNav'
+
 
 const placeholderSVG = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI0U1RTVFNSIvPjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOTk5Ij5Qcm9kdWN0IEltYWdlPC90ZXh0Pjwvc3ZnPg=='
 
 export default function ProductDetail({ product: initialProduct, relatedProducts: initialRelated }) {
   const { props } = usePage()
+  console.log('CSRF token from props:', props.csrf_token)
+  console.log('All props:', props)
+
   const product = props.product || initialProduct
   const relatedProducts = props.relatedProducts || initialRelated || []
+
+  const csrfToken = props.csrf_token || document.querySelector('meta[name="csrf-token"]')?.content
+
+  const metaTag = document.querySelector('meta[name="csrf-token"]')
+  console.log('Meta tag found:', metaTag)
+  console.log('Meta tag content:', metaTag?.content)
   
   const [quantity, setQuantity] = useState(1)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
@@ -17,7 +26,7 @@ export default function ProductDetail({ product: initialProduct, relatedProducts
     return (
       <MainLayout>
         <Head title="Product Not Found" />
-        <SecondaryNav />
+        
         <div className="py-20 text-center">
           <h1 className="text-2xl font-bold text-gray-900">Product not found</h1>
           <Link href="/products" className="mt-4 inline-block text-blue-600 hover:text-blue-800">
@@ -73,10 +82,10 @@ export default function ProductDetail({ product: initialProduct, relatedProducts
   }
 
   // Handle add to cart
-  const handleAddToCart = () => {
-    console.log(`Added ${quantity} of ${product.name} to cart`)
+  /* const handleAddToCart = () => {
+    console.log(`Added ${quantity} of ${product.name} to cart`) */
     // Inertia.post('/cart/add', { product_id: product.id, quantity })
-  }
+  /* }// */
 
   // Related product image URL helper
   const getRelatedProductImage = (product) => {
@@ -88,35 +97,27 @@ export default function ProductDetail({ product: initialProduct, relatedProducts
     return placeholderSVG
   }
 
-  const handleAddToCart = async () => {
-    try {
-        const response = await fetch(`/cart/add/${product.id}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify({ quantity: quantity })
-        });
-        
-        if (response.ok) {
-            alert('Product added to cart!');
-            // Optionally redirect to cart or update cart badge
-        } else {
-            alert('Failed to add to cart. Please try again.');
-        }
-    } catch (error) {
-        console.error('Error adding to cart:', error);
-        alert('An error occurred. Please try again.');
+  const handleAddToCart = () => {
+  router.post(`/cart/add/${product.id}`, {
+    quantity: quantity
+  }, {
+    preserveScroll: true,
+    onSuccess: (page) => {
+      alert('✅ Product added to cart!')
+      console.log('Success response:', page)
+    },
+    onError: (errors) => {
+      console.error('Add to cart errors:', errors)
+      alert(errors.message || errors.quantity?.[0] || 'Failed to add to cart')
     }
-};
-
+  })
+}
   return (
     <MainLayout>
       <Head title={product.name} />
-      <SecondaryNav />
       
-      <div className="py-8 px-4 sm:px-6 lg:px-8">
+
+      <div className="py-8 px-4 sm:px-6 lg:px-8 bg-gray-50">
         <div className="max-w-7xl mx-auto">
           {/* Breadcrumb */}
           <nav className="mb-6">
