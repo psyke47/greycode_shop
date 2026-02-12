@@ -7,6 +7,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\TrackingController;
+use App\Http\Controllers\CheckoutController;
 
 Route::get('/', function () {
     return Inertia::render('Homepage', ['name' => 'Greycode Shop']);
@@ -102,3 +103,9 @@ Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.sh
 // Tracking routes
 Route::get('/tracking', [TrackingController::class, 'index'])->name('tracking');
 Route::post('/tracking', [TrackingController::class, 'track'])->name('tracking.track');
+
+// Checkout routes (protected)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
+    Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+});
