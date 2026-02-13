@@ -24,7 +24,7 @@ class OrderController extends Controller
 
         // Build base query with relationships
         $query = Order::with([
-            'user:id,first_name,last_name,email,username', // Load user for admin view
+            'user:id,first_name,last_name,email', // Load user for admin view
             'items.product.productImages', 
             'shippingAddress', 
             'billingAddress'
@@ -309,13 +309,13 @@ class OrderController extends Controller
      */
     private function getUserList()
     {
-        return User::select('id', 'first_name', 'last_name', 'email', 'username')
-            ->orderBy('username')
+        return User::select('id', 'first_name', 'last_name', 'email')
+            ->orderBy('first_name')
             ->get()
             ->map(function($user) {
                 return [
                     'id' => $user->id,
-                    'label' => "{$user->first_name} {$user->last_name} {$user->email} ({$user->username})"
+                    'label' => "{$user->first_name} {$user->last_name} {$user->email}"
                 ];
             });
     }
