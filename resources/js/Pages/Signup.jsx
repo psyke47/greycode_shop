@@ -6,7 +6,7 @@ import { objectToFormData } from '@inertiajs/core';
 
 export default function Signup() {
   const { data, setData, post, processing, errors } = useForm({
-    username: '',
+    
     first_name: '',
     last_name: '',
     email: '',
@@ -96,27 +96,7 @@ export default function Signup() {
                   </div>
                 </div>
               </div>
-              <div>
-            
-                <div className='relative'>
-                  <input
-                    id="username"
-                    name="username"
-                    type="text"
-                    autoComplete="username"
-                    required
-                    value={data.username}
-                    onChange={(e) => setData('username', e.target.value)}
-                    className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-greycode-light-blue focus:z-10 sm:text-sm peer"
-                    placeholder=" "
-                  />
-                  <label
-                    htmlFor="username"
-                    className="absolute text-md text-body duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-neutral-primary px-2 peer-focus:px-2 peer-focus:text-fg-brand peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-5 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto left-1 peer-focus:bg-white peer-focus:text-greycode-light-blue">
-                    Username
-                  </label>
-                </div>
-              </div>
+              
               <div className="grid grid-cols-2 gap-4">
                 <div>
             

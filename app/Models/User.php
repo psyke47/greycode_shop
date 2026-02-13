@@ -19,13 +19,13 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'username',
         'first_name',
         'last_name',
         'email',
         'phone',
         'date_of_birth',
         'password'
+        /* 'is_admin' */
     ];
 
     /**
@@ -48,6 +48,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            /* 'date_of_birth' => 'date',
+            'is_admin' => 'boolean', */
         ];
     }
     
@@ -66,7 +68,8 @@ class User extends Authenticatable
     */
     public function latestOrder()
     {
-        return $this->hasOne(Order::class)->latestOrder();
+        /* return $this->hasOne(Order::class)->latestOrder(); */
+        return $this->hasOne(Order::class)->latestOfMany();
     }
 
     public function addresses() 
