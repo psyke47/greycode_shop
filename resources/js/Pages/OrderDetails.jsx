@@ -65,7 +65,7 @@ export default function OrderDetails() {
           {/* Back Button */}
           <div className="mb-6">
             <Link
-              href="/orders"
+              href="/order"
               className="inline-flex items-center text-blue-600 hover:text-blue-800"
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -120,10 +120,10 @@ export default function OrderDetails() {
             {/* Payment Status */}
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
               <div>
-                <p className="font-medium text-gray-900">Payment Status</p>
+                <p className="font-medium text-gray-900">Payment Method</p>
                 <p className="text-gray-600">{order.payment_method}</p>
               </div>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+              <span className={`px-3 py-1 rounded-full text-lg font-medium ${
                 order.payment_status === 'paid' ? 'bg-green-100 text-green-800' :
                 order.payment_status === 'refunded' ? 'bg-red-100 text-red-800' :
                 'bg-yellow-100 text-yellow-800'
