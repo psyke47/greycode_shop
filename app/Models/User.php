@@ -48,8 +48,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            /* 'date_of_birth' => 'date',
-            'is_admin' => 'boolean', */
+            'is_admin' => 'boolean',
+            'date_of_birth' => 'date'
         ];
     }
     
