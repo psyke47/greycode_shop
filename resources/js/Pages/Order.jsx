@@ -33,8 +33,8 @@ export default function Order() {
     })
   }
 
-  // And for the back link:
-  {/* <Link href={route('orders')}>Back to Orders</Link> */}
+ 
+<Link href="/order">Back to Orders</Link>
 
   const handleCancelOrder = (orderId, e) => {
     e.preventDefault()

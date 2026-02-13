@@ -1,5 +1,8 @@
 import { Head, useForm, Link } from '@inertiajs/react';
 import React from 'react';
+import gasSensor1 from '/./public/images/GasSensor1.png';
+import blackLogo from '../../images/Greycode_G_Logo_black.png'
+import { objectToFormData } from '@inertiajs/core';
 
 export default function Signup() {
   const { data, setData, post, processing, errors } = useForm({
@@ -19,169 +22,388 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex ">
       <Head title="Sign Up" />
       
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Or{' '}
-            <Link href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
-              sign in to your existing account
-            </Link>
-          </p>
-        </div>
+      <div className='flex'>
+        <div className='hidden lg:flex lg:w-3/5 h-screen relative'>
+          <div className='flex items-center justify-left'>
+            <img 
+              src={gasSensor1} 
+              alt="Gas Sensor" 
+              className="w-full h-full object-cover [clip-path:polygon(0_0,100%_0,80%_100%,0_100%)]" 
+              />
+            </div>
+          </div>
+        <div className="w-full lg:w-2/5 flex items-center justify-center h-screen">
+          <div className="w-full max-w-md px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-center items-center ">
+              <img src={blackLogo} alt="Greycode Logo" className="mx-auto pb-5 lg:py-5  object-contain w-36 h-36" />
+            </div>
+            <h2 className="text-center text-2xl font-bold text-gray-800">Create Your Account</h2>
+            <p className="mt-2 text-center text-sm text-gray-600">
+                  Or{' '}
+                  <Link href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+                    sign in to your existing account
+                  </Link>
+            </p>
+            <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+              {Object.keys(errors).length > 0 && (
+                <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                  <div className="text-red-600 text-sm">
+                    {Object.values(errors).map((error, index) => (
+                      <div key={index}>• {error}</div>
+                    ))}
+                  </div>
+                </div>
+                )
+              }
+              <div className="grid grid-cols-2 gap-4">
+                <div className="relative">
+            
+                  <input
+                    id="first_name"
+                    name="first_name"
+                    type="text"
+                    autoComplete="first_name"
+                    required
+                    value={data.first_name}
+                    onChange={(e) => setData('first_name', e.target.value)}
+                    className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-greycode-light-blue focus:z-10 sm:text-sm peer"
+                    placeholder=" "
+                  />
+                  <label htmlFor="first_name"
+                  className="absolute text-sm text-body duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-neutral-primary px-2 peer-focus:px-2 peer-focus:text-fg-brand peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-5 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto left-1 peer-focus:bg-white peer-focus:text-greycode-light-blue">
+                    First Name</label>
+                </div>
+                <div>
+                  <div className="relative">
+                    <input
+                      id="last_name"
+                      name="last_name"
+                      type="text"
+                      autoComplete="last_name"
+                      required
+                      value={data.last_name}
+                      onChange={(e) => setData('last_name', e.target.value)}
+                      className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-greycode-light-blue focus:z-10 sm:text-sm peer"
+                      placeholder=" "
+                    />
+                    <label htmlFor="last_name" className="absolute text-sm text-body duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-neutral-primary px-2 peer-focus:px-2 peer-focus:text-fg-brand peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-5 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto left-1 peer-focus:bg-white peer-focus:text-greycode-light-blue">
+                      Last Name
+                    </label>
+            
+                  </div>
+                </div>
+              </div>
+              <div>
+            
+                <div className='relative'>
+                  <input
+                    id="username"
+                    name="username"
+                    type="text"
+                    autoComplete="username"
+                    required
+                    value={data.username}
+                    onChange={(e) => setData('username', e.target.value)}
+                    className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-greycode-light-blue focus:z-10 sm:text-sm peer"
+                    placeholder=" "
+                  />
+                  <label
+                    htmlFor="username"
+                    className="absolute text-md text-body duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-neutral-primary px-2 peer-focus:px-2 peer-focus:text-fg-brand peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-5 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto left-1 peer-focus:bg-white peer-focus:text-greycode-light-blue">
+                    Username
+                  </label>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+            
+                  <div className="relative">
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      value={data.email}
+                      onChange={(e) => setData('email', e.target.value)}
+                      className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-greycode-light-blue focus:z-10 sm:text-sm peer"
+                      placeholder=" "
+                    />
+                    <label htmlFor="email" className="absolute text-md text-body duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-neutral-primary px-2 peer-focus:px-2 peer-focus:text-fg-brand peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-5 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto left-1 peer-focus:bg-white peer-focus:text-greycode-light-blue">
+                      Email Address
+                    </label>
+                  </div>
+                </div>
+                <div>
+                  <div className="relative">
+            
+                    <input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      required
+                      value={data.phone}
+                      onChange={(e) => setData('phone', e.target.value)}
+                      className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-greycode-light-blue focus:z-10 sm:text-sm peer"
+                      placeholder=" "
+                    />
+                    <label htmlFor="phone" className="absolute text-md text-body duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-neutral-primary px-2 peer-focus:px-2 peer-focus:text-fg-brand peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-5 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto left-1 peer-focus:bg-white peer-focus:text-greycode-light-blue">
+                      Phone Number
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div className="relative">
+            
+                <input
+                  id="date_of_birth"
+                  name="date_of_birth"
+                  type="text"
+                  onFocus={(e) => e.target.type = "date"}
+                  onBlur={(e) => {
+                    if (!e.target.value) {
+                          e.target.type = "text";
+                    }
+                  }}
+                  required
+                  value={data.date_of_birth}
+                  onChange={(e) => setData('date_of_birth', e.target.value)}
+                  className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm peer"
+                  placeholder=" "
+                />
+                <label htmlFor="date_of_birth" className="absolute text-md text-body duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-neutral-primary px-2 peer-focus:px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-6 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto left-1 peer-focus:bg-white peer-focus:text-greycode-light-blue">
+                  Date of Birth
+                </label>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="relative">
+            
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    value={data.password}
+                    onChange={(e) => setData('password', e.target.value)}
+                    className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm peer"
+                    placeholder=" "
+                  />
+                  <label htmlFor="password" className="absolute text-md text-body duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-neutral-primary px-2 peer-focus:px-2 peer-focus:text-fg-brand peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-5 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto left-1 peer-focus:bg-white peer-focus:text-greycode-light-blue">
+                    Password
+                  </label>
+                </div>
+                <div className="relative">
+            
+                  <input
+                    id="password_confirmation"
+                    name="password_confirmation"
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    value={data.password_confirmation}
+                    onChange={(e) => setData('password_confirmation', e.target.value)}
+                    className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm peer"
+                    placeholder=" "
+                  />
+                  <label htmlFor="password_confirmation" className="absolute text-md text-body duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-neutral-primary px-2 peer-focus:px-2 peer-focus:text-fg-brand peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-5 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto left-1 peer-focus:bg-white peer-focus:text-greycode-light-blue">
+                    Confirm Password
+                  </label>
+                </div>
+              </div>
+              <div>
+                <button
+                  type="submit"
+                  disabled={processing}
+                  className="group relative w-full flex justify-center items-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-greycode-light-blue hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                >
+                  {processing ? 'Creating account...' : 'Sign up'}
+                </button>
+              </div>
+            </form>
+          </div>
+          </div>
+      </div>
+
+
+
+
+
+
+
+        {/* Left side - only visible on larger screens */}
+        {/* <div className="hidden lg:flex lg:w-3/5 bg-white">
+          <img src={gasSensor1} alt="Gas Sensor" className="w-full h-full object-cover [clip-path:polygon(0_0,100%_0,80%_100%,0_100%)]" />
+        </div> */}
+        {/* Right side - signup form */}
+        {/* <div className="w-full lg:w-2/5 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+          
+              <div className="flex justify-center ">
+                  <img src={blackLogo} alt="Greycode Logo" className="mx-auto pb-5 lg:py-5  object-contain w-36 h-36" />
+              </div>
+            <div className="w-full space-y-8">
+              <h2 className="text-center text-3xl font-extrabold text-gray-900">
+                Create your account
+              </h2>
+              <p className="mt-2 text-center text-sm text-gray-600">
+                Or{' '}
+                <Link href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+                  sign in to your existing account
+                </Link>
+              </p>
+            </div>
+          
         
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {Object.keys(errors).length > 0 && (
-            <div className="bg-red-50 border border-red-200 rounded-md p-4">
-              <div className="text-red-600 text-sm">
-                {Object.values(errors).map((error, index) => (
-                  <div key={index}>• {error}</div>
-                ))}
+          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+            {Object.keys(errors).length > 0 && (
+              <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                <div className="text-red-600 text-sm">
+                  {Object.values(errors).map((error, index) => (
+                    <div key={index}>• {error}</div>
+                  ))}
+                </div>
+              </div>
+            )}
+        
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="first_name" className="block text-sm font-medium text-gray-700">
+                  First Name
+                </label>
+                <input
+                  id="first_name"
+                  name="first_name"
+                  type="text"
+                  required
+                  value={data.first_name}
+                  onChange={(e) => setData('first_name', e.target.value)}
+                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                />
+              </div>
+        
+              <div>
+                <label htmlFor="last_name" className="block text-sm font-medium text-gray-700">
+                  Last Name
+                </label>
+                <input
+                  id="last_name"
+                  name="last_name"
+                  type="text"
+                  required
+                  value={data.last_name}
+                  onChange={(e) => setData('last_name', e.target.value)}
+                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                />
               </div>
             </div>
-          )}
-          
-          <div className="grid grid-cols-2 gap-4">
+        
             <div>
-              <label htmlFor="first_name" className="block text-sm font-medium text-gray-700">
-                First Name
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+                Username
               </label>
               <input
-                id="first_name"
-                name="first_name"
+                id="username"
+                name="username"
                 type="text"
                 required
-                value={data.first_name}
-                onChange={(e) => setData('first_name', e.target.value)}
+                value={data.username}
+                onChange={(e) => setData('username', e.target.value)}
                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
               />
             </div>
-            
+        
             <div>
-              <label htmlFor="last_name" className="block text-sm font-medium text-gray-700">
-                Last Name
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email Address
               </label>
               <input
-                id="last_name"
-                name="last_name"
-                type="text"
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
                 required
-                value={data.last_name}
-                onChange={(e) => setData('last_name', e.target.value)}
+                value={data.email}
+                onChange={(e) => setData('email', e.target.value)}
                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
               />
             </div>
-          </div>
-          
-          <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-              Username
-            </label>
-            <input
-              id="username"
-              name="username"
-              type="text"
-              required
-              value={data.username}
-              onChange={(e) => setData('username', e.target.value)}
-              className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email Address
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={data.email}
-              onChange={(e) => setData('email', e.target.value)}
-              className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-              Phone Number
-            </label>
-            <input
-              id="phone"
-              name="phone"
-              type="tel"
-              required
-              value={data.phone}
-              onChange={(e) => setData('phone', e.target.value)}
-              className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="date_of_birth" className="block text-sm font-medium text-gray-700">
-              Date of Birth
-            </label>
-            <input
-              id="date_of_birth"
-              name="date_of_birth"
-              type="date"
-              required
-              value={data.date_of_birth}
-              onChange={(e) => setData('date_of_birth', e.target.value)}
-              className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Password
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="new-password"
-              required
-              value={data.password}
-              onChange={(e) => setData('password', e.target.value)}
-              className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="password_confirmation" className="block text-sm font-medium text-gray-700">
-              Confirm Password
-            </label>
-            <input
-              id="password_confirmation"
-              name="password_confirmation"
-              type="password"
-              autoComplete="new-password"
-              required
-              value={data.password_confirmation}
-              onChange={(e) => setData('password_confirmation', e.target.value)}
-              className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-            />
-          </div>
-          
-          <div>
-            <button
-              type="submit"
-              disabled={processing}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-            >
-              {processing ? 'Creating account...' : 'Sign up'}
-            </button>
-          </div>
-        </form>
-      </div>
+        
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                Phone Number
+              </label>
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                required
+                value={data.phone}
+                onChange={(e) => setData('phone', e.target.value)}
+                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              />
+            </div>
+        
+            <div>
+              <label htmlFor="date_of_birth" className="block text-sm font-medium text-gray-700">
+                Date of Birth
+              </label>
+              <input
+                id="date_of_birth"
+                name="date_of_birth"
+                type="date"
+                required
+                value={data.date_of_birth}
+                onChange={(e) => setData('date_of_birth', e.target.value)}
+                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              />
+            </div>
+        
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="new-password"
+                required
+                value={data.password}
+                onChange={(e) => setData('password', e.target.value)}
+                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              />
+            </div>
+        
+            <div>
+              <label htmlFor="password_confirmation" className="block text-sm font-medium text-gray-700">
+                Confirm Password
+              </label>
+              <input
+                id="password_confirmation"
+                name="password_confirmation"
+                type="password"
+                autoComplete="new-password"
+                required
+                value={data.password_confirmation}
+                onChange={(e) => setData('password_confirmation', e.target.value)}
+                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              />
+            </div>
+        
+            <div>
+              <button
+                type="submit"
+                disabled={processing}
+                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              >
+                {processing ? 'Creating account...' : 'Sign up'}
+              </button>
+            </div>
+          </form>
+        </div> */}
     </div>
   );
 }

@@ -310,7 +310,7 @@ export default function OrderDetails() {
                     <button
                       onClick={() => {
                         if (confirm('Are you sure you want to cancel this order?')) {
-                          router.post(`/orders/${order.id}/cancel`)
+                          router.post(`/order/${order.id}/cancel`)
                         }
                       }}
                       className="w-full bg-red-600 text-white py-3 rounded-lg font-medium hover:bg-red-700 transition-colors"
@@ -324,7 +324,7 @@ export default function OrderDetails() {
                       onClick={() => {
                         const reason = prompt('Please enter the reason for return:')
                         if (reason) {
-                          router.post(`/orders/${order.id}/return`, { reason })
+                          router.post(`/order/${order.id}/return`, { reason })
                         }
                       }}
                       className="w-full bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors"

@@ -37,7 +37,7 @@ const NavBar = () => {
     const isAdmin = auth?.user?.is_admin;
 
     return (
-        <header className="flex items-center justify-between px-6 py-3 md:py-4 shadow mx-auto w-full bg-white">
+        <header className="flex items-center justify-between px-6 py-3 md:py-4 shadow mx-auto w-full bg-white z-11">
             <Link href="/">
                 <img 
                     src={blackLogo}
@@ -48,7 +48,7 @@ const NavBar = () => {
 
             <nav
                 id="menu"
-                className={`max-md:absolute max-md:top-0 max-md:left-0 max-md:overflow-hidden items-center justify-center md:justify-end max-md:h-full bg-white/50 backdrop-blur flex-col md:flex-row flex gap-8 text-gray-900 text-sm font-normal transition-all duration-300 ${
+                className={`max-md:absolute max-md:top-0 max-md:left-0 max-md:overflow-hidden items-center justify-center md:justify-end max-md:h-full bg-white/50 backdrop-blur flex-col md:flex-row flex gap-8 text-gray-900 text-sm font-normal transition-all duration-300  max-md:z-50 ${
                     isMenuOpen ? 'max-md:w-full' : 'max-md:w-0'
                 }`}
             >
