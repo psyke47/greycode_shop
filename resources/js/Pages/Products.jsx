@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Head, usePage } from '@inertiajs/react'
 import MainLayout from '../Layouts/MainLayout'
+import PageHead from '../Components/PageHead'
 
 
 // Define the SVG data URL as a string
@@ -197,7 +198,7 @@ export default function Products({ products: initialProducts, categories: initia
 
   return (
     <MainLayout>
-      <Head title="Products" />
+      <PageHead title="Products" />
 
       
       <section className="py-8 px-4 sm:px-6 lg:px-8">

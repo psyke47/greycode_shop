@@ -3,6 +3,7 @@ import React from 'react';
 import gasSensor from '/./public/images/GasSensor.png';
 import gasSensor1 from '/./public/images/GasSensor1.png';
 import blackLogo from '../../images/Greycode_G_Logo_black.png'
+import PageHead from '../Components/PageHead';
 
 export default function Login() {
   const { data, setData, post, processing, errors } = useForm({

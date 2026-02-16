@@ -10,15 +10,13 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/images/favicons/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-title" content="Greycode" />
     <link rel="manifest" href="/images/favicons/site.webmanifest" />
-    <title>Greycode Shop</title>
+    
     @viteReactRefresh
     @vite(['resources/css/app.css', 'resources/js/app.jsx'])
     @inertiaHead
 </head>
 <body>
     @inertia
-    <div class="min-h-screen flex flex-col items-center justify-center bg-gray-900">
-        <h1 class="text-9xl text-white">Greycode Shop</h1>
-    </div>
+    
 </body>
 </html>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Head, Link, useForm, router } from '@inertiajs/react'
 import MainLayout from '../Layouts/MainLayout'
 import { ShoppingBag, Truck, CreditCard, MapPin, ChevronRight, ChevronDown, CheckCircle, AlertCircle } from 'lucide-react'
+import PageHead from '../Components/PageHead'
 
 export default function Checkout({ 
   cart, 
@@ -132,7 +133,7 @@ export default function Checkout({
 
   return (
     <MainLayout>
-      <Head title="Checkout" />
+      <PageHead title="Checkout" />
 
       <div className="bg-gray-50 min-h-screen py-8 px-4 sm:px-6 lg:px-8 accent-greycode-light-blue">
         <div className="max-w-7xl mx-auto">

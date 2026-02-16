@@ -3,6 +3,7 @@ import React from 'react';
 import gasSensor1 from '/./public/images/GasSensor1.png';
 import blackLogo from '../../images/Greycode_G_Logo_black.png'
 import { objectToFormData } from '@inertiajs/core';
+import PageHead from '../Components/PageHead';
 
 export default function Signup() {
   const { data, setData, post, processing, errors } = useForm({
@@ -23,7 +24,7 @@ export default function Signup() {
 
   return (
     <div className="min-h-screen flex ">
-      <Head title="Sign Up" />
+      <PageHead title="Sign Up" />
       
       <div className='flex'>
         <div className='hidden lg:flex lg:w-3/5 h-screen relative'>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Head, Link, usePage, router, useForm } from '@inertiajs/react'
 import MainLayout from '../Layouts/MainLayout'
+import PageHead from '../Components/PageHead'
 
 
 export default function Order() {
@@ -128,7 +129,7 @@ export default function Order() {
 
   return (
     <MainLayout>
-      <Head title="My Orders" />
+      <PageHead title="My Orders" />
 
 
       <section className="py-8 px-4 sm:px-6 lg:px-8">
