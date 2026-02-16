@@ -2,7 +2,8 @@ import { Head, useForm, Link } from '@inertiajs/react';
 import React from 'react';
 import gasSensor1 from '/./public/images/GasSensor1.png';
 import blackLogo from '../../images/Greycode_G_Logo_black.png'
-import { objectToFormData } from '@inertiajs/core';
+import Footer from '../Components/Footer';
+
 
 export default function Signup() {
   const { data, setData, post, processing, errors } = useForm({
@@ -22,10 +23,18 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen flex ">
+    <div className="min-h-screen ">
       <Head title="Sign Up" />
-      
-      <div className='flex'>
+      <header className="flex items-center justify-between px-6 py-3 md:py-4 shadow mx-auto w-full bg-white z-11">
+          <Link href="/">
+             <img 
+                src={blackLogo}
+                alt="Greycode Black Logo"
+                className="w-auto h-12" 
+              />
+           </Link>
+      </header>
+      <main className="flex-1 flex">
         <div className='hidden lg:flex lg:w-3/5 h-screen relative'>
           <div className='flex items-center justify-left'>
             <img 
@@ -94,9 +103,8 @@ export default function Signup() {
                     </label>
             
                   </div>
-                </div>
+                  </div>
               </div>
-              
               <div className="grid grid-cols-2 gap-4">
                 <div>
             
@@ -206,7 +214,11 @@ export default function Signup() {
             </form>
           </div>
           </div>
-      </div>
+          </main>
+      <Footer />
+    </div>
+  );
+      
 
 
 
@@ -384,10 +396,6 @@ export default function Signup() {
             </div>
           </form>
         </div> */}
-    </div>
-  );
-}
-
 
 
 /* import { Head } from '@inertiajs/react'
@@ -501,4 +509,4 @@ export default function SignUp() {
           </p>
         </form>
       </div>
-    </div> */} 
+    </div> */} }
