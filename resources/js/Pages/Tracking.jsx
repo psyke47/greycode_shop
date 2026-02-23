@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Head, Link, useForm, router } from '@inertiajs/react'
 import MainLayout from '../Layouts/MainLayout'
+import PageHead from '../Components/PageHead'
 
 
 export default function Tracking({ trackingInfo: initialTrackingInfo, searchParams = {}, flash }) {

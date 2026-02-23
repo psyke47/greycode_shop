@@ -9,6 +9,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\TrackingController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\PayFastController;
 
 Route::get('/', function () {
     return Inertia::render('Homepage', ['name' => 'Greycode Shop']);
@@ -118,4 +119,11 @@ Route::post('/tracking', [TrackingController::class, 'track'])->name('tracking.t
 Route::middleware(['auth'])->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+});
+
+// PayFast routes
+Route::prefix('payfast')->name('payfast.')->group(function () {
+    Route::post('/notify', [PayFastController::class, 'notify'])->name('notify');
+    Route::get('/success/{order}', [PayFastController::class, 'success'])->name('return');
+    Route::get('/cancel/{order}', [PayFastController::class, 'cancel'])->name('cancel');
 });
