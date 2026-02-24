@@ -1,13 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { Link, usePage, useForm } from '@inertiajs/react';
-import blackLogo from '../../images/Greycode_G_Logo_black.png';
-import { User, LogOut, ShoppingCart, Settings, Shield } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { Link, usePage, useForm } from "@inertiajs/react";
+import blackLogo from "../../images/Greycode_G_Logo_black.png";
+import axios from 'axios';
+import { User, LogOut, ShoppingCart, Settings, Shield, Heart } from "lucide-react";
 
-const NavBar = () => {
+const NavBar = ({ wishlistCount = 0 }) => {
     const { auth } = usePage().props;
     const { post } = useForm();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
+    
+    // FIX: Define isAdmin here
+    const isAdmin = auth?.user?.is_admin;
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
@@ -22,7 +26,7 @@ const NavBar = () => {
     };
 
     const handleLogout = () => {
-        post('/logout');
+        post("/logout");
         closeMenu();
     };
 
@@ -33,59 +37,56 @@ const NavBar = () => {
         setCartCount(auth?.cart_count || 0);
     }, [auth]);
 
-    // Check if user is admin
-    const isAdmin = auth?.user?.is_admin;
-
     return (
         <header className="flex items-center justify-between px-6 py-3 md:py-4 shadow mx-auto w-full bg-white z-11">
             <Link href="/">
-                <img 
+                <img
                     src={blackLogo}
                     alt="Greycode Black Logo"
-                    className="w-auto h-12" 
+                    className="w-auto h-12"
                 />
             </Link>
 
             <nav
                 id="menu"
                 className={`max-md:absolute max-md:top-0 max-md:left-0 max-md:overflow-hidden items-center justify-center md:justify-end max-md:h-full bg-white/50 backdrop-blur flex-col md:flex-row flex gap-8 text-gray-900 text-sm font-normal transition-all duration-300  max-md:z-50 ${
-                    isMenuOpen ? 'max-md:w-full' : 'max-md:w-0'
+                    isMenuOpen ? "max-md:w-full" : "max-md:w-0"
                 }`}
             >
-                <Link 
-                    className="hover:text-indigo-600" 
+                <Link
+                    className="hover:text-indigo-600"
                     href="/products"
                     onClick={closeMenu}
                 >
                     Products
                 </Link>
-                
+
                 {auth.user && (
-                    <Link 
-                        className="hover:text-indigo-600" 
+                    <Link
+                        className="hover:text-indigo-600"
                         href="/order"
                         onClick={closeMenu}
                     >
                         Order History
                     </Link>
                 )}
-                
-                <Link 
-                    className="hover:text-indigo-600" 
+
+                <Link
+                    className="hover:text-indigo-600"
                     href="/tracking"
                     onClick={closeMenu}
                 >
                     Tracking
                 </Link>
-                
-                <Link 
-                    className="hover:text-indigo-600" 
+
+                <Link
+                    className="hover:text-indigo-600"
                     href="/contact"
                     onClick={closeMenu}
                 >
                     Contact Us
                 </Link>
-                
+
                 {/* Admin Links for mobile */}
                 {isAdmin && (
                     <div className="md:hidden flex flex-col items-center gap-4">
@@ -93,8 +94,8 @@ const NavBar = () => {
                             <Shield className="w-4 h-4" />
                             <span>Admin Panel</span>
                         </div>
-                        <Link 
-                            className="hover:text-indigo-600 pl-4" 
+                        <Link
+                            className="hover:text-indigo-600 pl-4"
                             href="/admin/order"
                             onClick={closeMenu}
                         >
@@ -102,7 +103,7 @@ const NavBar = () => {
                         </Link>
                     </div>
                 )}
-                
+
                 {/* Auth section for mobile */}
                 <div className="md:hidden flex flex-col items-center gap-4 mt-4">
                     {auth.user ? (
@@ -128,15 +129,23 @@ const NavBar = () => {
                         </>
                     ) : (
                         <>
-                            <Link 
-                                href="/login" 
+                            <Link href="/wishlist" className="relative">
+                                <Heart className="w-6 h-6" />
+                                {wishlistCount > 0 && (
+                                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                        {wishlistCount}
+                                    </span>
+                                )}
+                            </Link>
+                            <Link
+                                href="/login"
                                 className="bg-black text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition"
                                 onClick={closeMenu}
                             >
                                 Log in
                             </Link>
-                            <Link 
-                                href="/signup" 
+                            <Link
+                                href="/signup"
                                 className="bg-greycode-light-blue text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition"
                                 onClick={closeMenu}
                             >
@@ -146,10 +155,7 @@ const NavBar = () => {
                     )}
                 </div>
 
-                <button
-                    onClick={closeMenu}
-                    className="md:hidden text-gray-600"
-                >
+                <button onClick={closeMenu} className="md:hidden text-gray-600">
                     <svg
                         className="w-6 h-6"
                         fill="none"
@@ -165,9 +171,19 @@ const NavBar = () => {
             </nav>
 
             <div className="flex items-center space-x-4">
+                {/* Wishlist Icon */}
+                <Link href="/wishlist" className="relative">
+                    <Heart className="w-6 h-6" />
+                    {wishlistCount > 0 && (
+                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                            {wishlistCount}
+                        </span>
+                    )}
+                </Link>
+                
                 {/* Cart Icon */}
-                <Link 
-                    href="/cart" 
+                <Link
+                    href="/cart"
                     className="relative text-gray-600 hover:text-gray-900"
                 >
                     <ShoppingCart className="w-5 h-5" />
@@ -187,16 +203,21 @@ const NavBar = () => {
                         >
                             <Settings className="w-4 h-4" />
                             <span>Admin</span>
-                            <svg 
-                                className={`w-4 h-4 transition-transform ${isAdminMenuOpen ? 'rotate-180' : ''}`}
-                                fill="none" 
-                                stroke="currentColor" 
+                            <svg
+                                className={`w-4 h-4 transition-transform ${isAdminMenuOpen ? "rotate-180" : ""}`}
+                                fill="none"
+                                stroke="currentColor"
                                 viewBox="0 0 24 24"
                             >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M19 9l-7 7-7-7"
+                                />
                             </svg>
                         </button>
-                        
+
                         {isAdminMenuOpen && (
                             <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
                                 <div className="py-2">
@@ -206,7 +227,9 @@ const NavBar = () => {
                                     <Link
                                         href="/admin/order"
                                         className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
-                                        onClick={() => setIsAdminMenuOpen(false)}
+                                        onClick={() =>
+                                            setIsAdminMenuOpen(false)
+                                        }
                                     >
                                         Manage Orders
                                     </Link>
@@ -238,15 +261,15 @@ const NavBar = () => {
                     </div>
                 ) : (
                     <>
-                        <Link 
-                            className="hidden md:flex bg-greycode-light-blue text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition" 
+                        <Link
+                            className="hidden md:flex bg-greycode-light-blue text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition"
                             href="/signup"
                         >
                             Sign up
                         </Link>
 
-                        <Link 
-                            className="hidden md:flex bg-black text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition" 
+                        <Link
+                            className="hidden md:flex bg-black text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition"
                             href="/login"
                         >
                             Log in
@@ -275,7 +298,7 @@ const NavBar = () => {
 
             {/* Close admin dropdown when clicking outside */}
             {isAdminMenuOpen && (
-                <div 
+                <div
                     className="fixed inset-0 z-40"
                     onClick={() => setIsAdminMenuOpen(false)}
                 />

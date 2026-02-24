@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;  
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 
 class Product extends Model
@@ -20,11 +20,11 @@ class Product extends Model
         'is_active',
     ];
 
-    protected $casts=[
-        'price'=>'decimal:2',
-        'stock_quantity'=>'integer',
-        'is_featured'=>'boolean',
-        'is_active'=>'boolean',
+    protected $casts = [
+        'price' => 'decimal:2',
+        'stock_quantity' => 'integer',
+        'is_featured' => 'boolean',
+        'is_active' => 'boolean',
     ];
 
     public function category()
@@ -44,5 +44,11 @@ class Product extends Model
     public function productImages()
     {
         return $this->hasMany(ProductImage::class);
+    }
+
+    public function wishlistedBy()
+    {
+        return $this->belongsToMany(User::class, 'wishlists')
+            ->withTimestamps();
     }
 }

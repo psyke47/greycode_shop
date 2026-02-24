@@ -19,7 +19,6 @@ export default function Checkout({
     defaultShipping,
     defaultBilling,
     provinces,
-    yocoPublicKey,
 }) {
     const [activeStep, setActiveStep] = useState(1);
     const [sameAsShipping, setSameAsShipping] = useState(true);
@@ -31,7 +30,7 @@ export default function Checkout({
     const [selectedBillingId, setSelectedBillingId] = useState(
         defaultBilling?.id || "new",
     );
-    const [paymentMethod, setPaymentMethod] = useState("yoco");
+    const [paymentMethod, setPaymentMethod] = useState("payfast"); // Default to PayFast
     const [isProcessing, setIsProcessing] = useState(false);
 
     // Form state
@@ -807,123 +806,109 @@ export default function Checkout({
                             </div>
 
                             {/* Payment Method Card */}
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                                <div className="p-6 border-b border-gray-100 bg-greycode-light-blue">
-                                    <div className="flex items-center">
-                                        <CreditCard className="w-5 h-5 text-greycode-light-gray mr-2" />
-                                        <h2 className="text-lg font-semibold text-white">
-                                            Payment Method
-                                        </h2>
-                                    </div>
-                                </div>
+<div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="p-6 border-b border-gray-100 bg-greycode-light-blue">
+        <div className="flex items-center">
+            <CreditCard className="w-5 h-5 text-greycode-light-gray mr-2" />
+            <h2 className="text-lg font-semibold text-white">
+                Payment Method
+            </h2>
+        </div>
+    </div>
 
-                                <div className="p-6">
-                                    <div className="space-y-4">
-                                        // In your payment method section, add:
-                                        <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
-                                            <input
-                                                type="radio"
-                                                name="payment_method"
-                                                value="payfast"
-                                                checked={
-                                                    paymentMethod === "payfast"
-                                                }
-                                                onChange={(e) => {
-                                                    setPaymentMethod(
-                                                        e.target.value,
-                                                    );
-                                                    setData(
-                                                        "payment_method",
-                                                        e.target.value,
-                                                    );
-                                                }}
-                                                className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                                            />
-                                            <div className="ml-4">
-                                                <span className="font-medium text-gray-900">
-                                                    PayFast
-                                                </span>
-                                                <p className="text-sm text-gray-500">
-                                                    Credit card, Instant EFT, or
-                                                    mobile money
-                                                </p>
-                                            </div>
-                                        </label>
-                                        <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
-                                            <input
-                                                type="radio"
-                                                name="payment_method"
-                                                value="eft"
-                                                checked={
-                                                    paymentMethod === "eft"
-                                                }
-                                                onChange={(e) => {
-                                                    setPaymentMethod(
-                                                        e.target.value,
-                                                    );
-                                                    setData(
-                                                        "payment_method",
-                                                        e.target.value,
-                                                    );
-                                                }}
-                                                className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                                            />
-                                            <div className="ml-4">
-                                                <span className="font-medium text-gray-900">
-                                                    EFT
-                                                </span>
-                                                <p className="text-sm text-gray-500">
-                                                    Electronic Funds Transfer
-                                                </p>
-                                            </div>
-                                        </label>
-                                        <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
-                                            <input
-                                                type="radio"
-                                                name="payment_method"
-                                                value="cash_on_delivery"
-                                                checked={
-                                                    paymentMethod ===
-                                                    "cash_on_delivery"
-                                                }
-                                                onChange={(e) => {
-                                                    setPaymentMethod(
-                                                        e.target.value,
-                                                    );
-                                                    setData(
-                                                        "payment_method",
-                                                        e.target.value,
-                                                    );
-                                                }}
-                                                className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                                            />
-                                            <div className="ml-4">
-                                                <span className="font-medium text-gray-900">
-                                                    Cash on Delivery
-                                                </span>
-                                                <p className="text-sm text-gray-500">
-                                                    Pay when you receive
-                                                </p>
-                                            </div>
-                                        </label>
-                                        {paymentMethod === "yoco" && (
-                                            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                                                <p className="text-sm text-gray-600 mb-2">
-                                                    Payfast payment form will
-                                                    appear here (sandbox mode)
-                                                </p>
-                                                {/* Yoco will add their iframe here */}
-                                                <div
-                                                    id="yoco-card-field"
-                                                    className="border border-gray-300 rounded-lg p-3 bg-white"
-                                                >
-                                                    <div className="h-10 bg-gray-100 rounded animate-pulse"></div>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
+    <div className="p-6">
+        <div className="space-y-4">
+            {/* PayFast Option */}
+            <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                <input
+                    type="radio"
+                    name="payment_method"
+                    value="payfast"
+                    checked={paymentMethod === "payfast"}
+                    onChange={(e) => {
+                        setPaymentMethod(e.target.value);
+                        setData("payment_method", e.target.value);
+                    }}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                />
+                <div className="ml-4 flex-1">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <span className="font-medium text-gray-900">
+                                PayFast
+                            </span>
+                            <p className="text-sm text-gray-500">
+                                Credit Card, Instant EFT, or Mobile Money
+                            </p>
+                        </div>
+                        {/* PayFast Logo */}
+                        <div className="flex space-x-1">
+                            <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Visa</span>
+                            <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded">MC</span>
+                            <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">EFT</span>
+                        </div>
+                    </div>
+                    
+                    {/* PayFast Info Box - shown when selected */}
+                    {paymentMethod === "payfast" && (
+                        <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                            <p className="text-xs text-blue-700 flex items-center">
+                                <CheckCircle className="w-4 h-4 mr-1" />
+                                You'll be redirected to PayFast to complete your payment securely.
+                            </p>
+                        </div>
+                    )}
+                </div>
+            </label>
+
+            {/* EFT Option */}
+            <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                <input
+                    type="radio"
+                    name="payment_method"
+                    value="eft"
+                    checked={paymentMethod === "eft"}
+                    onChange={(e) => {
+                        setPaymentMethod(e.target.value);
+                        setData("payment_method", e.target.value);
+                    }}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                />
+                <div className="ml-4">
+                    <span className="font-medium text-gray-900">
+                        EFT
+                    </span>
+                    <p className="text-sm text-gray-500">
+                        Electronic Funds Transfer (Manual)
+                    </p>
+                </div>
+            </label>
+
+            {/* Cash on Delivery Option */}
+            <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                <input
+                    type="radio"
+                    name="payment_method"
+                    value="cash_on_delivery"
+                    checked={paymentMethod === "cash_on_delivery"}
+                    onChange={(e) => {
+                        setPaymentMethod(e.target.value);
+                        setData("payment_method", e.target.value);
+                    }}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                />
+                <div className="ml-4">
+                    <span className="font-medium text-gray-900">
+                        Cash on Delivery
+                    </span>
+                    <p className="text-sm text-gray-500">
+                        Pay when you receive your order
+                    </p>
+                </div>
+            </label>
+        </div>
+    </div>
+</div>
 
                             {/* Order Notes */}
                             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">

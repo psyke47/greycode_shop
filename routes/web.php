@@ -10,6 +10,7 @@ use App\Http\Controllers\TrackingController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\PayFastController;
+use App\Http\Controllers\WishlistController;
 
 Route::get('/', function () {
     return Inertia::render('Homepage', ['name' => 'Greycode Shop']);
@@ -127,3 +128,17 @@ Route::prefix('payfast')->name('payfast.')->group(function () {
     Route::get('/success/{order}', [PayFastController::class, 'success'])->name('return');
     Route::get('/cancel/{order}', [PayFastController::class, 'cancel'])->name('cancel');
 });
+
+
+
+// Wishlist routes
+    Route::middleware(['auth'])->prefix('wishlist')->name('wishlist.')->group(function () {
+    Route::get('/', [WishlistController::class, 'index'])->name('index');
+    Route::get('/items', [WishlistController::class, 'items'])->name('items');
+    Route::post('/add/{product}', [WishlistController::class, 'add'])->name('add');
+    Route::delete('/remove/{product}', [WishlistController::class, 'remove'])->name('remove');
+    Route::get('/count', [WishlistController::class, 'count'])->name('count');
+});
+
+Route::middleware(['auth'])->get('/wishlist/count', [WishlistController::class, 'count'])->name('wishlist.count');
+Route::middleware(['auth'])->get('/wishlist/items', [WishlistController::class, 'items'])->name('wishlist.items');
