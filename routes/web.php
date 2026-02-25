@@ -8,9 +8,13 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\TrackingController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Auth\PasswordResetLinkController;
+use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\PayFastController;
 use App\Http\Controllers\WishlistController;
+use App\Http\Controllers\ProfileController;
 
 Route::get('/', function () {
     return Inertia::render('Homepage', ['name' => 'Greycode Shop']);
@@ -40,8 +44,15 @@ Route::get('/order', function () {
 Route::get('/order-details', function () {
     return Inertia::render('OrderDetails');
 });
-Route::get('/user-profile', function () {
-    return Inertia::render('UserProfile');
+Route::middleware('auth')->group(function () {
+    Route::get('/user-profile', function () {
+        return Inertia::render('UserProfile', [
+            'auth' => [
+                'user' => auth()->user(),
+            ],
+            'orders' => auth()->user()?->orders ?? [],
+        ]);
+    });
 });
 Route::get('/tracking', function () {
     return Inertia::render('Tracking');
@@ -122,6 +133,30 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
 });
 
+// User profile routes
+
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [UserProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/user-profile', [UserProfileController::class, 'update'])->name('profile.update');
+    Route::put('/address', [UserProfileController::class, 'updateAddress'])->name('profile.update-address');
+    Route::put('/password', [UserProfileController::class, 'updatePassword'])->name('profile.update-password');
+});
+
+//Forgot password routes
+Route::middleware('guest')->group(function () {
+    Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])
+        ->name('password.request');
+
+    Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])
+        ->name('password.email');
+
+    Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])
+        ->name('password.reset');
+
+    Route::post('/reset-password', [NewPasswordController::class, 'store'])
+        ->name('password.update');
+});
 // PayFast routes
 Route::prefix('payfast')->name('payfast.')->group(function () {
     Route::post('/notify', [PayFastController::class, 'notify'])->name('notify');

@@ -108,17 +108,21 @@ const NavBar = ({ wishlistCount = 0 }) => {
                 <div className="md:hidden flex flex-col items-center gap-4 mt-4">
                     {auth.user ? (
                         <>
-                            <div className="flex items-center gap-2">
-                                <User className="w-4 h-4 text-gray-600" />
-                                <span className="text-gray-700">
-                                    Hi, {auth.user.first_name}
+                            <Link 
+                                    href="/user-profile"
+                                    className="md:flex items-center gap-4 text-inherit no-underline"
+                                    onClick={closeMenu}
+                                    >
+                                <div className="flex items-center gap-2 text-sm text-gray-700 hover:text-indigo-600 transition">
+                                    <User className="w-4 h-4" />
+                                    <span>Hi, {auth.user.first_name}</span>
                                     {isAdmin && (
-                                        <span className="ml-2 text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
+                                        <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
                                             Admin
                                         </span>
                                     )}
-                                </span>
-                            </div>
+                                </div>
+                            </Link>
                             <button
                                 onClick={handleLogout}
                                 className="flex items-center gap-2 text-red-600 hover:text-red-800"
@@ -242,15 +246,22 @@ const NavBar = ({ wishlistCount = 0 }) => {
                 {/* Auth section for desktop */}
                 {auth.user ? (
                     <div className="hidden md:flex items-center gap-4">
-                        <div className="flex items-center gap-2 text-sm text-gray-700">
-                            <User className="w-4 h-4" />
-                            <span>Hi, {auth.user.first_name}</span>
-                            {isAdmin && (
-                                <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
-                                    Admin
-                                </span>
-                            )}
-                        </div>
+                        <Link 
+                            href="/user-profile"
+                            className="hidden md:flex items-center gap-4 text-inherit no-underline"
+                            onClick={closeMenu}
+                        
+                        >
+                            <div className="flex items-center gap-2 text-sm text-gray-700 hover:text-indigo-600 transition">
+                                <User className="w-4 h-4" />
+                                <span>Hi, {auth.user.first_name}</span>
+                                {isAdmin && (
+                                    <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
+                                        Admin
+                                    </span>
+                                )}
+                            </div>
+                        </Link>
                         <button
                             onClick={handleLogout}
                             className="flex items-center gap-2 text-sm text-red-600 hover:text-red-800"

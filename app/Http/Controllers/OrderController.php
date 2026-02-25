@@ -25,8 +25,8 @@ class OrderController extends Controller
         // Build base query with relationships
         $query = Order::with([
             'user:id,first_name,last_name,email', // Load user for admin view
-            'items.product.productImages',
-            'shippingAddress',
+            'items.product.productImages', 
+            'shippingAddress', 
             'billingAddress'
         ])->orderBy('created_at', 'desc');
 
