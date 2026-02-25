@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\Address;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Services\PayFastService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -14,7 +15,13 @@ use Inertia\Inertia;
 
 class CheckoutController extends Controller
 {
-    /**
+    protected $payfast;
+
+    public function __construct(PayFastService $payfast)
+    {
+        $this->payfast = $payfast;
+    }    
+/**
      * Show checkout page with cart summary and address form
      */
     public function index()
@@ -58,8 +65,15 @@ class CheckoutController extends Controller
             'defaultShipping' => $defaultShipping,
             'defaultBilling' => $defaultBilling,
             'provinces' => [
-                'Gauteng', 'Western Cape', 'KwaZulu-Natal', 'Eastern Cape',
-                'Free State', 'Limpopo', 'Mpumalanga', 'North West', 'Northern Cape'
+                'Gauteng',
+                'Western Cape',
+                'KwaZulu-Natal',
+                'Eastern Cape',
+                'Free State',
+                'Limpopo',
+                'Mpumalanga',
+                'North West',
+                'Northern Cape'
             ],
             'yocoPublicKey' => env('YOCO_PUBLIC_KEY', 'pk_test_12345') // Add to .env later
         ]);
@@ -68,7 +82,7 @@ class CheckoutController extends Controller
     /**
      * Process checkout and create order
      */
-    public function store(Request $request)
+     public function store(Request $request)
     {
         $user = Auth::user();
 
@@ -100,8 +114,7 @@ class CheckoutController extends Controller
             'billing.save_address' => 'boolean',
 
             // Payment
-            'payment_method' => 'required|string|in:yoco,eft,cash_on_delivery',
-            'yoco_token' => 'required_if:payment_method,yoco|string',
+            'payment_method' => 'required|string|in:payfast,eft,cash_on_delivery',
             'customer_note' => 'nullable|string|max:500',
         ]);
 
@@ -139,14 +152,15 @@ class CheckoutController extends Controller
             // 4. Generate order number
             $orderNumber = $this->generateOrderNumber();
 
-            // 5. Create order
+            // 5. Create order (NO stock deduction yet)
             $order = Order::create([
                 'order_number' => $orderNumber,
                 'user_id' => $user->id,
                 'shipping_address_id' => $shippingAddress->id,
                 'billing_address_id' => $billingAddress->id,
                 'order_status' => 'pending',
-                'payment_status' => $validated['payment_method'] === 'yoco' ? 'paid' : 'unpaid',
+                'payment_status' => 'unpaid',
+                'stock_deducted' => false,
                 'subtotal' => $subtotal,
                 'vat' => $vat,
                 'shipping_amount' => $shipping,
@@ -157,7 +171,7 @@ class CheckoutController extends Controller
                 'customer_note' => $validated['customer_note'] ?? null,
             ]);
 
-            // 6. Create order items
+            // 6. Create order items (NO stock deduction yet)
             foreach ($cart->cartItems as $cartItem) {
                 OrderItem::create([
                     'order_id' => $order->id,
@@ -168,35 +182,65 @@ class CheckoutController extends Controller
                     'quantity' => $cartItem->quantity,
                     'total' => $cartItem->quantity * $cartItem->price,
                 ]);
-
-                // Update stock
-                $cartItem->product->decrement('stock_quantity', $cartItem->quantity);
+                // STOCK NOT DEDUCTED YET
             }
 
-            // 7. Create payment record if Yoco
-            if ($validated['payment_method'] === 'yoco') {
-                // This will be expanded when you integrate Yoco
-                $order->payments()->create([
-                    'payment_method' => 'yoco',
-                    'amount' => $total,
-                    'status' => 'completed',
-                    'transaction_id' => 'TXN' . time() . rand(1000, 9999),
-                    'payment_date' => now(),
-                ]);
-            }
-
-            // 8. Clear cart
+            // 7. Clear cart
             $cart->cartItems()->delete();
 
             DB::commit();
 
+            // 8. If PayFast, redirect to payment page
+            if ($validated['payment_method'] === 'payfast') {
+                $payfastData = $this->payfast->generatePaymentData($order);
+                
+                // Return Inertia response that will POST to PayFast
+                return Inertia::location($this->getPayFastFormHtml($payfastData));
+            }
+
+            // For other payment methods, just show order confirmation
             return redirect()->route('order.show', $order->id)
-                ->with('success', 'Order placed successfully!');
+                ->with('success', 'Order placed successfully! Please complete payment.');
 
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withErrors(['checkout' => 'Failed to process order: ' . $e->getMessage()]);
         }
+
+    }
+/**
+     * Generate HTML form that auto-submits to PayFast
+     */
+    private function getPayFastFormHtml($data)
+{
+    $html = '<form id="payfast_form" method="POST" action="' . $this->payfast->getApiUrl() . '">';
+    
+    foreach ($data as $key => $value) {
+        $html .= '<input type="hidden" name="' . $key . '" value="' . htmlspecialchars($value) . '">';
+    }
+    
+    $html .= '</form>';
+    $html .= '<script>document.getElementById("payfast_form").submit();</script>';
+    
+    return 'data:text/html;base64,' . base64_encode($html);
+}
+
+    public function confirmPayment($orderId)
+    {
+        $order = Order::with('items')->findOrFail($orderId);
+
+        // Only deduct if order is paid and stock not already deducted
+        if ($order->payment_status === 'paid' && !$order->stock_deducted) {
+            foreach ($order->items as $item) {
+                Product::where('id', $item->product_id)
+                    ->decrement('stock_quantity', $item->quantity);
+            }
+
+            // Mark that stock has been deducted
+            $order->update(['stock_deducted' => true]);
+        }
+
+        return true;
     }
 
     /**

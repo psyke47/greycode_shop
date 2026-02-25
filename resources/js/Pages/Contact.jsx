@@ -2,10 +2,12 @@ import React from "react";
 import { Head } from "@inertiajs/react";
 import MainLayout from "../Layouts/MainLayout";
 import { ClockIcon, PhoneIcon, MailIcon } from "lucide-react";
+import PageHead from "../Components/PageHead";
 
 const Contact = () => {
     return (
-        <MainLayout title="Contact">
+        <MainLayout>
+            <PageHead title="Contact" />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-7 py-16">
                 <div className="text-left">
                     <h1 className="text-5xl font-bold mb-4 text-greycode-dark-blue">

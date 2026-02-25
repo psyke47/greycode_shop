@@ -12,6 +12,9 @@ use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\NewPasswordController;
+use App\Http\Controllers\PayFastController;
+use App\Http\Controllers\WishlistController;
+use App\Http\Controllers\ProfileController;
 
 Route::get('/', function () {
     return Inertia::render('Homepage', ['name' => 'Greycode Shop']);
@@ -131,7 +134,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // User profile routes
-use App\Http\Controllers\ProfileController;
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [UserProfileController::class, 'edit'])->name('profile.edit');
@@ -154,3 +157,23 @@ Route::middleware('guest')->group(function () {
     Route::post('/reset-password', [NewPasswordController::class, 'store'])
         ->name('password.update');
 });
+// PayFast routes
+Route::prefix('payfast')->name('payfast.')->group(function () {
+    Route::post('/notify', [PayFastController::class, 'notify'])->name('notify');
+    Route::get('/success/{order}', [PayFastController::class, 'success'])->name('return');
+    Route::get('/cancel/{order}', [PayFastController::class, 'cancel'])->name('cancel');
+});
+
+
+
+// Wishlist routes
+    Route::middleware(['auth'])->prefix('wishlist')->name('wishlist.')->group(function () {
+    Route::get('/', [WishlistController::class, 'index'])->name('index');
+    Route::get('/items', [WishlistController::class, 'items'])->name('items');
+    Route::post('/add/{product}', [WishlistController::class, 'add'])->name('add');
+    Route::delete('/remove/{product}', [WishlistController::class, 'remove'])->name('remove');
+    Route::get('/count', [WishlistController::class, 'count'])->name('count');
+});
+
+Route::middleware(['auth'])->get('/wishlist/count', [WishlistController::class, 'count'])->name('wishlist.count');
+Route::middleware(['auth'])->get('/wishlist/items', [WishlistController::class, 'items'])->name('wishlist.items');

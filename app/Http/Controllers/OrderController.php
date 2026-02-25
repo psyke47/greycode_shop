@@ -45,7 +45,7 @@ class OrderController extends Controller
 
         $viewName = $user->is_admin ? 'Admin/Order' : 'Order';
 
-        return Inertia::render($viewName,[
+        return Inertia::render($viewName, [
             'orders'     => $this->transformOrders($orders, $user),
             'filters'    => $this->getFilters($request, $user),
             'pagination' => $this->getPaginationData($orders),
@@ -53,7 +53,6 @@ class OrderController extends Controller
             'is-admin' => $user->is_admin,
             'users'    => $user->is_admin ? $this->getUserList() : null, // For admin user filter
         ]);
-
     }
 
 
@@ -90,24 +89,24 @@ class OrderController extends Controller
         // Search filter
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search, $user) {
+            $query->where(function ($q) use ($search, $user) {
                 $q->where('order_number', 'LIKE', "%{$search}%")
-                  ->orWhere('tracking_number', 'LIKE', "%{$search}%");
-                
+                    ->orWhere('tracking_number', 'LIKE', "%{$search}%");
+
                 // Admin can search by customer name/email
                 if ($user->is_admin) {
-                    $q->orWhereHas('user', function($q2) use ($search) {
+                    $q->orWhereHas('user', function ($q2) use ($search) {
                         $q2->where('first_name', 'LIKE', "%{$search}%")
-                           ->orWhere('last_name', 'LIKE', "%{$search}%")
-                           ->orWhere('email', 'LIKE', "%{$search}%");
+                            ->orWhere('last_name', 'LIKE', "%{$search}%")
+                            ->orWhere('email', 'LIKE', "%{$search}%");
                     });
                 }
 
                 // Address search
-                $q->orWhereHas('shippingAddress', function($q) use ($search) {
+                $q->orWhereHas('shippingAddress', function ($q) use ($search) {
                     $q->where('address_line1', 'LIKE', "%{$search}%")
-                      ->orWhere('surburb', 'LIKE', "%{$search}%")
-                      ->orWhere('city', 'LIKE', "%{$search}%");
+                        ->orWhere('surburb', 'LIKE', "%{$search}%")
+                        ->orWhere('city', 'LIKE', "%{$search}%");
                 });
             });
         }
@@ -119,12 +118,12 @@ class OrderController extends Controller
     private function getFilters(Request $request, $user): array
     {
         $filters = $request->only(['search', 'status', 'date_from', 'date_to']);
-        
+
         if ($user->is_admin) {
             $filters['payment_status'] = $request->get('payment_status', 'all');
             $filters['user_id'] = $request->get('user_id', 'all');
         }
-        
+
         return $filters;
     }
 
@@ -133,7 +132,7 @@ class OrderController extends Controller
      */
     private function transformOrders($orders, $user)
     {
-        return $orders->getCollection()->map(function($order) use ($user) {
+        return $orders->getCollection()->map(function ($order) use ($user) {
             $data = [
                 'id' => $order->id,
                 'order_number' => $order->order_number,
@@ -157,8 +156,8 @@ class OrderController extends Controller
                 'notes' => $order->notes,
                 'customer_note' => $order->customer_note,
                 'can_cancel' => in_array($order->order_status, ['pending', 'processing']),
-                'can_return' => $order->order_status === 'delivered' && 
-                                $order->created_at->diffInDays(now()) <= 30,
+                'can_return' => $order->order_status === 'delivered' &&
+                    $order->created_at->diffInDays(now()) <= 30,
             ];
 
             // For admin view 
@@ -196,20 +195,20 @@ class OrderController extends Controller
      */
     private function transformOrderItems($items)
     {
-        return $items->map(function($item) {
+        return $items->map(function ($item) {
             $productImage = $item->product->productImages->first();
             // Fix the image URL
             $imageUrl = null;
             if ($productImage && $productImage->url) {
-            // Check if URL already has path
-            if (str_contains($productImage->url, '/')) {
-                // Already has path, use as-is
-                $imageUrl = $productImage->url;
-            } else {
-                
-                $imageUrl = '/images/' . $productImage->url;
+                // Check if URL already has path
+                if (str_contains($productImage->url, '/')) {
+                    // Already has path, use as-is
+                    $imageUrl = $productImage->url;
+                } else {
+
+                    $imageUrl = '/images/' . $productImage->url;
+                }
             }
-        }
 
             return [
                 'id' => $item->id,
@@ -230,7 +229,7 @@ class OrderController extends Controller
      */
     private function getStatusText(string $status): string
     {
-        return match($status) {
+        return match ($status) {
             'pending' => 'Pending Payment',
             'processing' => 'Processing',
             'shipped' => 'Shipped',
@@ -262,7 +261,7 @@ class OrderController extends Controller
     private function getOrderStats($user = null): array
     {
         $query = Order::query();
-        
+
         if ($user && !$user->is_admin) {
             $query->where('user_id', $user->id);
         }
@@ -294,8 +293,8 @@ class OrderController extends Controller
             $statusCounts['total_revenue'] = (float) $totalRevenue;
             $statusCounts['today_orders'] = $todayOrders;
             $statusCounts['this_month_revenue'] = (float) $thisMonthRevenue;
-            
-        // Payment status stats
+
+            // Payment status stats
             $statusCounts['unpaid'] = $query->clone()->where('payment_status', 'unpaid')->count();
             $statusCounts['paid'] = $query->clone()->where('payment_status', 'paid')->count();
             $statusCounts['refunded'] = $query->clone()->where('payment_status', 'refunded')->count();
@@ -303,7 +302,7 @@ class OrderController extends Controller
 
         return $statusCounts;
     }
-    
+
     /**
      * Get user list for admin filter dropdown
      */
@@ -312,7 +311,7 @@ class OrderController extends Controller
         return User::select('id', 'first_name', 'last_name', 'email')
             ->orderBy('first_name')
             ->get()
-            ->map(function($user) {
+            ->map(function ($user) {
                 return [
                     'id' => $user->id,
                     'label' => "{$user->first_name} {$user->last_name} {$user->email}"
@@ -327,9 +326,9 @@ class OrderController extends Controller
     {
         $order = Order::with([
             'user', // Load user for admin view
-            'items.product.productImages', 
-            'shippingAddress', 
-            'billingAddress', 
+            'items.product.productImages',
+            'shippingAddress',
+            'billingAddress',
             'payments'
         ])->findOrFail($id);
 
@@ -338,7 +337,7 @@ class OrderController extends Controller
 
         $user = Auth::user();
         $viewName = $user->is_admin ? 'Admin/OrderDetails' : 'OrderDetails';
-        
+
         return Inertia::render($viewName, [
             'order' => $this->transformOrderForDetails($order, $user),
             'is_admin' => $user->is_admin,
@@ -374,8 +373,8 @@ class OrderController extends Controller
             'notes' => $order->notes,
             'customer_note' => $order->customer_note,
             'can_cancel' => in_array($order->order_status, ['pending', 'processing']),
-            'can_return' => $order->order_status === 'delivered' && 
-                          $order->created_at->diffInDays(now()) <= 30,
+            'can_return' => $order->order_status === 'delivered' &&
+                $order->created_at->diffInDays(now()) <= 30,
         ];
 
         // Attach user info for admin view
@@ -413,19 +412,19 @@ class OrderController extends Controller
      */
     private function transformPayments($payments)
     {
-        return $payments->map(function($payment) {
-        // Convert integer timestamp to Carbon instance
-        $paymentDate = \Carbon\Carbon::createFromTimestamp($payment->payment_date);
-        
-        return [
-            'id' => $payment->id,
-            'method' => $payment->payment_method,
-            'amount' => (float) $payment->amount,
-            'status' => $payment->status,
-            'transaction_id' => $payment->transaction_id,
-            'date' => $paymentDate->format('F d, Y H:i'),
-        ];
-    });
+        return $payments->map(function ($payment) {
+            // Convert integer timestamp to Carbon instance
+            $paymentDate = \Carbon\Carbon::createFromTimestamp($payment->payment_date);
+
+            return [
+                'id' => $payment->id,
+                'method' => $payment->payment_method,
+                'amount' => (float) $payment->amount,
+                'status' => $payment->status,
+                'transaction_id' => $payment->transaction_id,
+                'date' => $paymentDate->format('F d, Y H:i'),
+            ];
+        });
     }
 
     /**
@@ -434,19 +433,23 @@ class OrderController extends Controller
     public function cancel(Request $request, $id)
     {
         $user = Auth::user();
-        $order = Order::with('items')->findOrFail($id);
 
-        // Use policy
+        $order = Order::with('items')->findOrFail($id);
         $this->authorize('cancel', $order);
 
-        // Update order
+        // Restore stock if it was deducted
+        if ($order->stock_deducted) {
+            foreach ($order->items as $item) {
+                Product::where('id', $item->product_id)
+                    ->increment('stock_quantity', $item->quantity);
+            }
+        }
+
         $order->update([
             'order_status' => 'cancelled',
-            'notes' => ($order->notes ?? '') . "\nCancelled by customer on " . now()->format('Y-m-d H:i'),
+            'stock_deducted' => false,
+            'notes' => ($order->notes ?? '') . "\nCancelled on " . now()->format('Y-m-d H:i'),
         ]);
-
-        // Restore stock
-        $this->restoreOrderStock($order);
 
         return back()->with('success', 'Order cancelled successfully.');
     }
@@ -513,13 +516,13 @@ class OrderController extends Controller
         ]);
     }
 
-     /**
+    /**
      * Update order status (admin only)
      */
     public function updateStatus(Request $request, $id)
     {
         $order = Order::findOrFail($id);
-        
+
         // Only admin can update orders
         if (!Auth::user()->is_admin) {
             abort(403, 'Unauthorized. Admin access required.');
@@ -542,6 +545,4 @@ class OrderController extends Controller
 
         return redirect()->back()->with('success', 'Order updated successfully.');
     }
-
-
 }
