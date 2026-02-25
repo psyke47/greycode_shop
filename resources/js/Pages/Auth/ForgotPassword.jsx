@@ -1,6 +1,6 @@
 import React from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
-import MainLayout from '@/Layouts/MainLayout'; // adjust to your layout
+import MainLayout from '@/Layouts/MainLayout';
 
 export default function ForgotPassword({ status }) {
     const { data, setData, post, processing, errors } = useForm({

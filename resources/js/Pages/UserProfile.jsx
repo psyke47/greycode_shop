@@ -36,7 +36,7 @@ const {
     // Shipping
     shipping_street: user.shipping_address?.address_line1 || '',
     shipping_building: user.shipping_address?.address_line2 || '',
-    shipping_suburb: user.shipping_address?.surburb || '',          // note: your migration uses 'surburb'
+    shipping_suburb: user.shipping_address?.surburb || '',         
     shipping_city: user.shipping_address?.city || '',
     shipping_postal: user.shipping_address?.postal_code || '',
     shipping_province: user.shipping_address?.province || '',
@@ -54,6 +54,35 @@ const {
     // Checkbox
     billing_same_as_shipping: false,
 });
+
+    // Edit modes for addresses
+    const [isEditingShipping, setIsEditingShipping] = useState(false);
+    const [isEditingBilling, setIsEditingBilling] = useState(false);
+
+      // Reset shipping fields to original user data
+ const resetShippingToOriginal = () => {
+    const orig = user.shipping_address || {};
+    setAddressData('shipping_street', orig.address_line1 || '');
+    setAddressData('shipping_building', orig.address_line2 || '');
+    setAddressData('shipping_suburb', orig.surburb || '');
+    setAddressData('shipping_city', orig.city || '');
+    setAddressData('shipping_postal', orig.postal_code || '');
+    setAddressData('shipping_province', orig.province || '');
+    setAddressData('shipping_phone', orig.phone_number || '');
+  };
+
+    // Reset billing fields to original user data
+  const resetBillingToOriginal = () => {
+    const orig = user.billing_address || {};
+    setAddressData('billing_street', orig.address_line1 || '');
+    setAddressData('billing_building', orig.address_line2 || '');
+    setAddressData('billing_suburb', orig.surburb || '');
+    setAddressData('billing_city', orig.city || '');
+    setAddressData('billing_postal', orig.postal_code || '');
+    setAddressData('billing_province', orig.province || '');
+    setAddressData('billing_phone', orig.phone_number || '');
+    setAddressData('billing_same_as_shipping', false); // reset checkbox
+  };
 
     // When checkbox changes, copy shipping fields to billing if checked
     const handleBillingSameChange = (e) => {
@@ -143,6 +172,19 @@ const {
         });
     };
 
+      // Helper: format address for display
+    const formatAddress = (addr) => {
+        if (!addr) return null;
+        const parts = [
+            addr.address_line1,
+            addr.address_line2,
+            addr.surburb,
+            addr.city,
+            addr.province,
+            addr.postal_code,
+            ].filter(Boolean);
+        return parts.join(', ');
+    };
 
   return (
     <MainLayout>
@@ -152,7 +194,7 @@ const {
                 {/* Header */}
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
-                    <p className="text-gray-600 mt-1">Manage your account, addresses, and view your orders</p>
+                    <p className="text-gray-600 mt-1">Manage your account and addresses</p>
                 </div>
 
                 {/* Flash success message */}
@@ -162,9 +204,9 @@ const {
                     </div>
                 )}
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 gap-10 justify-center w-full max-w-5xl mx-auto">
                     {/* Left Column – Personal Info, Addresses, Password */}
-                    <div className="lg:col-span-2 space-y-6">
+                    <div className="space-y-6">
                         {/* Personal Information Card */}
                         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                             <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
@@ -310,112 +352,165 @@ const {
                         </div>
 
                         {/* Shipping Address Card */}
+                        {/* Shipping Address Card */}
                         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                            <div className="px-6 py-4 border-b border-gray-200">
-                                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                                    <Home className="w-5 h-5 text-greycode-light-blue" />
-                                    Shipping Address
-                                </h2>
+                            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                                <Home className="w-5 h-5 text-greycode-light-blue" />
+                                Shipping Address
+                            </h2>
+                            {user.shipping_address && !isEditingShipping && (
+                                <button
+                                onClick={() => setIsEditingShipping(true)}
+                                className="text-sm text-greycode-light-blue hover:text-indigo-700 font-medium"
+                                >
+                                Edit
+                                </button>
+                            )}
                             </div>
                             <div className="p-6">
-                                {/* We'll use the address form for both shipping and billing,
-                                    but here we show only shipping fields. The actual form
-                                    submission is handled in the combined address card below.
-                                    Alternatively, we could have separate cards with separate forms,
-                                    but it's simpler to have one combined address form at the bottom.
-                                    For clarity, we'll put all address fields in one card. */}
-                                <p className="text-sm text-gray-500 mb-4">
-                                    Your shipping address is used for order delivery.
-                                </p>
+                            {user.shipping_address && !isEditingShipping ? (
+                                // Display mode
+                                <div className="space-y-2">
+                                <p className="text-sm text-gray-900">{formatAddress(user.shipping_address)}</p>
+                                {user.shipping_address.phone_number && (
+                                    <p className="text-sm text-gray-600 flex items-center gap-1">
+                                    <Phone className="w-4 h-4" /> {user.shipping_address.phone_number}
+                                    </p>
+                                )}
+                                </div>
+                            ) : (
+                                // Edit mode (form)
+                                <div className="space-y-4">
                                 <div className="grid grid-cols-1 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
-                                        <input
-                                            type="text"
-                                            value={addressData.shipping_street}
-                                            onChange={(e) => setAddressData('shipping_street', e.target.value)}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-greycode-light-blue focus:border-greycode-light-blue"
-                                        />
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
+                                    <input
+                                        type="text"
+                                        value={addressData.shipping_street}
+                                        onChange={(e) => setAddressData('shipping_street', e.target.value)}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-greycode-light-blue focus:border-greycode-light-blue"
+                                    />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Building/Complex</label>
-                                        <input
-                                            type="text"
-                                            value={addressData.shipping_building}
-                                            onChange={(e) => setAddressData('shipping_building', e.target.value)}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-greycode-light-blue focus:border-greycode-light-blue"
-                                        />
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Building/Complex</label>
+                                    <input
+                                        type="text"
+                                        value={addressData.shipping_building}
+                                        onChange={(e) => setAddressData('shipping_building', e.target.value)}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-greycode-light-blue focus:border-greycode-light-blue"
+                                    />
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Suburb</label>
-                                            <input
-                                                type="text"
-                                                value={addressData.shipping_suburb}
-                                                onChange={(e) => setAddressData('shipping_suburb', e.target.value)}
-                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-greycode-light-blue focus:border-greycode-light-blue"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                                            <input
-                                                type="text"
-                                                value={addressData.shipping_city}
-                                                onChange={(e) => setAddressData('shipping_city', e.target.value)}
-                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-greycode-light-blue focus:border-greycode-light-blue"
-                                            />
-                                        </div>
-                                    </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Postal Code</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Suburb</label>
                                         <input
-                                            type="text"
-                                            value={addressData.shipping_postal}
-                                            onChange={(e) => setAddressData('shipping_postal', e.target.value)}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-greycode-light-blue focus:border-greycode-light-blue"
+                                        type="text"
+                                        value={addressData.shipping_suburb}
+                                        onChange={(e) => setAddressData('shipping_suburb', e.target.value)}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-greycode-light-blue focus:border-greycode-light-blue"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Province</label>
-                                        <select
-                                            value={addressData.shipping_province}
-                                            onChange={(e) => setAddressData('shipping_province', e.target.value)}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                                        >
-                                            <option value="">Select Province</option>
-                                            <option value="Gauteng">Gauteng</option>
-                                            <option value="Western Cape">Western Cape</option>
-                                            <option value="KwaZulu-Natal">KwaZulu-Natal</option>
-                                            <option value="Eastern Cape">Eastern Cape</option>
-                                            <option value="Free State">Free State</option>
-                                            <option value="Limpopo">Limpopo</option>
-                                            <option value="Mpumalanga">Mpumalanga</option>
-                                            <option value="North West">North West</option>
-                                            <option value="Northern Cape">Northern Cape</option>
-                                        </select>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                                        <input
+                                        type="text"
+                                        value={addressData.shipping_city}
+                                        onChange={(e) => setAddressData('shipping_city', e.target.value)}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-greycode-light-blue focus:border-greycode-light-blue"
+                                        />
+                                    </div>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number (for this address)</label>
-                                        <input
-                                            type="tel"
-                                            value={addressData.shipping_phone}
-                                            onChange={(e) => setAddressData('shipping_phone', e.target.value)}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                                            maxLength={10}
-                                        />
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Postal Code</label>
+                                    <input
+                                        type="text"
+                                        value={addressData.shipping_postal}
+                                        onChange={(e) => setAddressData('shipping_postal', e.target.value)}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-greycode-light-blue focus:border-greycode-light-blue"
+                                    />
+                                    </div>
+                                    <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Province</label>
+                                    <select
+                                        value={addressData.shipping_province}
+                                        onChange={(e) => setAddressData('shipping_province', e.target.value)}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                    >
+                                        <option value="">Select Province</option>
+                                        <option value="Gauteng">Gauteng</option>
+                                        <option value="Western Cape">Western Cape</option>
+                                        <option value="KwaZulu-Natal">KwaZulu-Natal</option>
+                                        <option value="Eastern Cape">Eastern Cape</option>
+                                        <option value="Free State">Free State</option>
+                                        <option value="Limpopo">Limpopo</option>
+                                        <option value="Mpumalanga">Mpumalanga</option>
+                                        <option value="North West">North West</option>
+                                        <option value="Northern Cape">Northern Cape</option>
+                                    </select>
+                                    </div>
+                                    <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number (for this address)</label>
+                                    <input
+                                        type="tel"
+                                        value={addressData.shipping_phone}
+                                        onChange={(e) => setAddressData('shipping_phone', e.target.value)}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                        maxLength={10}
+                                    />
                                     </div>
                                 </div>
+                                {user.shipping_address && (
+                                    <div className="flex justify-end gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                        resetShippingToOriginal();
+                                        setIsEditingShipping(false);
+                                        }}
+                                        className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                    >
+                                        Cancel
+                                    </button>
+                                    </div>
+                                )}
+                                </div>
+                            )}
                             </div>
                         </div>
 
                         {/* Billing Address Card (with checkbox) */}
                         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                             <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                                    <MapPin className="w-5 h-5 text-greycode-light-blue" />
-                                    Billing Address
-                                </h2>
-                                <label className="flex items-center gap-2 text-sm text-gray-700">
+                            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                                <MapPin className="w-5 h-5 text-greycode-light-blue" />
+                                Billing Address
+                            </h2>
+                            {user.billing_address && !isEditingBilling && (
+                                <button
+                                onClick={() => setIsEditingBilling(true)}
+                                className="text-sm text-greycode-light-blue hover:text-indigo-700 font-medium"
+                                >
+                                Edit
+                                </button>
+                            )}
+                            </div>
+                            <div className="p-6">
+                            {user.billing_address && !isEditingBilling ? (
+                                // Display mode
+                                <div className="space-y-2">
+                                <p className="text-sm text-gray-900">{formatAddress(user.billing_address)}</p>
+                                {user.billing_address.phone_number && (
+                                    <p className="text-sm text-gray-600 flex items-center gap-1">
+                                    <Phone className="w-4 h-4" /> {user.billing_address.phone_number}
+                                    </p>
+                                )}
+                                </div>
+                            ) : (
+                                // Edit mode (form)
+                                <div className="space-y-4">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <label className="flex items-center gap-2 text-sm text-gray-700">
                                     <input
                                         type="checkbox"
                                         checked={addressData.billing_same_as_shipping}
@@ -423,115 +518,130 @@ const {
                                         className="rounded border-gray-300 text-greycode-light-blue focus:ring-greycode-light-blue"
                                     />
                                     Same as shipping
-                                </label>
-                            </div>
-                            <div className="p-6">
+                                    </label>
+                                </div>
                                 <div className="grid grid-cols-1 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
-                                        <input
-                                            type="text"
-                                            value={addressData.billing_street}
-                                            onChange={(e) => setAddressData('billing_street', e.target.value)}
-                                            disabled={addressData.billing_same_as_shipping}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-greycode-light-blue focus:border-greycode-light-blue disabled:bg-gray-100 disabled:text-gray-500"
-                                        />
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
+                                    <input
+                                        type="text"
+                                        value={addressData.billing_street}
+                                        onChange={(e) => setAddressData('billing_street', e.target.value)}
+                                        disabled={addressData.billing_same_as_shipping}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-greycode-light-blue focus:border-greycode-light-blue disabled:bg-gray-100 disabled:text-gray-500"
+                                    />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Building/Complex</label>
-                                        <input
-                                            type="text"
-                                            value={addressData.billing_building}
-                                            onChange={(e) => setAddressData('billing_building', e.target.value)}
-                                            disabled={addressData.billing_same_as_shipping}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-greycode-light-blue focus:border-greycode-light-blue disabled:bg-gray-100 disabled:text-gray-500"
-                                        />
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Building/Complex</label>
+                                    <input
+                                        type="text"
+                                        value={addressData.billing_building}
+                                        onChange={(e) => setAddressData('billing_building', e.target.value)}
+                                        disabled={addressData.billing_same_as_shipping}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-greycode-light-blue focus:border-greycode-light-blue disabled:bg-gray-100 disabled:text-gray-500"
+                                    />
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Suburb</label>
-                                            <input
-                                                type="text"
-                                                value={addressData.billing_suburb}
-                                                onChange={(e) => setAddressData('billing_suburb', e.target.value)}
-                                                disabled={addressData.billing_same_as_shipping}
-                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-greycode-light-blue focus:border-greycode-light-blue disabled:bg-gray-100 disabled:text-gray-500"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                                            <input
-                                                type="text"
-                                                value={addressData.billing_city}
-                                                onChange={(e) => setAddressData('billing_city', e.target.value)}
-                                                disabled={addressData.billing_same_as_shipping}
-                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-greycode-light-blue focus:border-greycode-light-blue disabled:bg-gray-100 disabled:text-gray-500"
-                                            />
-                                        </div>
-                                    </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Postal Code</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Suburb</label>
                                         <input
-                                            type="text"
-                                            value={addressData.billing_postal}
-                                            onChange={(e) => setAddressData('billing_postal', e.target.value)}
-                                            disabled={addressData.billing_same_as_shipping}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-greycode-light-blue focus:border-greycode-light-blue disabled:bg-gray-100 disabled:text-gray-500"
+                                        type="text"
+                                        value={addressData.billing_suburb}
+                                        onChange={(e) => setAddressData('billing_suburb', e.target.value)}
+                                        disabled={addressData.billing_same_as_shipping}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-greycode-light-blue focus:border-greycode-light-blue disabled:bg-gray-100 disabled:text-gray-500"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Province</label>
-                                        <select
-                                            value={addressData.billing_province}
-                                            onChange={(e) => setAddressData('billing_province', e.target.value)}
-                                            disabled={addressData.billing_same_as_shipping}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                                        >
-                                            <option value="">Select Province</option>
-                                            <option value="Gauteng">Gauteng</option>
-                                            <option value="Western Cape">Western Cape</option>
-                                            <option value="KwaZulu-Natal">KwaZulu-Natal</option>
-                                            <option value="Eastern Cape">Eastern Cape</option>
-                                            <option value="Free State">Free State</option>
-                                            <option value="Limpopo">Limpopo</option>
-                                            <option value="Mpumalanga">Mpumalanga</option>
-                                            <option value="North West">North West</option>
-                                            <option value="Northern Cape">Northern Cape</option>
-                                        </select>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                                        <input
+                                        type="text"
+                                        value={addressData.billing_city}
+                                        onChange={(e) => setAddressData('billing_city', e.target.value)}
+                                        disabled={addressData.billing_same_as_shipping}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-greycode-light-blue focus:border-greycode-light-blue disabled:bg-gray-100 disabled:text-gray-500"
+                                        />
+                                    </div>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number (for this address)</label>
-                                        <input
-                                            type="tel"
-                                            value={addressData.billing_phone}
-                                            onChange={(e) => setAddressData('billing_phone', e.target.value)}
-                                            disabled={addressData.billing_same_as_shipping}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                                            maxLength={10}
-                                        />
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Postal Code</label>
+                                    <input
+                                        type="text"
+                                        value={addressData.billing_postal}
+                                        onChange={(e) => setAddressData('billing_postal', e.target.value)}
+                                        disabled={addressData.billing_same_as_shipping}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-greycode-light-blue focus:border-greycode-light-blue disabled:bg-gray-100 disabled:text-gray-500"
+                                    />
+                                    </div>
+                                    <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Province</label>
+                                    <select
+                                        value={addressData.billing_province}
+                                        onChange={(e) => setAddressData('billing_province', e.target.value)}
+                                        disabled={addressData.billing_same_as_shipping}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                    >
+                                        <option value="">Select Province</option>
+                                        <option value="Gauteng">Gauteng</option>
+                                        <option value="Western Cape">Western Cape</option>
+                                        <option value="KwaZulu-Natal">KwaZulu-Natal</option>
+                                        <option value="Eastern Cape">Eastern Cape</option>
+                                        <option value="Free State">Free State</option>
+                                        <option value="Limpopo">Limpopo</option>
+                                        <option value="Mpumalanga">Mpumalanga</option>
+                                        <option value="North West">North West</option>
+                                        <option value="Northern Cape">Northern Cape</option>
+                                    </select>
+                                    </div>
+                                    <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number (for this address)</label>
+                                    <input
+                                        type="tel"
+                                        value={addressData.billing_phone}
+                                        onChange={(e) => setAddressData('billing_phone', e.target.value)}
+                                        disabled={addressData.billing_same_as_shipping}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                        maxLength={10}
+                                    />
                                     </div>
                                 </div>
-
-                                {/* Address form errors and submit button */}
-                                {Object.keys(addressErrors).length > 0 && (
-                                    <div className="mt-4 bg-red-50 border border-red-200 rounded-md p-4">
-                                        <div className="text-red-600 text-sm">
-                                            {Object.values(addressErrors).map((error, idx) => (
-                                                <div key={idx}>• {error}</div>
-                                            ))}
-                                        </div>
+                                {user.billing_address && (
+                                    <div className="flex justify-end gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                        resetBillingToOriginal();
+                                        setIsEditingBilling(false);
+                                        }}
+                                        className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                    >
+                                        Cancel
+                                    </button>
                                     </div>
                                 )}
-                                <div className="mt-6 flex justify-end">
-                                    <button
-                                        onClick={submitAddress}
-                                        disabled={addressProcessing}
-                                        className="px-4 py-2 bg-greycode-light-blue text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
-                                    >
-                                        {addressProcessing ? 'Updating...' : 'Update Addresses'}
-                                    </button>
                                 </div>
+                            )}
                             </div>
+                        </div>
+
+                        {/* Address form errors and global submit button */}
+                        {Object.keys(addressErrors).length > 0 && (
+                            <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                            <div className="text-red-600 text-sm">
+                                {Object.values(addressErrors).map((error, idx) => (
+                                <div key={idx}>• {error}</div>
+                                ))}
+                            </div>
+                            </div>
+                        )}
+                        <div className="flex justify-end">
+                            <button
+                            onClick={submitAddress}
+                            disabled={addressProcessing}
+                            className="px-4 py-2 bg-greycode-light-blue text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
+                            >
+                            {addressProcessing ? 'Updating...' : 'Update Addresses'}
+                            </button>
                         </div>
 
                         {/* Change Password Card */}

@@ -12,6 +12,7 @@ use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\NewPasswordController;
+use App\Http\Controllers\ContactController;
 
 Route::get('/', function () {
     return Inertia::render('Homepage', ['name' => 'Greycode Shop']);
@@ -19,7 +20,7 @@ Route::get('/', function () {
 
 Route::get('/contact', function () {
     return Inertia::render('Contact');
-});
+})->name('contact');
 
 Route::get('/products', function () {
     return Inertia::render('Products');
@@ -154,3 +155,6 @@ Route::middleware('guest')->group(function () {
     Route::post('/reset-password', [NewPasswordController::class, 'store'])
         ->name('password.update');
 });
+
+//contact form route
+Route::post('/contact', [ContactController::class, 'sendEmail'])->name('contact.send');
