@@ -45,7 +45,8 @@ class PayFastController extends Controller
             Log::info('Payment completed for order: ' . $order->order_number);
         }
 
-        return response('OK', 200);
+        return response('OK', 200)
+        ->header('Content-Type', 'text/plain');
     }
 
     public function success(Request $request, $orderId)

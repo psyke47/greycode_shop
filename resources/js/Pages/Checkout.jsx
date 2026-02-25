@@ -57,8 +57,7 @@ export default function Checkout({
             phone_number: defaultBilling?.phone_number || "",
             save_address: false,
         },
-        payment_method: "yoco",
-        yoco_token: "",
+        payment_method: "payfast",
         customer_note: "",
     });
 
@@ -110,6 +109,10 @@ export default function Checkout({
             same_as_shipping: sameAsShipping,
         });
     }, [sameAsShipping]);
+
+    useEffect(() => {
+    setData("payment_method", paymentMethod);
+}, [paymentMethod, setData]);
 
     // Handle form submission
     const handleSubmit = (e) => {
