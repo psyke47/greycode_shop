@@ -3,74 +3,138 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
-use App\Models\OrderItem;
 use App\Models\Address;
 use App\Models\Product;
+use App\Models\User;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Gate;
 
 class OrderController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Display a listing of the user's orders.
      */
     public function index(Request $request)
     {
         $user = Auth::user();
-        
-        // Get orders with relationships
+        $this->authorize('viewAny', Order::class);
+
+        // Build base query with relationships
         $query = Order::with([
-                'items.product.productImages', 
-                'shippingAddress', 
-                'billingAddress'
-            ])
-            ->where('user_id', $user->id)
-            ->orderBy('created_at', 'desc');
+            'user:id,first_name,last_name,email', // Load user for admin view
+            'items.product.productImages', 
+            'shippingAddress', 
+            'billingAddress'
+        ])->orderBy('created_at', 'desc');
+
+        // Apply user filter for non-admins
+        if (!$user->is_admin) {
+            $query->where('user_id', $user->id);
+        }
 
         // Apply filters
-        $this->applyFilters($query, $request);
+        $this->applyFilters($query, $request, $user);
 
-        $orders = $query->paginate(10)->withQueryString();
 
-        return Inertia::render('Order', [
-            'orders' => $this->transformOrders($orders),
-            'filters' => $request->only(['search', 'status']),
+        // Paginate with different page sizes
+        $perPage = $user->is_admin ? 20 : 10;
+        $orders = $query->paginate($perPage)->withQueryString();
+
+        $viewName = $user->is_admin ? 'Admin/Order' : 'Order';
+
+        return Inertia::render($viewName,[
+            'orders'     => $this->transformOrders($orders, $user),
+            'filters'    => $this->getFilters($request, $user),
             'pagination' => $this->getPaginationData($orders),
-            'stats' => $this->getOrderStats($user->id)
+            'stats'      => $this->getOrderStats($user),
+            'is-admin' => $user->is_admin,
+            'users'    => $user->is_admin ? $this->getUserList() : null, // For admin user filter
         ]);
+
     }
+
+
 
     /**
      * Apply search and status filters to query.
      */
-    private function applyFilters($query, Request $request): void
+    private function applyFilters($query, Request $request, $user): void
     {
+        //status filter
         if ($request->filled('status') && $request->status !== 'all') {
             $query->where('order_status', $request->status);
         }
 
+        // Payment status filter (admin only)
+        if ($user->is_admin && $request->filled('payment_status') && $request->payment_status !== 'all') {
+            $query->where('payment_status', $request->payment_status);
+        }
+
+        // Date range filter
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        // Admin customer filter
+        if ($user->is_admin && $request->filled('user_id') && $request->user_id !== 'all') {
+            $query->where('user_id', $request->user_id);
+        }
+
+        // Search filter
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function($q) use ($search, $user) {
                 $q->where('order_number', 'LIKE', "%{$search}%")
-                  ->orWhereHas('shippingAddress', function($q) use ($search) {
-                      $q->where('address_line1', 'LIKE', "%{$search}%")
-                        ->orWhere('surburb', 'LIKE', "%{$search}%")
-                        ->orWhere('city', 'LIKE', "%{$search}%");
-                  });
+                  ->orWhere('tracking_number', 'LIKE', "%{$search}%");
+                
+                // Admin can search by customer name/email
+                if ($user->is_admin) {
+                    $q->orWhereHas('user', function($q2) use ($search) {
+                        $q2->where('first_name', 'LIKE', "%{$search}%")
+                           ->orWhere('last_name', 'LIKE', "%{$search}%")
+                           ->orWhere('email', 'LIKE', "%{$search}%");
+                    });
+                }
+
+                // Address search
+                $q->orWhereHas('shippingAddress', function($q) use ($search) {
+                    $q->where('address_line1', 'LIKE', "%{$search}%")
+                      ->orWhere('surburb', 'LIKE', "%{$search}%")
+                      ->orWhere('city', 'LIKE', "%{$search}%");
+                });
             });
         }
     }
 
     /**
+     * Get filters for the view
+     */
+    private function getFilters(Request $request, $user): array
+    {
+        $filters = $request->only(['search', 'status', 'date_from', 'date_to']);
+        
+        if ($user->is_admin) {
+            $filters['payment_status'] = $request->get('payment_status', 'all');
+            $filters['user_id'] = $request->get('user_id', 'all');
+        }
+        
+        return $filters;
+    }
+
+    /**
      * Transform orders for frontend.
      */
-    private function transformOrders($orders)
+    private function transformOrders($orders, $user)
     {
-        return $orders->getCollection()->map(function($order) {
-            return [
+        return $orders->getCollection()->map(function($order) use ($user) {
+            $data = [
                 'id' => $order->id,
                 'order_number' => $order->order_number,
                 'date' => $order->created_at->format('Y-m-d'),
@@ -92,7 +156,21 @@ class OrderController extends Controller
                 'items' => $this->transformOrderItems($order->items),
                 'notes' => $order->notes,
                 'customer_note' => $order->customer_note,
+                'can_cancel' => in_array($order->order_status, ['pending', 'processing']),
+                'can_return' => $order->order_status === 'delivered' && 
+                                $order->created_at->diffInDays(now()) <= 30,
             ];
+
+            // For admin view 
+            if ($user->is_admin) {
+                $data['user'] = [
+                    'id' => $order->user_id,
+                    'name' => $order->user ? "{$order->user->first_name} {$order->user->last_name}" : 'Unknown User',
+                    'email' => $order->user ? $order->user->email : null,
+                ];
+            }
+
+            return $data;
         });
     }
 
@@ -181,48 +259,98 @@ class OrderController extends Controller
     /**
      * Get order statistics.
      */
-    private function getOrderStats(int $userId): array
+    private function getOrderStats($user = null): array
     {
-        return [
-            'total' => Order::where('user_id', $userId)->count(),
-            'pending' => Order::where('user_id', $userId)->where('order_status', 'pending')->count(),
-            'processing' => Order::where('user_id', $userId)->where('order_status', 'processing')->count(),
-            'shipped' => Order::where('user_id', $userId)->where('order_status', 'shipped')->count(),
-            'delivered' => Order::where('user_id', $userId)->where('order_status', 'delivered')->count(),
-            'cancelled' => Order::where('user_id', $userId)->where('order_status', 'cancelled')->count(),
+        $query = Order::query();
+        
+        if ($user && !$user->is_admin) {
+            $query->where('user_id', $user->id);
+        }
+
+        // work from a clean copy for each metric to avoid side effects
+        $base = $query->clone();
+
+        $total = $base->count();
+        $totalRevenue = (clone $base)->where('payment_status', 'paid')->sum('total_amount');
+        $todayOrders = (clone $base)->whereDate('created_at', today())->count();
+        $thisMonthRevenue = (clone $base)
+            ->where('payment_status', 'paid')
+            ->whereMonth('created_at', now()->month)
+            ->sum('total_amount');
+
+        // Status counts
+        $statusCounts = [
+            'total' => $total,
+            'pending' => (clone $base)->where('order_status', 'pending')->count(),
+            'processing' => (clone $base)->where('order_status', 'processing')->count(),
+            'shipped' => (clone $base)->where('order_status', 'shipped')->count(),
+            'delivered' => (clone $base)->where('order_status', 'delivered')->count(),
+            'cancelled' => (clone $base)->where('order_status', 'cancelled')->count(),
         ];
+
+
+        // Admin-specific stats
+        if ($user->is_admin) {
+            $statusCounts['total_revenue'] = (float) $totalRevenue;
+            $statusCounts['today_orders'] = $todayOrders;
+            $statusCounts['this_month_revenue'] = (float) $thisMonthRevenue;
+            
+        // Payment status stats
+            $statusCounts['unpaid'] = $query->clone()->where('payment_status', 'unpaid')->count();
+            $statusCounts['paid'] = $query->clone()->where('payment_status', 'paid')->count();
+            $statusCounts['refunded'] = $query->clone()->where('payment_status', 'refunded')->count();
+        }
+
+        return $statusCounts;
+    }
+    
+    /**
+     * Get user list for admin filter dropdown
+     */
+    private function getUserList()
+    {
+        return User::select('id', 'first_name', 'last_name', 'email')
+            ->orderBy('first_name')
+            ->get()
+            ->map(function($user) {
+                return [
+                    'id' => $user->id,
+                    'label' => "{$user->first_name} {$user->last_name} {$user->email}"
+                ];
+            });
     }
 
     /**
-     * Display the specified order.
+     * Display the specified order (works for both admin and users)
      */
     public function show($id)
     {
-        $user = Auth::user();
-        
         $order = Order::with([
+            'user', // Load user for admin view
             'items.product.productImages', 
             'shippingAddress', 
             'billingAddress', 
             'payments'
         ])->findOrFail($id);
 
-        // Authorization
-        if ($order->user_id !== $user->id && !$user->is_admin) {
-            abort(403);
-        }
+        // Use policy for authorization
+        $this->authorize('view', $order);
 
-        return Inertia::render('OrderDetails', [
-            'order' => $this->transformOrderForDetails($order)
+        $user = Auth::user();
+        $viewName = $user->is_admin ? 'Admin/OrderDetails' : 'OrderDetails';
+        
+        return Inertia::render($viewName, [
+            'order' => $this->transformOrderForDetails($order, $user),
+            'is_admin' => $user->is_admin,
         ]);
     }
 
     /**
      * Transform single order for details view.
      */
-    private function transformOrderForDetails(Order $order): array
+    private function transformOrderForDetails(Order $order, $user = null): array
     {
-        return [
+        $data = [
             'id' => $order->id,
             'order_number' => $order->order_number,
             'date' => $order->created_at->format('F d, Y'),
@@ -249,6 +377,17 @@ class OrderController extends Controller
             'can_return' => $order->order_status === 'delivered' && 
                           $order->created_at->diffInDays(now()) <= 30,
         ];
+
+        // Attach user info for admin view
+        if ($user && $user->is_admin) {
+            $data['user'] = [
+                'id' => $order->user_id,
+                'name' => $order->user ? "{$order->user->first_name} {$order->user->last_name}" : 'Unknown User',
+                'email' => $order->user ? $order->user->email : null,
+            ];
+        }
+
+        return $data;
     }
 
     /**
@@ -297,15 +436,8 @@ class OrderController extends Controller
         $user = Auth::user();
         $order = Order::with('items')->findOrFail($id);
 
-        // Authorization
-        if ($order->user_id !== $user->id) {
-            abort(403);
-        }
-
-        // Validation
-        if (!in_array($order->order_status, ['pending', 'processing'])) {
-            return back()->withErrors(['order' => 'This order cannot be cancelled.']);
-        }
+        // Use policy
+        $this->authorize('cancel', $order);
 
         // Update order
         $order->update([
@@ -380,4 +512,36 @@ class OrderController extends Controller
             'order_number' => $order->order_number,
         ]);
     }
+
+     /**
+     * Update order status (admin only)
+     */
+    public function updateStatus(Request $request, $id)
+    {
+        $order = Order::findOrFail($id);
+        
+        // Only admin can update orders
+        if (!Auth::user()->is_admin) {
+            abort(403, 'Unauthorized. Admin access required.');
+        }
+
+        $validated = $request->validate([
+            'order_status' => 'required|in:pending,processing,shipped,delivered,cancelled,refunded',
+            'payment_status' => 'nullable|in:unpaid,paid,refunded',
+            'notes' => 'nullable|string',
+            'customer_note' => 'nullable|string',
+        ]);
+
+        // Update the order
+        $order->update($filtered = array_filter($validated, fn($value) => $value !== null));
+
+        // If cancelling, restore stock
+        if ($validated['order_status'] === 'cancelled' && $order->order_status !== 'cancelled') {
+            $this->restoreOrderStock($order);
+        }
+
+        return redirect()->back()->with('success', 'Order updated successfully.');
+    }
+
+
 }

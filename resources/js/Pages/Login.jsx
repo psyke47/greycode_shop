@@ -3,6 +3,7 @@ import React from 'react';
 import gasSensor from '/./public/images/GasSensor.png';
 import gasSensor1 from '/./public/images/GasSensor1.png';
 import blackLogo from '../../images/Greycode_G_Logo_black.png'
+import Footer from '../Components/Footer';
 
 export default function Login() {
   const { data, setData, post, processing, errors } = useForm({
@@ -17,11 +18,22 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen">
       <Head title="Login" />
-      
+
+      <header className="flex items-center justify-between px-6 py-3 md:py-4 shadow mx-auto w-full bg-white z-11">
+          <Link href="/">
+             <img 
+                src={blackLogo}
+                alt="Greycode Black Logo"
+                className="w-auto h-12" 
+              />
+           </Link>
+      </header>
+
+      <main className = "flex-1 flex">
       {/* Left side - only visible on larger screens */}
-      <div className="hidden lg:flex lg:w-3/5 bg-white">
+      <div className="hidden lg:flex lg:w-3/5 bg-white h-screen relative">
       <div className="flex items-center justify-left">
           <img 
             src={gasSensor1} 
@@ -117,7 +129,7 @@ export default function Login() {
               </div>
               
               <div className="text-sm">
-                <a href="#" className="font-medium text-greycode-light-blue hover:text-indigo-500">
+                <a href="/forgot-password" className="font-medium text-greycode-light-blue hover:text-indigo-500">
                   Forgot your password?
                 </a>
               </div>
@@ -135,7 +147,9 @@ export default function Login() {
           </form>
         </div>
       </div>
-    </div>
+    </main>
+    <Footer />
+  </div>
   );
 }
 

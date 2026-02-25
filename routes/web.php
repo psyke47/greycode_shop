@@ -7,6 +7,11 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\TrackingController;
+use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\UserProfileController;
+use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Auth\PasswordResetLinkController;
+use App\Http\Controllers\Auth\NewPasswordController;
 
 Route::get('/', function () {
     return Inertia::render('Homepage', ['name' => 'Greycode Shop']);
@@ -36,12 +41,20 @@ Route::get('/order', function () {
 Route::get('/order-details', function () {
     return Inertia::render('OrderDetails');
 });
-Route::get('/user-profile', function () {
-    return Inertia::render('UserProfile');
+Route::middleware('auth')->group(function () {
+    Route::get('/user-profile', function () {
+        return Inertia::render('UserProfile', [
+            'auth' => [
+                'user' => auth()->user(),
+            ],
+            'orders' => auth()->user()?->orders ?? [],
+        ]);
+    });
 });
 Route::get('/tracking', function () {
     return Inertia::render('Tracking');
 });
+
 
 /* Login and Sign up routes are commented out for future implementation */
 Route::get('/login', function () {
@@ -87,18 +100,57 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // Order routes
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth','verified'])->group(function () {
     // Use consistent naming: all /orders (plural)
-    Route::get('/order', [OrderController::class, 'index'])->name('order');
+    Route::get('/order', [OrderController::class, 'index'])->name('order.index');
     Route::get('/order/{id}', [OrderController::class, 'show'])->name('order.show');
     Route::post('/order/{id}/cancel', [OrderController::class, 'cancel'])->name('order.cancel');
     Route::post('/order/{id}/return', [OrderController::class, 'requestReturn'])->name('order.return');
     Route::get('/order/{id}/invoice', [OrderController::class, 'downloadInvoice'])->name('order.invoice');
-    
-    // Remove the duplicate route: orders/{order}
+
 });
-Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    // Admin-only routes
+Route::middleware(['auth', 'verified','admin'])->prefix('admin')->name('admin.')->group(function () 
+{
+    Route::get('/order', [OrderController::class, 'index'])->name('order.index');
+    Route::get('/order/{id}', [OrderController::class, 'show'])->name('order.show');
+    Route::put('/order/{id}/status', [OrderController::class, 'updateStatus'])->name('order.updateStatus');
+    Route::get('/order/dashboard', [OrderController::class, 'dashboard'])->name('order.dashboard');
+
+    //Route::get('/order/statistics', [AdminOrderController::class, 'statistics'])->name('order.statistics');
+});
 
 // Tracking routes
 Route::get('/tracking', [TrackingController::class, 'index'])->name('tracking');
 Route::post('/tracking', [TrackingController::class, 'track'])->name('tracking.track');
+
+// Checkout routes (protected)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
+    Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+});
+
+// User profile routes
+use App\Http\Controllers\ProfileController;
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [UserProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/user-profile', [UserProfileController::class, 'update'])->name('profile.update');
+    Route::put('/address', [UserProfileController::class, 'updateAddress'])->name('profile.update-address');
+    Route::put('/password', [UserProfileController::class, 'updatePassword'])->name('profile.update-password');
+});
+
+//Forgot password routes
+Route::middleware('guest')->group(function () {
+    Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])
+        ->name('password.request');
+
+    Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])
+        ->name('password.email');
+
+    Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])
+        ->name('password.reset');
+
+    Route::post('/reset-password', [NewPasswordController::class, 'store'])
+        ->name('password.update');
+});

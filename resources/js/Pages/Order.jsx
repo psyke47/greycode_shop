@@ -27,19 +27,19 @@ export default function Order() {
 
   const handleTabChange = (status) => {
     setActiveTab(status)
-    router.get(route('orders'), { search: searchTerm, status }, { // Use named route
+    router.get(route('/order'), { search: searchTerm, status }, { // Use named route
         preserveState: true,
         replace: true,
     })
   }
 
-  // And for the back link:
-  {/* <Link href={route('orders')}>Back to Orders</Link> */}
+ 
+<Link href="/order">Back to Orders</Link>
 
   const handleCancelOrder = (orderId, e) => {
     e.preventDefault()
     if (confirm('Are you sure you want to cancel this order? This action cannot be undone.')) {
-      post(`/orders/${orderId}/cancel`, {
+      post(`/order/${orderId}/cancel`, {
         preserveScroll: true,
         onSuccess: () => {
           router.reload()
@@ -52,7 +52,7 @@ export default function Order() {
     e.preventDefault()
     const reason = prompt('Please enter the reason for return:')
     if (reason) {
-      post(`/orders/${orderId}/return`, {
+      post(`/order/${orderId}/return`, {
         reason: reason,
         preserveScroll: true,
         onSuccess: () => {
@@ -120,7 +120,7 @@ export default function Order() {
     actions.push({
       label: 'View Details',
       color: 'blue',
-      href: `/orders/${order.id}`
+      href: `/order/${order.id}`
     })
     
     return actions

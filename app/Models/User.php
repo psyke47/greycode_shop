@@ -19,13 +19,13 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'username',
         'first_name',
         'last_name',
         'email',
         'phone',
         'date_of_birth',
         'password'
+        /* 'is_admin' */
     ];
 
     /**
@@ -48,6 +48,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_admin' => 'boolean',
+            'date_of_birth' => 'date'
         ];
     }
     
@@ -66,12 +68,23 @@ class User extends Authenticatable
     */
     public function latestOrder()
     {
-        return $this->hasOne(Order::class)->latestOrder();
+        /* return $this->hasOne(Order::class)->latestOrder(); */
+        return $this->hasOne(Order::class)->latestOfMany();
     }
 
     public function addresses() 
     {
-         return $this->hasMany(Address::class); 
+        return $this->hasMany(Address::class); 
+    }
+
+    public function shippingAddress()
+    {
+        return $this->hasOne(Address::class)->where('address_type', 'Shipping');
+    }
+
+    public function billingAddress()
+    {
+        return $this->hasOne(Address::class)->where('address_type', 'Billing');
     }
     
 }
