@@ -12,10 +12,9 @@ class UserSeeder extends Seeder
     {
         // Admin user
         User::create([
-            'username'     => 'admin',
-            'first_name'   => 'System',
-            'last_name'    => 'Administrator',
-            'email'        => 'admin@example.com',
+            'first_name'   => 'Funanani',
+            'last_name'    => 'Mugagadeli',
+            'email'        => 'funanani.mugagadeli@greycode.co.za',
             'password'     => Hash::make('securepassword'),
             'phone'        => '0123456789',
             'date_of_birth'=> '1990-01-01',
@@ -24,7 +23,6 @@ class UserSeeder extends Seeder
 
         //  Regular user
         User::create([
-            'username'     => 'johndoe',
             'first_name'   => 'John',
             'last_name'    => 'Doe',
             'email'        => 'john@example.com',
@@ -35,7 +33,6 @@ class UserSeeder extends Seeder
         ]);
 
         User::create([
-            'username'     => 'janedoe',
             'first_name'   => 'Jane',
             'last_name'    => 'Doe',
             'email'        => 'jane@example.com',
@@ -46,7 +43,6 @@ class UserSeeder extends Seeder
         ]);
 
         User::create([
-            'username'     => 'bobsmith',
             'first_name'   => 'Bob',
             'last_name'    => 'Smith',
             'email'        => 'bob@example.com',
@@ -57,7 +53,6 @@ class UserSeeder extends Seeder
         ]);
 
         User::create([
-            'username'     => 'norahsmith',
             'first_name'   => 'Norah',
             'last_name'    => 'Smith',
             'email'        => 'norah@example.com',

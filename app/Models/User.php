@@ -86,6 +86,17 @@ class User extends Authenticatable
     // Alias method for clarity
     public function wishlistItems()
     {
+        return $this->hasMany(Address::class); 
+    }
+
+    public function shippingAddress()
+    {
+        return $this->hasOne(Address::class)->where('address_type', 'Shipping');
+    }
+
+    public function billingAddress()
+    {
+        return $this->hasOne(Address::class)->where('address_type', 'Billing');
         return $this->wishlist();
     }
 }
