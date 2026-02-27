@@ -99,7 +99,7 @@ const Footer = () => {
                         <ul className="space-y-2">
                             <li>
                                 <a
-                                    href="#"
+                                    href="/"
                                     className="text-white hover:text-greycode-dark-blue transition"
                                 >
                                     Home
@@ -115,7 +115,7 @@ const Footer = () => {
                             </li>
                             <li>
                                 <a
-                                    href="track"
+                                    href="/tracking"
                                     className="text-white hover:text-greycode-dark-blue transition"
                                 >
                                     Track Orders
