@@ -112,11 +112,11 @@ export default function Tracking({ trackingInfo: initialTrackingInfo, searchPara
                         </svg>
                       </div>
                     </div>
-                    <div className="mt-2 text-sm text-gray-500">
+                   {/**  <div className="mt-2 text-sm text-gray-500">
                       <p>✓ Accepts: <span className="font-medium">GC-ORD-1234</span> (Order ID)</p>
                       <p>✓ Accepts: <span className="font-medium">TRK789012345</span> (Tracking number)</p>
                       <p>✓ Accepts: <span className="font-medium">1234</span> (Order number)</p>
-                    </div>
+                    </div> */}
                     {errors.search_input && (
                       <p className="mt-1 text-sm text-red-600">{errors.search_input}</p>
                     )}

@@ -124,12 +124,22 @@ export default function AdminOrder() {
               </p>
             </div>
             <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+              <p className="text-sm text-gray-600 mb-1">Unpaid Orders</p>
+              <p className="text-2xl font-bold text-red-600">{stats?.unpaid || 0}</p>
+            </div>
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
               <p className="text-sm text-gray-600 mb-1">Pending Orders</p>
               <p className="text-2xl font-bold text-yellow-600">{stats?.pending || 0}</p>
             </div>
             <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
               <p className="text-sm text-gray-600 mb-1">Today's Orders</p>
               <p className="text-2xl font-bold text-blue-600">{stats?.today_orders || 0}</p>
+            </div>
+            <div className="bg-blue-600 p-4 rounded-xl shadow-sm border border-gray-200">
+              <p className="text-sm text-white mb-1">This Months Revenue</p>
+              <p className="text-2xl font-bold text-green-400">
+                {stats?.this_month_revenue ? formatCurrency(stats.this_month_revenue) : 'R 0'}
+              </p>
             </div>
           </div>
 
@@ -284,11 +294,39 @@ export default function AdminOrder() {
           </div>
 
           {/* Orders Table */}
-          <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
-            <table className="min-w-full divide-y divide-gray-200">
+          {/* mobile-friendly card view, hidden on sm and up */}
+          <div className="sm:hidden space-y-4 mb-6">
+            {orders && orders.length > 0 ? (
+              orders.map(order => (
+                <div key={order.id} className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium">#{order.order_number}</span>
+                    <span className={`text-xs rounded-full px-2 py-1 ${getStatusColor(order.status)}`}>
+                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-500">{formatDate(order.date)}</p>
+                  <p className="text-sm">{order.user?.name || 'Unknown customer'}</p>
+                  <div className="mt-2">
+                    <Link href={`/admin/order/${order.id}`} className="text-blue-600 text-sm">
+                      View
+                    </Link>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500">No orders found matching your criteria</p>
+            )}
+          </div>
+
+          {/* desktop/table view */}
+          <div className="hidden sm:block bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
+            {/* horizontal scroll on small screens */}
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 table-fixed">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12 hidden sm:table-cell">
                     <input
                       type="checkbox"
                       checked={selectedOrders.length === orders?.length && orders?.length > 0}
@@ -305,22 +343,22 @@ export default function AdminOrder() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Order #
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
                     Customer
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
                     Date
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                     Payment
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                     Total
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
                     Action
                   </th>
                 </tr>
@@ -335,7 +373,7 @@ export default function AdminOrder() {
                 ) : (
                   orders.map((order) => (
                     <tr key={order.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4 whitespace-nowrap hidden sm:table-cell">
                         <input
                           type="checkbox"
                           checked={selectedOrders.includes(order.id)}
@@ -357,14 +395,14 @@ export default function AdminOrder() {
                           {order.order_number}
                         </Link>
                       </td>
-                      <td className="px-6 py-4 whitespace-wrap">
+                      <td className="px-6 py-4 whitespace-wrap hidden sm:table-cell">
                         <div>
                           <div className="font-medium text-gray-900">
                             {order.user?.name || 'Unknown customer'}
                           </div>  
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
                         {formatDate(order.date)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -372,7 +410,7 @@ export default function AdminOrder() {
                           {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                           order.payment_status === 'paid' ? 'bg-green-100 text-green-800' :
                           order.payment_status === 'refunded' ? 'bg-blue-100 text-blue-800' :
@@ -381,10 +419,10 @@ export default function AdminOrder() {
                           {order.payment_status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap font-medium">
+                      <td className="px-6 py-4 whitespace-nowrap font-medium hidden md:table-cell">
                         {formatCurrency(order.total)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm hidden sm:table-cell">
                         <Link
                           href={`/admin/order/${order.id}`}
                           className="text-blue-600 hover:text-blue-800 mr-4"
@@ -400,6 +438,7 @@ export default function AdminOrder() {
           </div>
 
           {/* Bottom Pagination - same as your Order.jsx */}
+          </div> {/* close overflow-x-auto wrapper */}
           {pagination && pagination.last_page > 1 && (
             <div className="mt-8 flex justify-center">
               <div className="flex items-center space-x-2">

@@ -102,12 +102,12 @@ Route::middleware(['auth'])->group(function () {
 
 // Order routes
 Route::middleware(['auth','verified'])->group(function () {
-    // Use consistent naming: all /orders (plural)
     Route::get('/order', [OrderController::class, 'index'])->name('order.index');
     Route::get('/order/{id}', [OrderController::class, 'show'])->name('order.show');
     Route::post('/order/{id}/cancel', [OrderController::class, 'cancel'])->name('order.cancel');
     Route::post('/order/{id}/return', [OrderController::class, 'requestReturn'])->name('order.return');
     Route::get('/order/{id}/invoice', [OrderController::class, 'downloadInvoice'])->name('order.invoice');
+    Route::post('/order', [OrderController::class, 'store'])->name('order.store');
 
 });
     // Admin-only routes
