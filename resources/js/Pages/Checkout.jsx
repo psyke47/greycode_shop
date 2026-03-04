@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Head, Link, useForm, router } from "@inertiajs/react";
+import { Head, Link, useForm } from "@inertiajs/react";
 import MainLayout from "../Layouts/MainLayout";
 import {
     ShoppingBag,
@@ -43,7 +43,7 @@ export default function Checkout({
             province: defaultShipping?.province || "Gauteng",
             postal_code: defaultShipping?.postal_code || "",
             phone_number: defaultShipping?.phone_number || "",
-            save_address: false,
+            save_address: true,
             is_default: false,
         },
         billing: {
@@ -116,18 +116,79 @@ export default function Checkout({
 
     // Handle form submission
     const handleSubmit = (e) => {
-        e.preventDefault();
-        setIsProcessing(true);
+    e.preventDefault();
+    setIsProcessing(true);
 
-        post("/checkout", {
-            onSuccess: () => {
-                setIsProcessing(false);
-            },
-            onError: () => {
-                setIsProcessing(false);
-            },
-        });
+    // Get CSRF token from meta tag
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+    
+    if (!csrfToken) {
+        console.error('CSRF token not found');
+        alert('Security token missing. Please refresh the page.');
+        setIsProcessing(false);
+        return;
+    }
+
+    // Create a hidden form for normal browser submission
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/checkout';
+    form.style.display = 'none';
+
+    // Add CSRF token
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = '_token';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+
+    // Helper to add form fields
+    const addField = (name, value) => {
+        if (value === undefined || value === null) return;
+        
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = String(value);
+        form.appendChild(input);
     };
+
+    // Add all shipping fields
+    addField('shipping[address_line1]', data.shipping.address_line1);
+    addField('shipping[address_line2]', data.shipping.address_line2);
+    addField('shipping[surburb]', data.shipping.surburb);
+    addField('shipping[city]', data.shipping.city);
+    addField('shipping[province]', data.shipping.province);
+    addField('shipping[postal_code]', data.shipping.postal_code);
+    addField('shipping[phone_number]', data.shipping.phone_number);
+    addField('shipping[save_address]', data.shipping.save_address ? '1' : '0');
+    addField('shipping[is_default]', data.shipping.is_default ? '1' : '0');
+
+    // Add billing fields
+    addField('billing[same_as_shipping]', data.billing.same_as_shipping ? '1' : '0');
+    if (!data.billing.same_as_shipping) {
+        addField('billing[address_line1]', data.billing.address_line1);
+        addField('billing[address_line2]', data.billing.address_line2);
+        addField('billing[surburb]', data.billing.surburb);
+        addField('billing[city]', data.billing.city);
+        addField('billing[province]', data.billing.province);
+        addField('billing[postal_code]', data.billing.postal_code);
+        addField('billing[phone_number]', data.billing.phone_number);
+        addField('billing[save_address]', data.billing.save_address ? '1' : '0');
+    }
+
+    // Add payment method and customer note
+    addField('payment_method', data.payment_method);
+    addField('customer_note', data.customer_note);
+
+    // Append form and submit
+    document.body.appendChild(form);
+    
+    // Small delay to ensure UI updates
+    setTimeout(() => {
+        form.submit();
+    }, 100);
+};
 
     // Get product image URL (same as Products.jsx)
     const getProductImage = (product) => {
