@@ -11,6 +11,7 @@ use App\Services\PayFastService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class CheckoutController extends Controller
@@ -20,8 +21,9 @@ class CheckoutController extends Controller
     public function __construct(PayFastService $payfast)
     {
         $this->payfast = $payfast;
-    }    
-/**
+    }
+
+    /**
      * Show checkout page with cart summary and address form
      */
     public function index()
@@ -75,14 +77,13 @@ class CheckoutController extends Controller
                 'North West',
                 'Northern Cape'
             ],
-            'yocoPublicKey' => env('YOCO_PUBLIC_KEY', 'pk_test_12345') // Add to .env later
         ]);
     }
 
     /**
      * Process checkout and create order
      */
-     public function store(Request $request)
+    public function store(Request $request)
     {
         $user = Auth::user();
 
@@ -190,12 +191,16 @@ class CheckoutController extends Controller
 
             DB::commit();
 
-            // 8. If PayFast, redirect to payment page
+            // 8. If PayFast, redirect to payment page with HTML form
             if ($validated['payment_method'] === 'payfast') {
                 $payfastData = $this->payfast->generatePaymentData($order);
                 
-                // Return Inertia response that will POST to PayFast
-                return Inertia::location($this->getPayFastFormHtml($payfastData));
+                // Log for debugging (optional)
+                Log::info('PayFast redirect for order: ' . $order->order_number);
+                
+                // Generate and return HTML redirect page
+                $html = $this->getPayFastFormHtml($payfastData);
+                return response($html)->header('Content-Type', 'text/html');
             }
 
             // For other payment methods, just show order confirmation
@@ -204,27 +209,88 @@ class CheckoutController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Checkout failed: ' . $e->getMessage());
             return back()->withErrors(['checkout' => 'Failed to process order: ' . $e->getMessage()]);
         }
-
     }
-/**
+
+    /**
      * Generate HTML form that auto-submits to PayFast
+     * (Based on the working old PHP example)
      */
-    private function getPayFastFormHtml($data)
-{
-    $html = '<form id="payfast_form" method="POST" action="' . $this->payfast->getApiUrl() . '">';
-    
-    foreach ($data as $key => $value) {
-        $html .= '<input type="hidden" name="' . $key . '" value="' . htmlspecialchars($value) . '">';
-    }
-    
-    $html .= '</form>';
-    $html .= '<script>document.getElementById("payfast_form").submit();</script>';
-    
-    return 'data:text/html;base64,' . base64_encode($html);
-}
+    private function getPayFastFormHtml(array $data): string
+    {
+        $html = '<!DOCTYPE html>
+        <html>
+        <head>
+            <title>Redirecting to PayFast...</title>
+            <meta charset="UTF-8">
+            <style>
+                body { 
+                    font-family: Arial, sans-serif; 
+                    text-align: center; 
+                    padding-top: 50px;
+                    background: #f5f5f5;
+                    margin: 0;
+                    min-height: 100vh;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                }
+                .loader {
+                    border: 4px solid #f3f3f3;
+                    border-top: 4px solid #3498db;
+                    border-radius: 50%;
+                    width: 50px;
+                    height: 50px;
+                    animation: spin 1s linear infinite;
+                    margin: 20px auto;
+                }
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                .message {
+                    color: #333;
+                    font-size: 18px;
+                    margin-top: 20px;
+                }
+                .note {
+                    color: #666;
+                    font-size: 14px;
+                    margin-top: 10px;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="loader"></div>
+            <div class="message">Redirecting to PayFast...</div>
+            <div class="note">Please do not close this window</div>
+            
+            <form id="payfast_form" method="POST" action="' . $this->payfast->getApiUrl() . '">';
 
+        foreach ($data as $key => $value) {
+            $html .= '<input type="hidden" name="' . $key . '" value="' . htmlspecialchars($value) . '">';
+        }
+
+        $html .= '</form>
+            
+            <script>
+                // Auto-submit the form when page loads
+                document.addEventListener("DOMContentLoaded", function() {
+                    document.getElementById("payfast_form").submit();
+                });
+            </script>
+        </body>
+        </html>';
+        
+        return $html;
+    }
+
+    /**
+     * Confirm payment and deduct stock (called from PayFastController)
+     */
     public function confirmPayment($orderId)
     {
         $order = Order::with('items')->findOrFail($orderId);
@@ -238,6 +304,8 @@ class CheckoutController extends Controller
 
             // Mark that stock has been deducted
             $order->update(['stock_deducted' => true]);
+            
+            Log::info('Stock deducted for order: ' . $order->order_number);
         }
 
         return true;
@@ -303,8 +371,7 @@ class CheckoutController extends Controller
             ]);
         }
 
-        // Don't save, just return null (order will store JSON in shipping_address field)
-        // For now, we still create an address record
+        // Create address record even if not saving to user's address book
         return Address::create([
             'user_id' => $user->id,
             'address_type' => $type,
@@ -325,15 +392,11 @@ class CheckoutController extends Controller
      */
     private function generateOrderNumber(): string
     {
-        $date = now()->format('ymd');
-        $random = rand(1000, 9999);
-        $number = 'GC-ORD-' . $date . $random;
-
-        // Ensure uniqueness
-        while (Order::where('order_number', $number)->exists()) {
+        do {
+            $date = now()->format('ymd');
             $random = rand(1000, 9999);
             $number = 'GC-ORD-' . $date . $random;
-        }
+        } while (Order::where('order_number', $number)->exists());
 
         return $number;
     }
