@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="icon" type="image/png" href="/images/favicons/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/images/favicons/favicon.svg" />
     <link rel="shortcut icon" href="/images/favicons/favicon.ico" />
@@ -11,6 +12,10 @@
     <meta name="apple-mobile-web-app-title" content="Greycode" />
     <link rel="manifest" href="/images/favicons/site.webmanifest" />
     
+    <!-- Production assets (replace with your actual built file names) -->
+    {{-- <link rel="stylesheet" href="{{ asset('build/assets/app.css') }}">
+    <script type="module" src="{{ asset('build/assets/app.js') }}"></script> --}}
+    {{-- Comment out @viteReactRefresh in production --}}
     @viteReactRefresh
     @vite(['resources/css/app.css', 'resources/js/app.jsx'])
     @inertiaHead
