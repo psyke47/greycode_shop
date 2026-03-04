@@ -23,18 +23,16 @@ class PayFastService
         $mode = $this->testMode ? 'testing' : 'live';
         $this->apiUrl = config("payfast.urls.{$mode}.api");
     }
-    /**
- * Get the PayFast API URL
- */
-public function getApiUrl(): string
-{
-    return $this->apiUrl;
-}
+
+    public function getApiUrl(): string
+    {
+        return $this->apiUrl;
+    }
 
     /**
-     * Generate payment form data for PayFast
+     * Generate payment data for PayFast (without passphrase field)
      */
-    public function generatePaymentData(Order $order)
+    public function generatePaymentData(Order $order): array
     {
         $data = [
             // Merchant details
@@ -46,7 +44,7 @@ public function getApiUrl(): string
             
             // Buyer details
             'name_first' => $order->user->first_name,
-            'name_last' => $order->user->last_name,
+            'name_last'  => $order->user->last_name,
             'email_address' => $order->user->email,
             'cell_number' => $order->user->phone,
             
@@ -56,73 +54,62 @@ public function getApiUrl(): string
             'item_name' => 'Order #' . $order->order_number,
             'item_description' => 'Greycode Shop Order',
             
-            // Custom fields
+            // Custom fields (optional)
             'custom_int1' => $order->id,
             'custom_str1' => 'greycode_shop',
         ];
 
-        // Add passphrase if set
-        if ($this->passphrase) {
-            $data['passphrase'] = $this->passphrase;
-        }
-
-        // Generate signature
-        $data['signature'] = $this->generateSignature($data);
+        // Generate signature using the correct order (no sorting, passphrase only in hash)
+        $signature = $this->generateSignature($data, $this->passphrase);
+        $data['signature'] = $signature;
 
         return $data;
     }
 
     /**
-     * Generate PayFast signature
+     * Generate PayFast signature as per official documentation
      */
-    protected function generateSignature($data)
+    protected function generateSignature(array $data, ?string $passPhrase = null): string
     {
-        // Exclude signature field if it exists
-        unset($data['signature']);
-
-        // Sort the data by key
-        ksort($data);
-
-        // Create parameter string
-        $paramString = '';
+        // Build parameter string in the EXACT order of the $data array
+        $pfOutput = '';
         foreach ($data as $key => $value) {
-            if (!empty($value) && $key !== 'passphrase') {
-                $paramString .= $key . '=' . urlencode(trim($value)) . '&';
+            if ($value !== '') { // exclude empty values
+                // Use urlencode (spaces become '+', uppercase hex)
+                $pfOutput .= $key . '=' . urlencode(trim($value)) . '&';
             }
         }
+        // Remove trailing '&'
+        $getString = rtrim($pfOutput, '&');
 
-        // Remove trailing &
-        $paramString = rtrim($paramString, '&');
+        // Append passphrase if provided (NOT sent as field, only for hash)
+        if ($passPhrase !== null) {
+            $getString .= '&passphrase=' . urlencode(trim($passPhrase));
+        }
 
-        // Generate signature
-        return md5($paramString);
+        // Optional debug log
+        Log::info('PayFast signature string: ' . $getString);
+
+        return md5($getString);
     }
 
     /**
      * Validate ITN (Instant Transaction Notification)
      */
-    public function validateItn($data)
+    public function validateItn(array $data): bool
     {
-        // Clean the data
         $cleanData = $this->cleanItnData($data);
+        $signature = $this->generateSignature($cleanData, $this->passphrase);
 
-        // Generate signature for comparison
-        $signature = $this->generateSignature($cleanData);
-
-        // Check if signature matches
         if (!isset($data['signature']) || $data['signature'] !== $signature) {
             Log::warning('PayFast ITN: Invalid signature');
             return false;
         }
 
-        // Verify with PayFast
         return $this->verifyWithPayFast($data);
     }
 
-    /**
-     * Clean ITN data
-     */
-    protected function cleanItnData($data)
+    protected function cleanItnData(array $data): array
     {
         $cleanData = [];
         foreach ($data as $key => $value) {
@@ -133,27 +120,22 @@ public function getApiUrl(): string
         return $cleanData;
     }
 
-    /**
-     * Verify transaction with PayFast
-     */
-    protected function verifyWithPayFast($data)
+    protected function verifyWithPayFast(array $data): bool
     {
         $validateUrl = $this->testMode 
             ? 'https://sandbox.payfast.co.za/eng/query/validate' 
             : 'https://www.payfast.co.za/eng/query/validate';
 
-        // Prepare POST data
         $postData = http_build_query($data);
 
-        // Initialize cURL
         $ch = curl_init();
         curl_setopt_array($ch, [
             CURLOPT_URL => $validateUrl,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => $postData,
-            CURLOPT_SSL_VERIFYPEER => false, // Set to true in production
-            CURLOPT_SSL_VERIFYHOST => false, // Set to 2 in production
+            CURLOPT_SSL_VERIFYPEER => false, // Set true in production
+            CURLOPT_SSL_VERIFYHOST => false, // Set 2 in production
             CURLOPT_CONNECTTIMEOUT => 10,
             CURLOPT_TIMEOUT => 30,
             CURLOPT_USERAGENT => 'Greycode Shop',
@@ -163,7 +145,6 @@ public function getApiUrl(): string
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        // Check response
         if ($httpCode === 200 && strtoupper($response) === 'VALID') {
             return true;
         }
