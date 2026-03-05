@@ -11,7 +11,11 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class CartController extends Controller
-{
+{   
+    const SHIPPING_RATE = 99.99;
+    const FREE_SHIPPING_THRESHOLD = 500;
+    const VAT_RATE = 0.15; // 15%
+
     public function index()
     {
         $user = Auth::user();
@@ -201,8 +205,8 @@ class CartController extends Controller
             $subtotal += $item['price'] * $item['quantity'];
         }
         
-        $shipping = $subtotal > 500 ? 0 : 99;
-        $tax = $subtotal * 0.14; // 14% VAT for South Africa
+        $shipping = $subtotal > self::FREE_SHIPPING_THRESHOLD ? 0 : self::SHIPPING_RATE;
+        $tax = $subtotal * self::VAT_RATE; // 15% VAT for South Africa
         $total = $subtotal + $shipping + $tax;
         
         return Inertia::render('Cart', [
@@ -275,10 +279,7 @@ class CartController extends Controller
                 ]);
             }
             
-            // Update product stock if needed
-            if ($product->stock_quantity !== null) {
-                $product->decrement('stock_quantity', $quantity);
-            }
+            
         });
         
         return redirect()->back()->with('success', 'Product added to cart!');
@@ -290,8 +291,8 @@ class CartController extends Controller
             return $item->quantity * $item->price;
         });
         
-        $shipping = $subtotal > 500 ? 0 : 99;
-        $tax = $subtotal * 0.15; // 15% VAT
+        $shipping = $subtotal > self::FREE_SHIPPING_THRESHOLD ? 0 : self::SHIPPING_RATE;
+        $tax = $subtotal * self::VAT_RATE;
         $total = $subtotal + $shipping + $tax;
         $itemCount = $cart->cartItems->sum('quantity');
         
@@ -301,8 +302,8 @@ class CartController extends Controller
             'tax' => $tax,
             'total' => $total,
             'item_count' => $itemCount,
-            'free_shipping_threshold' => 500,
-            'needs_for_free_shipping' => max(0, 500 - $subtotal)
+            'free_shipping_threshold' => self::FREE_SHIPPING_THRESHOLD,
+            'needs_for_free_shipping' => max(0, self::FREE_SHIPPING_THRESHOLD - $subtotal)
         ];
     }
 }

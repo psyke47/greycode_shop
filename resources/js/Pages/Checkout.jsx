@@ -33,6 +33,60 @@ export default function Checkout({
     const [paymentMethod, setPaymentMethod] = useState("payfast"); // Default to PayFast
     const [isProcessing, setIsProcessing] = useState(false);
 
+    // Add these states near your other useState declarations
+    const [couponCode, setCouponCode] = useState("");
+    const [appliedCoupon, setAppliedCoupon] = useState(null);
+    const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+    const [couponError, setCouponError] = useState("");
+    const [couponSuccess, setCouponSuccess] = useState("");
+
+    // Add this function to validate coupon via API
+    const applyCoupon = () => {
+        if (!couponCode.trim()) {
+            setCouponError("Please enter a coupon code");
+            return;
+        }
+
+        setIsApplyingCoupon(true);
+        setCouponError("");
+        setCouponSuccess("");
+
+        axios
+            .post("/coupon/validate", {
+                code: couponCode,
+                subtotal: cart.subtotal,
+            })
+            .then((response) => {
+                if (response.data.valid) {
+                    setAppliedCoupon(response.data.coupon);
+                    setCouponSuccess(response.data.message);
+                    setCouponError("");
+                }
+            })
+            .catch((error) => {
+                setCouponError(
+                    error.response?.data?.message || "Invalid coupon code",
+                );
+                setAppliedCoupon(null);
+            })
+            .finally(() => {
+                setIsApplyingCoupon(false);
+            });
+    };
+
+    const removeCoupon = () => {
+        setAppliedCoupon(null);
+        setCouponCode("");
+        setCouponSuccess("");
+    };
+
+    // Calculate totals with coupon discount
+    const subtotal = cart.subtotal || 0;
+    const discount = appliedCoupon ? appliedCoupon.discount : 0;
+    const shipping = cart.shipping || 0;
+    const vat = cart.vat || 0;
+    const total = subtotal + shipping + vat - discount;
+
     // Form state
     const { data, setData, post, processing, errors } = useForm({
         shipping: {
@@ -111,84 +165,96 @@ export default function Checkout({
     }, [sameAsShipping]);
 
     useEffect(() => {
-    setData("payment_method", paymentMethod);
-}, [paymentMethod, setData]);
+        setData("payment_method", paymentMethod);
+    }, [paymentMethod, setData]);
 
     // Handle form submission
     const handleSubmit = (e) => {
-    e.preventDefault();
-    setIsProcessing(true);
+        e.preventDefault();
+        setIsProcessing(true);
 
-    // Get CSRF token from meta tag
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-    
-    if (!csrfToken) {
-        console.error('CSRF token not found');
-        alert('Security token missing. Please refresh the page.');
-        setIsProcessing(false);
-        return;
-    }
+        // Get CSRF token from meta tag
+        const csrfToken = document.querySelector(
+            'meta[name="csrf-token"]',
+        )?.content;
 
-    // Create a hidden form for normal browser submission
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/checkout';
-    form.style.display = 'none';
+        if (!csrfToken) {
+            console.error("CSRF token not found");
+            alert("Security token missing. Please refresh the page.");
+            setIsProcessing(false);
+            return;
+        }
 
-    // Add CSRF token
-    const csrfInput = document.createElement('input');
-    csrfInput.type = 'hidden';
-    csrfInput.name = '_token';
-    csrfInput.value = csrfToken;
-    form.appendChild(csrfInput);
+        // Create a hidden form for normal browser submission
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = "/checkout";
+        form.style.display = "none";
 
-    // Helper to add form fields
-    const addField = (name, value) => {
-        if (value === undefined || value === null) return;
-        
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = name;
-        input.value = String(value);
-        form.appendChild(input);
+        // Add CSRF token
+        const csrfInput = document.createElement("input");
+        csrfInput.type = "hidden";
+        csrfInput.name = "_token";
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+
+        // Helper to add form fields
+        const addField = (name, value) => {
+            if (value === undefined || value === null) return;
+
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = name;
+            input.value = String(value);
+            form.appendChild(input);
+        };
+
+        // Add all shipping fields
+        addField("shipping[address_line1]", data.shipping.address_line1);
+        addField("shipping[address_line2]", data.shipping.address_line2);
+        addField("shipping[surburb]", data.shipping.surburb);
+        addField("shipping[city]", data.shipping.city);
+        addField("shipping[province]", data.shipping.province);
+        addField("shipping[postal_code]", data.shipping.postal_code);
+        addField("shipping[phone_number]", data.shipping.phone_number);
+        addField(
+            "shipping[save_address]",
+            data.shipping.save_address ? "1" : "0",
+        );
+        addField("shipping[is_default]", data.shipping.is_default ? "1" : "0");
+
+        // Add billing fields
+        addField(
+            "billing[same_as_shipping]",
+            data.billing.same_as_shipping ? "1" : "0",
+        );
+        if (!data.billing.same_as_shipping) {
+            addField("billing[address_line1]", data.billing.address_line1);
+            addField("billing[address_line2]", data.billing.address_line2);
+            addField("billing[surburb]", data.billing.surburb);
+            addField("billing[city]", data.billing.city);
+            addField("billing[province]", data.billing.province);
+            addField("billing[postal_code]", data.billing.postal_code);
+            addField("billing[phone_number]", data.billing.phone_number);
+            addField(
+                "billing[save_address]",
+                data.billing.save_address ? "1" : "0",
+            );
+        }
+
+        // Add payment method and customer note
+        addField("payment_method", data.payment_method);
+        addField("customer_note", data.customer_note);
+        addField('coupon_code', appliedCoupon?.code || '');
+
+        // Append form and submit
+        document.body.appendChild(form);
+
+        // Small delay to ensure UI updates
+        setTimeout(() => {
+            form.submit();
+        }, 100);
     };
-
-    // Add all shipping fields
-    addField('shipping[address_line1]', data.shipping.address_line1);
-    addField('shipping[address_line2]', data.shipping.address_line2);
-    addField('shipping[surburb]', data.shipping.surburb);
-    addField('shipping[city]', data.shipping.city);
-    addField('shipping[province]', data.shipping.province);
-    addField('shipping[postal_code]', data.shipping.postal_code);
-    addField('shipping[phone_number]', data.shipping.phone_number);
-    addField('shipping[save_address]', data.shipping.save_address ? '1' : '0');
-    addField('shipping[is_default]', data.shipping.is_default ? '1' : '0');
-
-    // Add billing fields
-    addField('billing[same_as_shipping]', data.billing.same_as_shipping ? '1' : '0');
-    if (!data.billing.same_as_shipping) {
-        addField('billing[address_line1]', data.billing.address_line1);
-        addField('billing[address_line2]', data.billing.address_line2);
-        addField('billing[surburb]', data.billing.surburb);
-        addField('billing[city]', data.billing.city);
-        addField('billing[province]', data.billing.province);
-        addField('billing[postal_code]', data.billing.postal_code);
-        addField('billing[phone_number]', data.billing.phone_number);
-        addField('billing[save_address]', data.billing.save_address ? '1' : '0');
-    }
-
-    // Add payment method and customer note
-    addField('payment_method', data.payment_method);
-    addField('customer_note', data.customer_note);
-
-    // Append form and submit
-    document.body.appendChild(form);
-    
-    // Small delay to ensure UI updates
-    setTimeout(() => {
-        form.submit();
-    }, 100);
-};
 
     // Get product image URL (same as Products.jsx)
     const getProductImage = (product) => {
@@ -870,109 +936,144 @@ export default function Checkout({
                             </div>
 
                             {/* Payment Method Card */}
-<div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-    <div className="p-6 border-b border-gray-100 bg-greycode-light-blue">
-        <div className="flex items-center">
-            <CreditCard className="w-5 h-5 text-greycode-light-gray mr-2" />
-            <h2 className="text-lg font-semibold text-white">
-                Payment Method
-            </h2>
-        </div>
-    </div>
+                            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                                <div className="p-6 border-b border-gray-100 bg-greycode-light-blue">
+                                    <div className="flex items-center">
+                                        <CreditCard className="w-5 h-5 text-greycode-light-gray mr-2" />
+                                        <h2 className="text-lg font-semibold text-white">
+                                            Payment Method
+                                        </h2>
+                                    </div>
+                                </div>
 
-    <div className="p-6">
-        <div className="space-y-4">
-            {/* PayFast Option */}
-            <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                <input
-                    type="radio"
-                    name="payment_method"
-                    value="payfast"
-                    checked={paymentMethod === "payfast"}
-                    onChange={(e) => {
-                        setPaymentMethod(e.target.value);
-                        setData("payment_method", e.target.value);
-                    }}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                />
-                <div className="ml-4 flex-1">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <span className="font-medium text-gray-900">
-                                PayFast
-                            </span>
-                            <p className="text-sm text-gray-500">
-                                Credit Card, Instant EFT, or Mobile Money
-                            </p>
-                        </div>
-                        {/* PayFast Logo */}
-                        <div className="flex space-x-1">
-                            <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Visa</span>
-                            <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded">MC</span>
-                            <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">EFT</span>
-                        </div>
-                    </div>
-                    
-                    {/* PayFast Info Box - shown when selected */}
-                    {paymentMethod === "payfast" && (
-                        <div className="mt-3 p-3 bg-blue-50 rounded-lg">
-                            <p className="text-xs text-blue-700 flex items-center">
-                                <CheckCircle className="w-4 h-4 mr-1" />
-                                You'll be redirected to PayFast to complete your payment securely.
-                            </p>
-                        </div>
-                    )}
-                </div>
-            </label>
+                                <div className="p-6">
+                                    <div className="space-y-4">
+                                        {/* PayFast Option */}
+                                        <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                            <input
+                                                type="radio"
+                                                name="payment_method"
+                                                value="payfast"
+                                                checked={
+                                                    paymentMethod === "payfast"
+                                                }
+                                                onChange={(e) => {
+                                                    setPaymentMethod(
+                                                        e.target.value,
+                                                    );
+                                                    setData(
+                                                        "payment_method",
+                                                        e.target.value,
+                                                    );
+                                                }}
+                                                className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                                            />
+                                            <div className="ml-4 flex-1">
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <span className="font-medium text-gray-900">
+                                                            PayFast
+                                                        </span>
+                                                        <p className="text-sm text-gray-500">
+                                                            Credit Card, Instant
+                                                            EFT, or Mobile Money
+                                                        </p>
+                                                    </div>
+                                                    {/* PayFast Logo */}
+                                                    <div className="flex space-x-1">
+                                                        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                                                            Visa
+                                                        </span>
+                                                        <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded">
+                                                            MC
+                                                        </span>
+                                                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
+                                                            EFT
+                                                        </span>
+                                                    </div>
+                                                </div>
 
-            {/* EFT Option */}
-            <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                <input
-                    type="radio"
-                    name="payment_method"
-                    value="eft"
-                    checked={paymentMethod === "eft"}
-                    onChange={(e) => {
-                        setPaymentMethod(e.target.value);
-                        setData("payment_method", e.target.value);
-                    }}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                />
-                <div className="ml-4">
-                    <span className="font-medium text-gray-900">
-                        EFT
-                    </span>
-                    <p className="text-sm text-gray-500">
-                        Electronic Funds Transfer (Manual)
-                    </p>
-                </div>
-            </label>
+                                                {/* PayFast Info Box - shown when selected */}
+                                                {paymentMethod ===
+                                                    "payfast" && (
+                                                    <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                                                        <p className="text-xs text-blue-700 flex items-center">
+                                                            <CheckCircle className="w-4 h-4 mr-1" />
+                                                            You'll be redirected
+                                                            to PayFast to
+                                                            complete your
+                                                            payment securely.
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </label>
 
-            {/* Cash on Delivery Option */}
-            <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                <input
-                    type="radio"
-                    name="payment_method"
-                    value="cash_on_delivery"
-                    checked={paymentMethod === "cash_on_delivery"}
-                    onChange={(e) => {
-                        setPaymentMethod(e.target.value);
-                        setData("payment_method", e.target.value);
-                    }}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                />
-                <div className="ml-4">
-                    <span className="font-medium text-gray-900">
-                        Cash on Delivery
-                    </span>
-                    <p className="text-sm text-gray-500">
-                        Pay when you receive your order
-                    </p>
-                </div>
-            </label>
-        </div>
-    </div>
-</div>
+                                        {/* EFT Option */}
+                                        <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                            <input
+                                                type="radio"
+                                                name="payment_method"
+                                                value="eft"
+                                                checked={
+                                                    paymentMethod === "eft"
+                                                }
+                                                onChange={(e) => {
+                                                    setPaymentMethod(
+                                                        e.target.value,
+                                                    );
+                                                    setData(
+                                                        "payment_method",
+                                                        e.target.value,
+                                                    );
+                                                }}
+                                                className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                                            />
+                                            <div className="ml-4">
+                                                <span className="font-medium text-gray-900">
+                                                    EFT
+                                                </span>
+                                                <p className="text-sm text-gray-500">
+                                                    Electronic Funds Transfer
+                                                    (Manual)
+                                                </p>
+                                            </div>
+                                        </label>
+
+                                        {/* Cash on Delivery Option */}
+                                        <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                            <input
+                                                type="radio"
+                                                name="payment_method"
+                                                value="cash_on_delivery"
+                                                checked={
+                                                    paymentMethod ===
+                                                    "cash_on_delivery"
+                                                }
+                                                onChange={(e) => {
+                                                    setPaymentMethod(
+                                                        e.target.value,
+                                                    );
+                                                    setData(
+                                                        "payment_method",
+                                                        e.target.value,
+                                                    );
+                                                }}
+                                                className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                                            />
+                                            <div className="ml-4">
+                                                <span className="font-medium text-gray-900">
+                                                    Cash on Delivery
+                                                </span>
+                                                <p className="text-sm text-gray-500">
+                                                    Pay when you receive your
+                                                    order
+                                                </p>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
 
                             {/* Order Notes */}
                             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -1004,7 +1105,89 @@ export default function Checkout({
                                         Your Order
                                     </h2>
                                 </div>
+                                {/* Coupon Code Section */}
+                                <div className="mb-6">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Coupon Code
+                                    </label>
 
+                                    {!appliedCoupon ? (
+                                        <div className="flex">
+                                            <input
+                                                type="text"
+                                                value={couponCode}
+                                                onChange={(e) =>
+                                                    setCouponCode(
+                                                        e.target.value.toUpperCase(),
+                                                    )
+                                                }
+                                                placeholder="Enter coupon code"
+                                                className="flex-1 px-4 py-2 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                disabled={isApplyingCoupon}
+                                            />
+                                            <button
+                                                onClick={applyCoupon}
+                                                disabled={
+                                                    isApplyingCoupon ||
+                                                    !couponCode.trim()
+                                                }
+                                                className="bg-blue-600 text-white px-4 py-2 rounded-r-lg font-medium hover:bg-blue-700 transition-colors duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                            >
+                                                {isApplyingCoupon
+                                                    ? "Applying..."
+                                                    : "Apply"}
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                                            <div className="flex justify-between items-center">
+                                                <div>
+                                                    <span className="font-medium text-green-800">
+                                                        {appliedCoupon.code}
+                                                    </span>
+                                                    <span className="text-sm text-green-600 ml-2">
+                                                        (-R{" "}
+                                                        {appliedCoupon.discount.toFixed(
+                                                            2,
+                                                        )}
+                                                        )
+                                                    </span>
+                                                </div>
+                                                <button
+                                                    onClick={removeCoupon}
+                                                    className="text-red-600 hover:text-red-800"
+                                                >
+                                                    <svg
+                                                        className="w-5 h-5"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={2}
+                                                            d="M6 18L18 6M6 6l12 12"
+                                                        />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {couponError && (
+                                        <p className="text-red-600 text-sm mt-2">
+                                            {couponError}
+                                        </p>
+                                    )}
+
+                                    {couponSuccess && (
+                                        <p className="text-green-600 text-sm mt-2 flex items-center">
+                                            <CheckCircle className="w-4 h-4 mr-1" />
+                                            {couponSuccess}
+                                        </p>
+                                    )}
+                                </div>
                                 {/* Cart Items */}
                                 <div className="p-6 max-h-96 overflow-y-auto">
                                     <div className="space-y-4">
@@ -1044,60 +1227,48 @@ export default function Checkout({
 
                                 {/* Totals */}
                                 <div className="p-6 border-t border-gray-100">
-                                    <div className="space-y-3">
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-gray-600">
-                                                Subtotal
-                                            </span>
-                                            <span className="font-medium text-gray-900">
-                                                R {cart.subtotal?.toFixed(2)}
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-gray-600">
-                                                Shipping
-                                            </span>
-                                            <span className="font-medium text-gray-900">
-                                                {cart.shipping > 0
-                                                    ? `R ${cart.shipping.toFixed(2)}`
-                                                    : "Free"}
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-gray-600">
-                                                VAT (15%)
-                                            </span>
-                                            <span className="font-medium text-gray-900">
-                                                R {cart.vat?.toFixed(2)}
-                                            </span>
-                                        </div>
-
-                                        {cart.needs_for_free_shipping > 0 && (
-                                            <div className="mt-2 p-3 bg-blue-50 rounded-lg">
-                                                <p className="text-xs text-blue-700">
-                                                    Add R{" "}
-                                                    {cart.needs_for_free_shipping.toFixed(
-                                                        2,
-                                                    )}{" "}
-                                                    more for free shipping
-                                                </p>
-                                            </div>
-                                        )}
-
-                                        <div className="pt-3 border-t border-gray-200">
-                                            <div className="flex justify-between">
-                                                <span className="text-base font-semibold text-gray-900">
-                                                    Total
-                                                </span>
-                                                <span className="text-xl font-bold text-greycode-light-blue">
-                                                    R {cart.total?.toFixed(2)}
-                                                </span>
-                                            </div>
-                                            <p className="text-xs text-gray-500 mt-1">
-                                                {cart.currency || "ZAR"}
-                                            </p>
-                                        </div>
-                                    </div>
+                                    {/* Price Breakdown */}
+<div className="space-y-3 mb-6">
+    <div className="flex justify-between text-sm">
+        <span className="text-gray-600">Subtotal</span>
+        <span className="font-medium">R {subtotal.toFixed(2)}</span>
+    </div>
+    
+    {discount > 0 && (
+        <div className="flex justify-between text-sm">
+            <span className="text-gray-600">Discount ({appliedCoupon?.code})</span>
+            <span className="font-medium text-green-600">
+                -R {discount.toFixed(2)}
+            </span>
+        </div>
+    )}
+    
+    <div className="flex justify-between text-sm">
+        <span className="text-gray-600">Shipping</span>
+        <span className="font-medium">
+            {shipping > 0 ? `R ${shipping.toFixed(2)}` : 'FREE'}
+        </span>
+    </div>
+    
+    <div className="flex justify-between text-sm">
+        <span className="text-gray-600">VAT (15%)</span>
+        <span className="font-medium">R {vat.toFixed(2)}</span>
+    </div>
+    
+    <div className="border-t border-gray-200 pt-3 mt-3">
+        <div className="flex justify-between text-lg font-bold">
+            <span>Total</span>
+            <span className="text-greycode-light-blue">
+                R {total.toFixed(2)}
+            </span>
+        </div>
+        {discount > 0 && (
+            <p className="text-xs text-green-600 mt-1">
+                You saved R {discount.toFixed(2)} with this coupon!
+            </p>
+        )}
+    </div>
+</div>
 
                                     <button
                                         type="submit"

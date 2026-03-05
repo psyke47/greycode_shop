@@ -285,7 +285,7 @@ export default function Order() {
                 const actions = getOrderActions(order)
                 
                 return (
-                  <div key={order.id} className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
+                  <div key={order.id} className="bg-white rounded-xl shadow-sm hover:shadow-2xl hover:shadow-greycode-light-blue overflow-hidden border border-gray-200 lg:px-4">
                     {/* Order Header */}
                     <div className="p-6 border-b border-gray-100">
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

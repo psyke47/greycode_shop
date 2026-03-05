@@ -13,9 +13,14 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
+use App\Models\Coupon;
 
 class CheckoutController extends Controller
 {
+    const SHIPPING_RATE = 99.99;
+    const FREE_SHIPPING_THRESHOLD = 500;
+    const VAT_RATE = 0.15; // 15%
+
     protected $payfast;
 
     public function __construct(PayFastService $payfast)
@@ -146,14 +151,20 @@ class CheckoutController extends Controller
                 return $item->quantity * $item->price;
             });
 
-            $vat = $subtotal * 0.15; // 15% VAT
-            $shipping = $subtotal > 500 ? 0 : 49.99;
-            $total = $subtotal + $vat + $shipping;
+            // Apply coupon if provided
+            $couponResult = $this->applyCoupon($request->coupon_code, $subtotal);
+            $discountAmount = $couponResult['discount_amount'];
+            $couponId = $couponResult['coupon_id'];
+            $couponCode = $couponResult['coupon_code'];
+
+            $shipping = $subtotal > self::FREE_SHIPPING_THRESHOLD ? 0 : self::SHIPPING_RATE;
+            $tax = $subtotal * self::VAT_RATE;
+            $total = $subtotal + $tax + $shipping;
 
             // 4. Generate order number
             $orderNumber = $this->generateOrderNumber();
 
-            // 5. Create order (NO stock deduction yet)
+            /// 5. Create order (NO stock deduction yet)
             $order = Order::create([
                 'order_number' => $orderNumber,
                 'user_id' => $user->id,
@@ -163,14 +174,21 @@ class CheckoutController extends Controller
                 'payment_status' => 'unpaid',
                 'stock_deducted' => false,
                 'subtotal' => $subtotal,
-                'vat' => $vat,
+                'vat' => $tax,
                 'shipping_amount' => $shipping,
-                'discount_amount' => 0,
+                'discount_amount' => $discountAmount,
                 'total_amount' => $total,
                 'currency' => 'ZAR',
                 'payment_method' => $validated['payment_method'],
                 'customer_note' => $validated['customer_note'] ?? null,
+                'coupon_id' => $couponId,
+                'coupon_code' => $couponCode,
             ]);
+
+            // After order is created successfully, increment coupon usage
+            if ($discountAmount > 0 && $couponId) {
+                $this->incrementCouponUsage($couponId);
+            }
 
             // 6. Create order items (NO stock deduction yet)
             foreach ($cart->cartItems as $cartItem) {
@@ -194,10 +212,10 @@ class CheckoutController extends Controller
             // 8. If PayFast, redirect to payment page with HTML form
             if ($validated['payment_method'] === 'payfast') {
                 $payfastData = $this->payfast->generatePaymentData($order);
-                
+
                 // Log for debugging (optional)
                 Log::info('PayFast redirect for order: ' . $order->order_number);
-                
+
                 // Generate and return HTML redirect page
                 $html = $this->getPayFastFormHtml($payfastData);
                 return response($html)->header('Content-Type', 'text/html');
@@ -206,7 +224,6 @@ class CheckoutController extends Controller
             // For other payment methods, just show order confirmation
             return redirect()->route('order.show', $order->id)
                 ->with('success', 'Order placed successfully! Please complete payment.');
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Checkout failed: ' . $e->getMessage());
@@ -284,7 +301,7 @@ class CheckoutController extends Controller
             </script>
         </body>
         </html>';
-        
+
         return $html;
     }
 
@@ -304,7 +321,7 @@ class CheckoutController extends Controller
 
             // Mark that stock has been deducted
             $order->update(['stock_deducted' => true]);
-            
+
             Log::info('Stock deducted for order: ' . $order->order_number);
         }
 
@@ -320,8 +337,8 @@ class CheckoutController extends Controller
             return $item->quantity * $item->price;
         });
 
-        $shipping = $subtotal > 500 ? 0 : 49.99;
-        $vat = $subtotal * 0.15;
+        $shipping = $subtotal > self::FREE_SHIPPING_THRESHOLD ? 0 : self::SHIPPING_RATE;
+        $vat = $subtotal * self::VAT_RATE;
         $total = $subtotal + $shipping + $vat;
         $itemCount = $cart->cartItems->sum('quantity');
 
@@ -399,5 +416,69 @@ class CheckoutController extends Controller
         } while (Order::where('order_number', $number)->exists());
 
         return $number;
+    }
+    /**
+     * Apply coupon to order
+     */
+    private function applyCoupon($couponCode, $subtotal)
+    {
+        if (!$couponCode) {
+            return [
+                'discount_amount' => 0,
+                'coupon_id' => null,
+                'coupon_code' => null
+            ];
+        }
+
+        $coupon = Coupon::where('code', $couponCode)->first();
+
+        if (!$coupon) {
+            return [
+                'discount_amount' => 0,
+                'coupon_id' => null,
+                'coupon_code' => null
+            ];
+        }
+
+        // Check if coupon is valid
+        if ($coupon->expires_at && now() > $coupon->expires_at) {
+            return [
+                'discount_amount' => 0,
+                'coupon_id' => null,
+                'coupon_code' => null
+            ];
+        }
+
+        if ($coupon->usage_limit !== null && $coupon->used_count >= $coupon->usage_limit) {
+            return [
+                'discount_amount' => 0,
+                'coupon_id' => null,
+                'coupon_code' => null
+            ];
+        }
+
+        // Calculate discount
+        $discountAmount = 0;
+        if ($coupon->type === 'fixed') {
+            $discountAmount = min($coupon->value, $subtotal);
+        } else { // percentage
+            $discountAmount = ($coupon->value / 100) * $subtotal;
+        }
+
+        return [
+            'discount_amount' => round($discountAmount, 2),
+            'coupon_id' => $coupon->id,
+            'coupon_code' => $coupon->code
+        ];
+    }
+
+    /**
+     * Increment coupon usage count
+     */
+    private function incrementCouponUsage($couponId)
+    {
+        if ($couponId) {
+            Coupon::where('id', $couponId)->increment('used_count');
+        }
     }
 }

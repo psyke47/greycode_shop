@@ -15,6 +15,7 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\PayFastController;
 use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\CouponController;
 
 Route::get('/', function () {
     return Inertia::render('Homepage', ['name' => 'Greycode Shop']);
@@ -177,3 +178,5 @@ Route::prefix('payfast')->name('payfast.')->group(function () {
 
 Route::middleware(['auth'])->get('/wishlist/count', [WishlistController::class, 'count'])->name('wishlist.count');
 Route::middleware(['auth'])->get('/wishlist/items', [WishlistController::class, 'items'])->name('wishlist.items');
+
+Route::post('/coupon/validate', [CouponController::class, 'validate'])->name('coupon.validate');
