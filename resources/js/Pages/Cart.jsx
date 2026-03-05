@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Head, Link, usePage, router } from '@inertiajs/react'
 import MainLayout from '../Layouts/MainLayout'
+import PageHead from '../Components/PageHead'
 
 
 const placeholderSVG = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI0U1RTVFNSIvPjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOTk5Ij5Qcm9kdWN0PC90ZXh0Pjwvc3ZnPg=='
@@ -95,8 +96,8 @@ export default function Cart({ cart: initialCart }) {
     return sum + (parseFloat(item.price) * item.quantity)
   }, 0)
 
-  const shipping = subtotal > 500 ? 0 : 99
-  const tax = subtotal * 0.14 // 14% VAT for South Africa
+  const shipping = subtotal > 500 ? 0 : 99.99
+  const tax = subtotal * 0.15 // 15% VAT for South Africa
   const discount = couponApplied ? subtotal * 0.1 : 0 // 10% discount if coupon applied
   const total = subtotal + shipping + tax - discount
 
@@ -167,7 +168,7 @@ export default function Cart({ cart: initialCart }) {
 
   return (
     <MainLayout>
-      <Head title="Shopping Cart" />
+      <PageHead title="Shopping Cart" />
       
 
       <section className="py-8 px-4 sm:px-6 lg:px-8">

@@ -19,7 +19,7 @@ class StockListSeeder extends Seeder
         $categories = [
             'DIY' => 'Do-it-yourself products',
             'Components' => 'Electronic components and parts',
-            'Smart Homes'=> 'Smart home & automation devices',
+            'Smart Homes' => 'Smart home & automation devices',
         ];
 
         $categoriesMap = [];
@@ -43,7 +43,7 @@ class StockListSeeder extends Seeder
             [
                 'name' => 'MG90S Servo Motor',
                 'description' => 'A high-quality MG90S servo motor for robotics projects',
-                'price'=> 59.99,
+                'price' => 59.99,
                 'category_name' => 'DIY',
                 'image_url' => resource_path('/images/SG90MicroServoMotor.jpg'),
                 'stock_quantity' => 150,
@@ -329,24 +329,31 @@ class StockListSeeder extends Seeder
 
         // Insert products and their images
         foreach ($products as $productData) {
-            $product = Product::create([
-                'category_id' => $categoryMap[$productData['category_name']],
-                'name' => $productData['name'],
-                'description' => $productData['description'],
-                'price' => $productData['price'],
-                'stock_quantity' => 100, // Default stock quantity
-                'is_featured' => false,
-                'is_active' => true,
-            ]);
+            // Use firstOrCreate to prevent duplicates
+            $product = Product::firstOrCreate(
+                ['name' => $productData['name']],
+                [
+                    'category_id' => $categoryMap[$productData['category_name']],
+                    'name' => $productData['name'],
+                    'description' => $productData['description'],
+                    'price' => $productData['price'],
+                    'stock_quantity' => 100,
+                    'is_featured' => false,
+                    'is_active' => true,
+                ]
+            );
 
-            // Create product image
-            ProductImage::create([
-                'product_id' => $product->id,
-                'url' => basename($productData['image_url']),
-                'alt_text' => $productData['name'],
-                'is_primary' => true,
-                'sort_order' => 1,
-            ]);
+            // Only create image if product was just created
+            // This prevents duplicate images for existing products
+            if ($product->wasRecentlyCreated) {
+                ProductImage::create([
+                    'product_id' => $product->id,
+                    'url' => basename($productData['image_url']),
+                    'alt_text' => $productData['name'],
+                    'is_primary' => true,
+                    'sort_order' => 1,
+                ]);
+            }
         }
 
         $this->command->info('Stock list data seeded successfully with new categories: DIY, Components, Smart Homes!');

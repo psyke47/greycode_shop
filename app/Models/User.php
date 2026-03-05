@@ -52,27 +52,39 @@ class User extends Authenticatable
             'date_of_birth' => 'date'
         ];
     }
-    
-    
-    public function cart() 
+
+
+    public function cart()
     {
-         return $this->hasOne(Cart::class); 
+        return $this->hasOne(Cart::class);
     }
-    public function orders() 
+    public function orders()
     {
-         return $this->hasMany(Order::class); 
+        return $this->hasMany(Order::class);
     }
 
     /**
-            * Get the user's latest order.
-    */
+     * Get the user's latest order.
+     */
     public function latestOrder()
     {
         /* return $this->hasOne(Order::class)->latestOrder(); */
         return $this->hasOne(Order::class)->latestOfMany();
     }
 
-    public function addresses() 
+    public function addresses()
+    {
+        return $this->hasMany(Address::class);
+    }
+
+    public function wishlist()
+    {
+        return $this->belongsToMany(Product::class, 'wishlists')
+            ->withTimestamps();
+    }
+
+    // Alias method for clarity
+    public function wishlistItems()
     {
         return $this->hasMany(Address::class); 
     }
@@ -85,6 +97,6 @@ class User extends Authenticatable
     public function billingAddress()
     {
         return $this->hasOne(Address::class)->where('address_type', 'Billing');
+        return $this->wishlist();
     }
-    
 }

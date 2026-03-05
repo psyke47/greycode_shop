@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Head, Link, usePage, router, useForm } from '@inertiajs/react'
 import MainLayout from '../Layouts/MainLayout'
+import PageHead from '../Components/PageHead'
 
 
 export default function Order() {
@@ -128,7 +129,7 @@ export default function Order() {
 
   return (
     <MainLayout>
-      <Head title="My Orders" />
+      <PageHead title="My Orders" />
 
 
       <section className="py-8 px-4 sm:px-6 lg:px-8">
@@ -284,7 +285,7 @@ export default function Order() {
                 const actions = getOrderActions(order)
                 
                 return (
-                  <div key={order.id} className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
+                  <div key={order.id} className="bg-white rounded-xl shadow-sm hover:shadow-2xl hover:shadow-greycode-light-blue overflow-hidden border border-gray-200 lg:px-4">
                     {/* Order Header */}
                     <div className="p-6 border-b border-gray-100">
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

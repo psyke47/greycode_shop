@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Head, Link, useForm, router } from '@inertiajs/react'
 import MainLayout from '../Layouts/MainLayout'
+import PageHead from '../Components/PageHead'
 
 
 export default function Tracking({ trackingInfo: initialTrackingInfo, searchParams = {}, flash }) {
@@ -71,7 +72,7 @@ export default function Tracking({ trackingInfo: initialTrackingInfo, searchPara
 
   return (
     <MainLayout>
-      <Head title="Track Your Order" />
+      <PageHead title="Track Your Order" />
       
 
       <section className="py-8 px-4 sm:px-6 lg:px-8">
