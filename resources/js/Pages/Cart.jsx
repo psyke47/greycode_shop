@@ -96,8 +96,8 @@ export default function Cart({ cart: initialCart }) {
     return sum + (parseFloat(item.price) * item.quantity)
   }, 0)
 
-  const shipping = subtotal > 500 ? 0 : 99
-  const tax = subtotal * 0.14 // 14% VAT for South Africa
+  const shipping = subtotal > 500 ? 0 : 99.99
+  const tax = subtotal * 0.15 // 15% VAT for South Africa
   const discount = couponApplied ? subtotal * 0.1 : 0 // 10% discount if coupon applied
   const total = subtotal + shipping + tax - discount
 
