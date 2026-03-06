@@ -12,6 +12,7 @@ import {
     AlertCircle,
 } from "lucide-react";
 import PageHead from "../Components/PageHead";
+import PayfastLogo from "/public/images/Payfast-logo.png";
 
 export default function Checkout({
     cart,
@@ -949,7 +950,7 @@ export default function Checkout({
                                 <div className="p-6">
                                     <div className="space-y-4">
                                         {/* PayFast Option */}
-                                        <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                        <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-blue-50 hover:border-greycode-light-blue transition-colors">
                                             <input
                                                 type="radio"
                                                 name="payment_method"
@@ -980,8 +981,15 @@ export default function Checkout({
                                                         </p>
                                                     </div>
                                                     {/* PayFast Logo */}
+                                                    
                                                     <div className="flex space-x-1">
-                                                        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                                                        <img
+                                                            src={PayfastLogo}
+                                                            alt="PayFast Logo"
+                                                            className="h-6 object-contain"
+                                                        
+                                                        />
+                                                        {/* <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
                                                             Visa
                                                         </span>
                                                         <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded">
@@ -989,7 +997,7 @@ export default function Checkout({
                                                         </span>
                                                         <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
                                                             EFT
-                                                        </span>
+                                                        </span> */}
                                                     </div>
                                                 </div>
 
@@ -1010,8 +1018,9 @@ export default function Checkout({
                                         </label>
 
                                         {/* EFT Option */}
-                                        <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                        {/* <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
                                             <input
+                                                disabled
                                                 type="radio"
                                                 name="payment_method"
                                                 value="eft"
@@ -1038,11 +1047,12 @@ export default function Checkout({
                                                     (Manual)
                                                 </p>
                                             </div>
-                                        </label>
+                                        </label> */}
 
                                         {/* Cash on Delivery Option */}
-                                        <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                        {/* <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
                                             <input
+                                                disabled
                                                 type="radio"
                                                 name="payment_method"
                                                 value="cash_on_delivery"
@@ -1070,7 +1080,7 @@ export default function Checkout({
                                                     order
                                                 </p>
                                             </div>
-                                        </label>
+                                        </label> */}
                                     </div>
                                 </div>
                             </div>
