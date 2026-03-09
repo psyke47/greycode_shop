@@ -16,7 +16,7 @@ class AuthController extends Controller
     {
         return Inertia::render('Login');
     }
-    
+
     // Handle web login
     public function login(Request $request)
     {
@@ -24,23 +24,31 @@ class AuthController extends Controller
         if ($request->expectsJson()) {
             return $this->apiLogin($request);
         }
-        
+
         // Web login
         $credentials = $request->validate([
             'email' => 'required|email',
             'password' => 'required',
         ]);
-        
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || $user->status !== 'active') {
+            return back()->withErrors([
+                'email' => 'Account is deactivated or does not exist.',
+            ]);
+        }
+
         if (Auth::attempt($credentials, $request->remember)) {
             $request->session()->regenerate();
             return redirect()->intended('/');
         }
-        
+
         return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
+            'email' => 'Invalid credentials.',
         ])->onlyInput('email');
     }
-    
+
     // API login (returns JSON)
     public function apiLogin(Request $request)
     {
@@ -48,26 +56,26 @@ class AuthController extends Controller
             'email' => 'required|email',
             'password' => 'required|string',
         ]);
-        
+
         $user = User::where('email', $request->email)->first();
-        
+
         if (! $user || ! Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['Invalid credentials.'],
             ]);
         }
-        
+
         $token = $user->createToken('api-token')->plainTextToken;
-        
+
         return response()->json(['user' => $user, 'token' => $token]);
     }
-    
+
     // Show registration form
     public function showRegister()
     {
         return Inertia::render('Signup');
     }
-    
+
     // Handle web registration
     public function register(Request $request)
     {
@@ -79,7 +87,7 @@ class AuthController extends Controller
             'phone' => 'nullable|string|max:20',
             'date_of_birth' => 'required|date|before:today',
         ]);
-        
+
         $user = User::create([
             'first_name' => $validated['first_name'],
             'last_name' => $validated['last_name'],
@@ -89,19 +97,19 @@ class AuthController extends Controller
             'date_of_birth' => $validated['date_of_birth'],
             'is_admin' => 0,
         ]);
-        
+
         // For web, log the user in
         if (!$request->expectsJson()) {
             Auth::login($user);
             $request->session()->regenerate();
             return redirect('/');
         }
-        
+
         // For API, return token
         $token = $user->createToken('api-token')->plainTextToken;
         return response()->json(['user' => $user, 'token' => $token], 201);
     }
-    
+
     // Handle logout
     public function logout(Request $request)
     {
@@ -109,11 +117,11 @@ class AuthController extends Controller
             $request->user()->tokens()->delete();
             return response()->json(['message' => 'Logged out successfully']);
         }
-        
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        
+
         return redirect('/');
     }
 }
