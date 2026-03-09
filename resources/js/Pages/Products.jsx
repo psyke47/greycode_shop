@@ -44,8 +44,6 @@ export default function Products({
     const products = props.products || initialProducts || [];
     const categories = props.categories || initialCategories || [];
 
-
-
     // Initialize temp filters with all categories
     useEffect(() => {
         if (categories.length > 0) {
@@ -223,61 +221,71 @@ export default function Products({
         return count;
     };
 
-const { auth } = usePage().props;
-// Add state for wishlist status
-const [wishlistItems, setWishlistItems] = useState([]);
-const [wishlistLoading, setWishlistLoading] = useState({}); // ADD THIS LINE
+    const { auth } = usePage().props;
+    // Add state for wishlist status
+    const [wishlistItems, setWishlistItems] = useState([]);
+    const [wishlistLoading, setWishlistLoading] = useState({}); // ADD THIS LINE
 
-// Check if product is in wishlist
-const isInWishlist = (productId) => {
-    return wishlistItems.includes(productId);
-};
+    // Check if product is in wishlist
+    const isInWishlist = (productId) => {
+        return wishlistItems.includes(productId);
+    };
 
     const toggleWishlist = (productId, e) => {
-    e.preventDefault();
-    e.stopPropagation();
+        e.preventDefault();
+        e.stopPropagation();
 
-    // Check if user is logged in
-    if (!auth?.user) {
-        window.location.href = '/login';
-        return;
-    }
+        // Check if user is logged in
+        if (!auth?.user) {
+            window.location.href = "/login";
+            return;
+        }
 
-    // Prevent double-clicks
-    if (wishlistLoading[productId]) return;
+        // Prevent double-clicks
+        if (wishlistLoading[productId]) return;
 
-    setWishlistLoading(prev => ({ ...prev, [productId]: true }));
+        setWishlistLoading((prev) => ({ ...prev, [productId]: true }));
 
-    if (isInWishlist(productId)) {
-        axios.delete(`/wishlist/remove/${productId}`)
-            .then(response => {
-                setWishlistItems((prev) => prev.filter((id) => id !== productId));
-            })
-            .catch(error => {
-                console.error('Error removing from wishlist:', error);
-                if (error.response?.status === 401) {
-                    window.location.href = '/login';
-                }
-            })
-            .finally(() => {
-                setWishlistLoading(prev => ({ ...prev, [productId]: false }));
-            });
-    } else {
-        axios.post(`/wishlist/add/${productId}`)
-            .then(response => {
-                setWishlistItems((prev) => [...prev, productId]);
-            })
-            .catch(error => {
-                console.error('Error adding to wishlist:', error);
-                if (error.response?.status === 401) {
-                    window.location.href = '/login';
-                }
-            })
-            .finally(() => {
-                setWishlistLoading(prev => ({ ...prev, [productId]: false }));
-            });
-    }
-};
+        if (isInWishlist(productId)) {
+            axios
+                .delete(`/wishlist/remove/${productId}`)
+                .then((response) => {
+                    setWishlistItems((prev) =>
+                        prev.filter((id) => id !== productId),
+                    );
+                })
+                .catch((error) => {
+                    console.error("Error removing from wishlist:", error);
+                    if (error.response?.status === 401) {
+                        window.location.href = "/login";
+                    }
+                })
+                .finally(() => {
+                    setWishlistLoading((prev) => ({
+                        ...prev,
+                        [productId]: false,
+                    }));
+                });
+        } else {
+            axios
+                .post(`/wishlist/add/${productId}`)
+                .then((response) => {
+                    setWishlistItems((prev) => [...prev, productId]);
+                })
+                .catch((error) => {
+                    console.error("Error adding to wishlist:", error);
+                    if (error.response?.status === 401) {
+                        window.location.href = "/login";
+                    }
+                })
+                .finally(() => {
+                    setWishlistLoading((prev) => ({
+                        ...prev,
+                        [productId]: false,
+                    }));
+                });
+        }
+    };
 
     return (
         <MainLayout>
@@ -712,21 +720,35 @@ const isInWishlist = (productId) => {
                                                     />
 
                                                     {/* Wishlist Heart Button - Positioned Absolutely */}
-<button
-    onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleWishlist(product.id, e);
-    }}
-    disabled={wishlistLoading[product.id]}
-    className="absolute top-3 right-3 p-2 rounded-full z-10 bg-white/90 text-gray-600 hover:bg-red-50 shadow-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-    aria-label={isInWishlist(product.id) ? "Remove from wishlist" : "Add to wishlist"}
->
-    <Heart className="w-5 h-5" /> {/* No conditional fill */}
-</button>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            toggleWishlist(
+                                                                product.id,
+                                                                e,
+                                                            );
+                                                        }}
+                                                        disabled={
+                                                            wishlistLoading[
+                                                                product.id
+                                                            ]
+                                                        }
+                                                        className="absolute top-3 right-3 p-2 rounded-full z-10 bg-white/90 text-gray-600 hover:bg-red-50 shadow-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        aria-label={
+                                                            isInWishlist(
+                                                                product.id,
+                                                            )
+                                                                ? "Remove from wishlist"
+                                                                : "Add to wishlist"
+                                                        }
+                                                    >
+                                                        <Heart className="w-5 h-5" />{" "}
+                                                        {/* No conditional fill */}
+                                                    </button>
 
                                                     {/* Category Badge - Positioned Bottom Left */}
-                                                    <div className="absolute bottom-3 left-3">
+                                                    <div className="absolute top-3 left-3">
                                                         <span
                                                             className={`px-2 py-1 rounded-full text-xs font-medium shadow-sm ${
                                                                 product.category_id ===
