@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import PageHead from "../Components/PageHead";
 import PayfastLogo from "/public/images/Payfast-logo.png";
+import AddressAutocomplete from '../Components/AddressAutocomplete';
 
 export default function Checkout({
     cart,
@@ -274,6 +275,40 @@ export default function Checkout({
         { id: 3, name: "Review", icon: ShoppingBag },
     ];
 
+    // Add this function inside your Checkout component
+const handleAddressSelect = (addressData) => {
+    // Combine street number and route for full address
+    const streetAddress = `${addressData.street_number} ${addressData.route}`.trim();
+    
+    // Update all address fields at once
+    setData('shipping', {
+        ...data.shipping,
+        address_line1: streetAddress,
+        surburb: addressData.suburb || data.shipping.surburb,
+        city: addressData.city || data.shipping.city,
+        province: addressData.province || data.shipping.province,
+        postal_code: addressData.postal_code || data.shipping.postal_code
+    });
+
+    // Optional: Show success message
+    console.log('Address autofilled!');
+};
+const handleBillingAddressSelect = (addressData) => {
+    // Combine street number and route for full address
+    const streetAddress = `${addressData.street_number} ${addressData.route}`.trim();
+    
+    // Update billing address fields
+    setData('billing', {
+        ...data.billing,
+        same_as_shipping: false, // Automatically uncheck "same as shipping"
+        address_line1: streetAddress,
+        surburb: addressData.suburb || data.billing.surburb,
+        city: addressData.city || data.billing.city,
+        province: addressData.province || data.billing.province,
+        postal_code: addressData.postal_code || data.billing.postal_code
+    });
+};
+
     return (
         <MainLayout>
             <PageHead title="Checkout" />
@@ -382,37 +417,24 @@ export default function Checkout({
                                     <div className="space-y-4">
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Street Address *
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={
-                                                        data.shipping
-                                                            .address_line1
-                                                    }
-                                                    onChange={(e) =>
-                                                        setData("shipping", {
-                                                            ...data.shipping,
-                                                            address_line1:
-                                                                e.target.value,
-                                                        })
-                                                    }
-                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-greycode-light-blue"
-                                                    placeholder="123 Main St"
-                                                />
-                                                {errors[
-                                                    "shipping.address_line1"
-                                                ] && (
-                                                    <p className="mt-1 text-sm text-red-600">
-                                                        {
-                                                            errors[
-                                                                "shipping.address_line1"
-                                                            ]
-                                                        }
-                                                    </p>
-                                                )}
-                                            </div>
+    <label className="block text-sm font-medium text-gray-700 mb-1">
+        Street Address *
+    </label>
+    <AddressAutocomplete
+        value={data.shipping.address_line1}
+        onChange={(value) => setData('shipping', { 
+            ...data.shipping, 
+            address_line1: value 
+        })}
+        placeholder="Start typing your address..."
+        onSelect={handleAddressSelect}
+    />
+    {errors["shipping.address_line1"] && (
+        <p className="mt-1 text-sm text-red-600">
+            {errors["shipping.address_line1"]}
+        </p>
+    )}
+</div>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                                     Address Line 2
@@ -668,21 +690,31 @@ export default function Checkout({
                                                 Billing Address
                                             </h2>
                                         </div>
-                                        <label className="flex items-center">
-                                            <input
-                                                type="checkbox"
-                                                checked={sameAsShipping}
-                                                onChange={(e) =>
-                                                    setSameAsShipping(
-                                                        e.target.checked,
-                                                    )
-                                                }
-                                                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                            />
-                                            <span className="ml-2 text-sm text-white">
-                                                Same as shipping
-                                            </span>
-                                        </label>
+                                       <label className="flex items-center">
+    <input
+        type="checkbox"
+        checked={sameAsShipping}
+        onChange={(e) => {
+            setSameAsShipping(e.target.checked);
+            if (e.target.checked) {
+                // When checking "same as shipping", copy shipping data to billing
+                setData('billing', {
+                    ...data.billing,
+                    same_as_shipping: true,
+                    address_line1: data.shipping.address_line1,
+                    address_line2: data.shipping.address_line2,
+                    surburb: data.shipping.surburb,
+                    city: data.shipping.city,
+                    province: data.shipping.province,
+                    postal_code: data.shipping.postal_code,
+                    phone_number: data.shipping.phone_number
+                });
+            }
+        }}
+        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+    />
+    <span className="ml-2 text-sm text-white">Same as shipping</span>
+</label>
                                     </div>
                                 </div>
 
@@ -740,26 +772,19 @@ export default function Checkout({
                                             {/* Copy the same address form fields here */}
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                        Street Address *
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        value={
-                                                            data.billing
-                                                                .address_line1
-                                                        }
-                                                        onChange={(e) =>
-                                                            setData("billing", {
-                                                                ...data.billing,
-                                                                address_line1:
-                                                                    e.target
-                                                                        .value,
-                                                            })
-                                                        }
-                                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                    />
-                                                </div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Street Address *
+                    </label>
+                    <AddressAutocomplete
+                        value={data.billing.address_line1}
+                        onChange={(value) => setData('billing', { 
+                            ...data.billing, 
+                            address_line1: value 
+                        })}
+                        placeholder="Start typing billing address..."
+                        onSelect={handleBillingAddressSelect}
+                    />
+                </div>
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                                         Address Line 2
