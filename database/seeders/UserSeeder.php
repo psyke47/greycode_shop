@@ -1,4 +1,4 @@
-<<?php
+<?php
 
 namespace Database\Seeders;
 
@@ -25,7 +25,7 @@ class UserSeeder extends Seeder
 
         // Regular user - John
         User::firstOrCreate(
-            ['email' => 'john@example.com'],
+            ['email' => 'funiemugacs@gmail.com'],
             [
                 'first_name'   => 'John',
                 'last_name'    => 'Doe',

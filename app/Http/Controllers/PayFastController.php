@@ -7,7 +7,11 @@ use App\Models\Product;
 use App\Services\PayFastService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OrderConfirmation;
+use App\Mail\NewOrderNotification;
 use Inertia\Inertia;
+use Illuminate\SUpport\Facades\DB;
 
 class PayFastController extends Controller
 {
@@ -27,7 +31,9 @@ class PayFastController extends Controller
             return response('Invalid', 400);
         }
 
-        $order = Order::where('order_number', $request->m_payment_id)->first();
+        $order = Order::with('items.product', 'shippingAddress', 'billingAddress')
+                  ->where('order_number', $request->m_payment_id)
+                  ->first();
 
         if (!$order) {
             Log::error('Order not found: ' . $request->m_payment_id);
@@ -35,6 +41,10 @@ class PayFastController extends Controller
         }
 
         if ($request->payment_status === 'COMPLETE') {
+
+           DB::beginTransaction();
+
+        try {
             $order->update([
                 'payment_status' => 'paid',
                 'order_status' => 'processing',
@@ -42,8 +52,38 @@ class PayFastController extends Controller
 
             $this->deductStock($order);
 
+            DB::commit();
+
             Log::info('Payment completed for order: ' . $order->order_number);
+
+            try {
+                    // Send confirmation to customer
+                    Mail::to($order->user->email)->queue(new OrderConfirmation($order));
+                    
+                    // Send notification to sales team
+                    Mail::to(config('mail.from.address'))->queue(new NewOrderNotification($order));
+
+                    Log::info('Order emails queued for order: ' . $order->order_number);
+
+                } catch (\Exception $e) {
+                    Log::error('Failed to queue order emails: ' . $e->getMessage());
+                } 
+            catch (\Exception $e) {
+                DB::rollBack();
+                Log::error('Failed to process payment notification: ' . $e->getMessage());
+
+            }
+                return response('Error processing payment', 500);
+            }
+
+        } elseif ($request->payment_status === 'FAILED') {
+            $order->update([
+                'payment_status' => 'failed',
+                'order_status' => 'cancelled',
+            ]);
+            Log::warning('Payment failed for order: ' . $order->order_number);
         }
+
 
         return response('OK', 200)
         ->header('Content-Type', 'text/plain');
@@ -54,6 +94,15 @@ class PayFastController extends Controller
         $order = Order::with('items.product', 'shippingAddress', 'billingAddress')
             ->findOrFail($orderId);
 
+        // Check if payment was successful (you might want to verify with PayFast again)
+        if ($order->payment_status === 'paid') {
+            return Inertia::render('OrderDetails', [
+                'order' => $order,
+                'payment_success' => true,
+                'message' => 'Payment successful! Your order is being processed. A confirmation email has been sent to your email address.'
+            ]);
+        }
+
         return Inertia::render('OrderDetails', [
             'order' => $order,
             'payment_success' => true,
@@ -63,6 +112,14 @@ class PayFastController extends Controller
 
     public function cancel(Request $request, $orderId)
     {
+        $order = Order::find($orderId);
+        
+        if ($order && $order->payment_status === 'unpaid') {
+            $order->update([
+                'order_status' => 'cancelled',
+                'notes' => ($order->notes ?? '') . "\nOrder cancelled by customer during payment."
+            ]);
+        }
         return redirect()->route('checkout')
             ->with('error', 'Payment was cancelled. Please try again.');
     }

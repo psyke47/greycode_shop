@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use App\Models\Coupon;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OrderConfirmation;
+use App\Mail\NewOrderNotification;
 
 class CheckoutController extends Controller
 {
@@ -208,6 +211,23 @@ class CheckoutController extends Controller
             $cart->cartItems()->delete();
 
             DB::commit();
+
+            // Send email notifications immediately for testing
+            try {
+                // Load the order with relationships needed for emails
+                $order->load(['user', 'items', 'shippingAddress', 'billingAddress']);
+                
+                // Send confirmation to customer
+                Mail::to($user->email)->queue(new OrderConfirmation($order));
+                
+                // Send notification to sales team
+                Mail::to(config('mail.from.address'))->queue(new NewOrderNotification($order));
+                
+                Log::info('Test mode: Order emails queued for order: ' . $order->order_number);
+            } catch (\Exception $e) {
+                Log::error('Failed to send test order emails: ' . $e->getMessage());
+            }
+
 
             // 8. If PayFast, redirect to payment page with HTML form
             if ($validated['payment_method'] === 'payfast') {
