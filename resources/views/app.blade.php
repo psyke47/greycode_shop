@@ -11,12 +11,11 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/images/favicons/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-title" content="Greycode" />
     <link rel="manifest" href="/images/favicons/site.webmanifest" />
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyArJSKoCbNC_Yyld5OMGXnwzAyvikQrE4A&libraries=places&callback=initAutocomplete" async defer></script>
-    
-    <!-- Production assets (replace with your actual built file names) -->
-    {{-- <link rel="stylesheet" href="{{ asset('build/assets/app.css') }}">
-    <script type="module" src="{{ asset('build/assets/app.js') }}"></script> --}}
-    {{-- Comment out @viteReactRefresh in production --}}
+
+<script async
+    src="https://maps.googleapis.com/maps/api/js?key={{ env('VITE_GOOGLE_MAPS_API_KEY') }}&loading=async&libraries=places&callback=Function.prototype">
+</script>
+
     @viteReactRefresh
     @vite(['resources/css/app.css', 'resources/js/app.jsx']) 
     @inertiaHead
