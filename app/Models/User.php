@@ -26,7 +26,7 @@ class User extends Authenticatable
         'date_of_birth',
         'password',
         'status',
-        /* 'is_admin' */
+        /* 'is_admin' */ // Left as-is, commented out
     ];
 
     /**
@@ -49,16 +49,16 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'is_admin' => 'boolean',
+            'is_admin' => 'boolean', // This stays for casting existing data
             'date_of_birth' => 'date'
         ];
     }
-
 
     public function cart()
     {
         return $this->hasOne(Cart::class);
     }
+    
     public function orders()
     {
         return $this->hasMany(Order::class);
@@ -69,7 +69,6 @@ class User extends Authenticatable
      */
     public function latestOrder()
     {
-        /* return $this->hasOne(Order::class)->latestOrder(); */
         return $this->hasOne(Order::class)->latestOfMany();
     }
 
@@ -84,10 +83,10 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
-    // Alias method for clarity
+    // Alias method for clarity - FIXED
     public function wishlistItems()
     {
-        return $this->hasMany(Address::class); 
+        return $this->wishlist(); // Now correctly returns wishlist
     }
 
     public function shippingAddress()
@@ -98,6 +97,6 @@ class User extends Authenticatable
     public function billingAddress()
     {
         return $this->hasOne(Address::class)->where('address_type', 'Billing');
-        return $this->wishlist();
+        // REMOVED the incorrect second return statement
     }
 }

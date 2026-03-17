@@ -13,16 +13,62 @@ use Inertia\Inertia;
 class UserProfileController extends Controller
 {
     /**
-     * Display the user's profile page.
+     * Display the user's profile page with all addresses.
      */
     public function edit()
     {
-        $user = Auth::user()->load(['shippingAddress', 'billingAddress']);
+        $user = Auth::user()->load(['orders']);
+        
+        // Get all addresses for this user
+        $addresses = Address::where('user_id', $user->id)->get();
+        
+        // Find default/shipping/billing addresses
+        $shippingAddress = $addresses->where('address_type', 'Shipping')->first();
+        $billingAddress = $addresses->where('address_type', 'Billing')->first();
+        
+        // Get all saved addresses for the dropdown
+        $savedAddresses = $addresses->map(function ($address) {
+            return [
+                'id' => $address->id,
+                'type' => $address->address_type,
+                'line1' => $address->address_line1,
+                'line2' => $address->address_line2,
+                'surburb' => $address->surburb,
+                'city' => $address->city,
+                'province' => $address->province,
+                'postal_code' => $address->postal_code,
+                'phone' => $address->phone_number,
+                'is_default' => $address->is_default,
+                'formatted' => $this->formatAddress($address),
+            ];
+        });
 
         return Inertia::render('UserProfile', [
-            'auth' => ['user' => $user],
-            'orders' => [],
+            'auth' => [
+                'user' => $user,
+            ],
+            'addresses' => $savedAddresses,
+            'shippingAddress' => $shippingAddress,
+            'billingAddress' => $billingAddress,
+            'orders' => $user->orders ?? [],
         ]);
+    }
+
+    /**
+     * Format address for display.
+     */
+    private function formatAddress($address)
+    {
+        $parts = [
+            $address->address_line1,
+            $address->address_line2,
+            $address->surburb,
+            $address->city,
+            $address->province,
+            $address->postal_code,
+        ];
+        
+        return implode(', ', array_filter($parts));
     }
 
     /**
@@ -46,78 +92,100 @@ class UserProfileController extends Controller
     }
 
     /**
-     * Update shipping and billing addresses.
-     * Matches your addresses table schema.
+     * Update or create shipping/billing addresses.
      */
     public function updateAddress(Request $request)
     {
         $user = Auth::user();
 
         $validated = $request->validate([
-            // Shipping fields
-            'shipping_street'   => ['required', 'string', 'max:255'],
-            'shipping_building' => ['nullable', 'string', 'max:255'],
-            'shipping_suburb'   => ['required', 'string', 'max:255'],
-            'shipping_city'     => ['required', 'string', 'max:255'],
-            'shipping_postal'   => ['required', 'string', 'size:4'],
-            'shipping_province' => ['required', Rule::in([
+            // If editing an existing address
+            'address_id' => ['nullable', 'exists:addresses,id'],
+            
+            // Address fields
+            'address_type' => ['required', Rule::in(['Shipping', 'Billing', 'Both'])],
+            'address_line1' => ['required', 'string', 'max:255'],
+            'address_line2' => ['nullable', 'string', 'max:255'],
+            'surburb' => ['required', 'string', 'max:255'],
+            'city' => ['required', 'string', 'max:255'],
+            'province' => ['required', Rule::in([
                 'Gauteng', 'Western Cape', 'KwaZulu-Natal', 'Eastern Cape',
                 'Free State', 'Limpopo', 'Mpumalanga', 'North West', 'Northern Cape'
             ])],
-            'shipping_phone'    => ['required', 'string', 'size:10'],
-
-            // Billing fields
-            'billing_street'    => ['required', 'string', 'max:255'],
-            'billing_building'  => ['nullable', 'string', 'max:255'],
-            'billing_suburb'    => ['required', 'string', 'max:255'],
-            'billing_city'      => ['required', 'string', 'max:255'],
-            'billing_postal'    => ['required', 'string', 'size:4'],
-            'billing_province'  => ['required', Rule::in([
-                'Gauteng', 'Western Cape', 'KwaZulu-Natal', 'Eastern Cape',
-                'Free State', 'Limpopo', 'Mpumalanga', 'North West', 'Northern Cape'
-            ])],
-            'billing_phone'     => ['required', 'string', 'size:10'],
+            'postal_code' => ['required', 'string', 'size:4'],
+            'phone_number' => ['required', 'string', 'size:10'],
+            'is_default' => ['boolean'],
         ]);
 
-        // ----- Shipping Address -----
-        $shippingData = [
-            'address_line1' => $validated['shipping_street'],
-            'address_line2' => $validated['shipping_building'] ?? null,
-            'surburb'       => $validated['shipping_suburb'],
-            'city'          => $validated['shipping_city'],
-            'province'      => $validated['shipping_province'],
-            'postal_code'   => $validated['shipping_postal'],
-            'country'       => 'South Africa',  // default from migration
-            'phone_number'  => $validated['shipping_phone'],
-            'is_default'    => false,           // adjust if needed
-            'address_type'  => 'Shipping',
+        $addressData = [
+            'user_id' => $user->id,
+            'address_type' => $validated['address_type'],
+            'is_default' => $validated['is_default'] ?? false,
+            'address_line1' => $validated['address_line1'],
+            'address_line2' => $validated['address_line2'] ?? null,
+            'surburb' => $validated['surburb'],
+            'city' => $validated['city'],
+            'province' => $validated['province'],
+            'postal_code' => $validated['postal_code'],
+            'country' => 'South Africa',
+            'phone_number' => $validated['phone_number'],
         ];
 
-        $user->shippingAddress()->updateOrCreate(
-            ['user_id' => $user->id, 'address_type' => 'Shipping'],
-            $shippingData
-        );
+        if ($request->filled('address_id')) {
+            // Update existing address
+            $address = Address::where('id', $validated['address_id'])
+                ->where('user_id', $user->id)
+                ->firstOrFail();
+            $address->update($addressData);
+            $message = 'Address updated successfully.';
+        } else {
+            // Create new address
+            Address::create($addressData);
+            $message = 'Address added successfully.';
+        }
 
-        // ----- Billing Address -----
-        $billingData = [
-            'address_line1' => $validated['billing_street'],
-            'address_line2' => $validated['billing_building'] ?? null,
-            'surburb'       => $validated['billing_suburb'],
-            'city'          => $validated['billing_city'],
-            'province'      => $validated['billing_province'],
-            'postal_code'   => $validated['billing_postal'],
-            'country'       => 'South Africa',
-            'phone_number'  => $validated['billing_phone'],
-            'is_default'    => false,
-            'address_type'  => 'Billing',
-        ];
+        // If this is set as default, remove default from other addresses of same type
+        if ($validated['is_default'] ?? false) {
+            Address::where('user_id', $user->id)
+                ->where('address_type', $validated['address_type'])
+                ->where('id', '!=', $request->address_id ?? 0)
+                ->update(['is_default' => false]);
+        }
 
-        $user->billingAddress()->updateOrCreate(
-            ['user_id' => $user->id, 'address_type' => 'Billing'],
-            $billingData
-        );
+        return back()->with('flash', ['success' => $message]);
+    }
 
-        return back()->with('flash', ['success' => 'Addresses updated successfully.']);
+    /**
+     * Delete an address.
+     */
+    public function deleteAddress($id)
+    {
+        $user = Auth::user();
+        
+        $address = Address::where('id', $id)->where('user_id', $user->id)->firstOrFail();
+        $address->delete();
+
+        return back()->with('flash', ['success' => 'Address deleted successfully.']);
+    }
+
+    /**
+     * Set an address as default.
+     */
+    public function setDefaultAddress($id)
+    {
+        $user = Auth::user();
+        
+        $address = Address::where('id', $id)->where('user_id', $user->id)->firstOrFail();
+        
+        // Remove default from other addresses of same type
+        Address::where('user_id', $user->id)
+            ->where('address_type', $address->address_type)
+            ->update(['is_default' => false]);
+        
+        // Set this as default
+        $address->update(['is_default' => true]);
+
+        return back()->with('flash', ['success' => 'Default address updated.']);
     }
 
     /**
