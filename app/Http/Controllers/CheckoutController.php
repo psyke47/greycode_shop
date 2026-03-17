@@ -356,53 +356,38 @@ class CheckoutController extends Controller
     /**
      * Create or get existing address
      */
-    private function createOrGetAddress($user, $addressData, $type)
-    {
-        // Check if we should save this address
-        if ($addressData['save_address'] ?? false) {
-            // Check if address already exists
-            $existingAddress = Address::where('user_id', $user->id)
-                ->where('address_line1', $addressData['address_line1'])
-                ->where('surburb', $addressData['surburb'])
-                ->where('city', $addressData['city'])
-                ->where('postal_code', $addressData['postal_code'])
-                ->first();
+private function createOrGetAddress($user, $addressData, $type)
+{
+    // Always check if this exact address already exists for this user
+    $existingAddress = Address::where('user_id', $user->id)
+        ->where('address_line1', $addressData['address_line1'])
+        ->where('address_line2', $addressData['address_line2'] ?? '')
+        ->where('surburb', $addressData['surburb'])
+        ->where('city', $addressData['city'])
+        ->where('province', $addressData['province'])
+        ->where('postal_code', $addressData['postal_code'])
+        ->first();
 
-            if ($existingAddress) {
-                return $existingAddress;
-            }
-
-            // Create new address
-            return Address::create([
-                'user_id' => $user->id,
-                'address_type' => $type,
-                'is_default' => $addressData['is_default'] ?? false,
-                'address_line1' => $addressData['address_line1'],
-                'address_line2' => $addressData['address_line2'] ?? null,
-                'surburb' => $addressData['surburb'],
-                'city' => $addressData['city'],
-                'province' => $addressData['province'],
-                'postal_code' => $addressData['postal_code'],
-                'country' => 'South Africa',
-                'phone_number' => $addressData['phone_number'],
-            ]);
-        }
-
-        // Create address record even if not saving to user's address book
-        return Address::create([
-            'user_id' => $user->id,
-            'address_type' => $type,
-            'is_default' => false,
-            'address_line1' => $addressData['address_line1'],
-            'address_line2' => $addressData['address_line2'] ?? null,
-            'surburb' => $addressData['surburb'],
-            'city' => $addressData['city'],
-            'province' => $addressData['province'],
-            'postal_code' => $addressData['postal_code'],
-            'country' => 'South Africa',
-            'phone_number' => $addressData['phone_number'],
-        ]);
+    if ($existingAddress) {
+        // If address exists, just return it (don't create new one)
+        return $existingAddress;
     }
+
+    // Create new address only if it doesn't exist
+    return Address::create([
+        'user_id' => $user->id,
+        'address_type' => $type,
+        'is_default' => $addressData['is_default'] ?? false,
+        'address_line1' => $addressData['address_line1'],
+        'address_line2' => $addressData['address_line2'] ?? null,
+        'surburb' => $addressData['surburb'],
+        'city' => $addressData['city'],
+        'province' => $addressData['province'],
+        'postal_code' => $addressData['postal_code'],
+        'country' => 'South Africa',
+        'phone_number' => $addressData['phone_number'],
+    ]);
+}
 
     /**
      * Generate unique order number

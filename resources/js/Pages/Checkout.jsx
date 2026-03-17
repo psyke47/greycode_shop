@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import PageHead from "../Components/PageHead";
 import PayfastLogo from "/public/images/Payfast-logo.png";
-import AddressAutocomplete from '../Components/AddressAutocomplete';
+import AddressSearch from "../Components/AddressSearch";
 
 export default function Checkout({
     cart,
@@ -275,39 +275,31 @@ export default function Checkout({
         { id: 3, name: "Review", icon: ShoppingBag },
     ];
 
-    // Add this function inside your Checkout component
 const handleAddressSelect = (addressData) => {
-    // Combine street number and route for full address
-    const streetAddress = `${addressData.street_number} ${addressData.route}`.trim();
-    
-    // Update all address fields at once
-    setData('shipping', {
-        ...data.shipping,
-        address_line1: streetAddress,
-        surburb: addressData.suburb || data.shipping.surburb,
-        city: addressData.city || data.shipping.city,
-        province: addressData.province || data.shipping.province,
-        postal_code: addressData.postal_code || data.shipping.postal_code
-    });
+  console.log('Address selected:', addressData)
+  
+  setData('shipping', {
+    ...data.shipping,
+    address_line1: addressData.street || addressData.formatted_address,
+    surburb: addressData.suburb || data.shipping.surburb,
+    city: addressData.city || data.shipping.city,
+    province: addressData.province || data.shipping.province,
+    postal_code: addressData.postal_code || data.shipping.postal_code
+  })
+}
 
-    // Optional: Show success message
-    console.log('Address autofilled!');
-};
+// For billing address (if you want separate)
 const handleBillingAddressSelect = (addressData) => {
-    // Combine street number and route for full address
-    const streetAddress = `${addressData.street_number} ${addressData.route}`.trim();
-    
-    // Update billing address fields
-    setData('billing', {
-        ...data.billing,
-        same_as_shipping: false, // Automatically uncheck "same as shipping"
-        address_line1: streetAddress,
-        surburb: addressData.suburb || data.billing.surburb,
-        city: addressData.city || data.billing.city,
-        province: addressData.province || data.billing.province,
-        postal_code: addressData.postal_code || data.billing.postal_code
-    });
-};
+  setData('billing', {
+    ...data.billing,
+    same_as_shipping: false,
+    address_line1: addressData.street || addressData.formatted_address,
+    surburb: addressData.suburb || data.billing.surburb,
+    city: addressData.city || data.billing.city,
+    province: addressData.province || data.billing.province,
+    postal_code: addressData.postal_code || data.billing.postal_code
+  })
+}
 
     return (
         <MainLayout>
@@ -416,25 +408,21 @@ const handleBillingAddressSelect = (addressData) => {
                                     {/* Address Form */}
                                     <div className="space-y-4">
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                            <div>
+                                            <div className="sm:col-span-2">
     <label className="block text-sm font-medium text-gray-700 mb-1">
-        Street Address *
+      Street Address *
     </label>
-    <AddressAutocomplete
-        value={data.shipping.address_line1}
-        onChange={(value) => setData('shipping', { 
-            ...data.shipping, 
-            address_line1: value 
-        })}
-        placeholder="Start typing your address..."
-        onSelect={handleAddressSelect}
+    <AddressSearch
+      onAddressSelect={handleAddressSelect}
+      placeholder="Start typing your address..."
+      defaultValue={data.shipping.address_line1}
     />
     {errors["shipping.address_line1"] && (
-        <p className="mt-1 text-sm text-red-600">
-            {errors["shipping.address_line1"]}
-        </p>
+      <p className="mt-1 text-sm text-red-600">
+        {errors["shipping.address_line1"]}
+      </p>
     )}
-</div>
+  </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                                     Address Line 2
@@ -771,20 +759,16 @@ const handleBillingAddressSelect = (addressData) => {
                                         <div className="space-y-4">
                                             {/* Copy the same address form fields here */}
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Street Address *
-                    </label>
-                    <AddressAutocomplete
-                        value={data.billing.address_line1}
-                        onChange={(value) => setData('billing', { 
-                            ...data.billing, 
-                            address_line1: value 
-                        })}
-                        placeholder="Start typing billing address..."
-                        onSelect={handleBillingAddressSelect}
-                    />
-                </div>
+                                                 <div className="sm:col-span-2">
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        Billing Street Address *
+      </label>
+      <AddressSearch
+        onAddressSelect={handleBillingAddressSelect}
+        placeholder="Start typing billing address..."
+        defaultValue={data.billing.address_line1}
+      />
+    </div>
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                                         Address Line 2
