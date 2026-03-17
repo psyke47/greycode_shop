@@ -85,7 +85,7 @@ export default function Login() {
                   className="absolute text-sm text-body duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-neutral-primary px-2 peer-focus:px-2 peer-focus:text-fg-brand peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-5 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto left-1 peer-focus:bg-white peer-focus:text-greycode-light-blue">Email Address</label>
               </div>
               
-              <div class="relative">
+              <div className="relative">
                 
                 <input
                   id="password"

@@ -138,7 +138,7 @@ Route::middleware(['auth'])->group(function () {
 
 
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [UserProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/user-profile', [UserProfileController::class, 'edit'])->name('profile.page');
     Route::patch('/user-profile', [UserProfileController::class, 'update'])->name('profile.update');
     Route::put('/address', [UserProfileController::class, 'updateAddress'])->name('profile.update-address');
     Route::put('/password', [UserProfileController::class, 'updatePassword'])->name('profile.update-password');
@@ -180,3 +180,7 @@ Route::middleware(['auth'])->get('/wishlist/count', [WishlistController::class, 
 Route::middleware(['auth'])->get('/wishlist/items', [WishlistController::class, 'items'])->name('wishlist.items');
 
 Route::post('/coupon/validate', [CouponController::class, 'validate'])->name('coupon.validate');
+
+Route::get('/testgoogle', function () {
+    return Inertia::render('TestGoogle');
+});
