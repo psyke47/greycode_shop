@@ -301,7 +301,7 @@ export default function UserProfile() {
                     )}
 
                     {/* Saved Addresses Dropdown - Show if there are multiple addresses */}
-                    {addresses.length > 1 && (
+                    {/* {addresses.length > 1 && (
                         <div className="mb-6 max-w-4xl mx-auto w-full">
                             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                                 <label className="block text-sm font-medium text-blue-800 mb-2">
@@ -317,8 +317,8 @@ export default function UserProfile() {
                                     <option value="">Select an address to edit</option>
                                     {addresses.map(addr => (
                                         <React.Fragment key={addr.id}>
-                                            <option value={`shipping:${addr.id}`}>📦 Shipping: {addr.formatted}</option>
-                                            <option value={`billing:${addr.id}`}>💰 Billing: {addr.formatted}</option>
+                                            <option value={`shipping:${addr.id}`}>Shipping: {addr.formatted}</option>
+                                            <option value={`billing:${addr.id}`}>Billing: {addr.formatted}</option>
                                         </React.Fragment>
                                     ))}
                                 </select>
@@ -328,7 +328,7 @@ export default function UserProfile() {
                             </div>
                         </div>
                     )}
-
+ */}
                     {/* Cards container */}
                     <div className="space-y-6 max-w-4xl mx-auto">
                         {/* Personal Information Card - Same as before */}
