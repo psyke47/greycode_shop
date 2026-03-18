@@ -166,7 +166,7 @@ export default function Products({
     const hasFilterChanges = () => {
         return (
             JSON.stringify(tempFilters.categories.sort()) !==
-                JSON.stringify(appliedFilters.categories.sort()) ||
+            JSON.stringify(appliedFilters.categories.sort()) ||
             tempFilters.minPrice !== appliedFilters.minPrice ||
             tempFilters.maxPrice !== appliedFilters.maxPrice ||
             tempFilters.sortBy !== appliedFilters.sortBy
@@ -577,11 +577,10 @@ export default function Products({
                                     <button
                                         onClick={handleApplyFilters}
                                         disabled={!hasFilterChanges()}
-                                        className={`w-full py-3 px-4 rounded-lg font-medium transition-colors duration-300 ${
-                                            hasFilterChanges()
+                                        className={`w-full py-3 px-4 rounded-lg font-medium transition-colors duration-300 ${hasFilterChanges()
                                                 ? "bg-blue-600 text-white hover:bg-blue-700"
                                                 : "bg-gray-200 text-gray-500 cursor-not-allowed"
-                                        }`}
+                                            }`}
                                     >
                                         {hasFilterChanges()
                                             ? "Apply Filters"
@@ -639,33 +638,33 @@ export default function Products({
                                                     )}
                                                 {(appliedFilters.minPrice > 0 ||
                                                     appliedFilters.maxPrice <
-                                                        2000) && (
-                                                    <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                                                        R
-                                                        {
-                                                            appliedFilters.minPrice
-                                                        }{" "}
-                                                        - R
-                                                        {
-                                                            appliedFilters.maxPrice
-                                                        }
-                                                    </span>
-                                                )}
+                                                    2000) && (
+                                                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                                                            R
+                                                            {
+                                                                appliedFilters.minPrice
+                                                            }{" "}
+                                                            - R
+                                                            {
+                                                                appliedFilters.maxPrice
+                                                            }
+                                                        </span>
+                                                    )}
                                                 {appliedFilters.sortBy !==
                                                     "name_asc" && (
-                                                    <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
-                                                        {appliedFilters.sortBy ===
-                                                        "price_asc"
-                                                            ? "Price: Low to High"
-                                                            : appliedFilters.sortBy ===
-                                                                "price_desc"
-                                                              ? "Price: High to Low"
-                                                              : appliedFilters.sortBy ===
-                                                                  "name_desc"
-                                                                ? "Name: Z to A"
-                                                                : "Sorted"}
-                                                    </span>
-                                                )}
+                                                        <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
+                                                            {appliedFilters.sortBy ===
+                                                                "price_asc"
+                                                                ? "Price: Low to High"
+                                                                : appliedFilters.sortBy ===
+                                                                    "price_desc"
+                                                                    ? "Price: High to Low"
+                                                                    : appliedFilters.sortBy ===
+                                                                        "name_desc"
+                                                                        ? "Name: Z to A"
+                                                                        : "Sorted"}
+                                                        </span>
+                                                    )}
                                             </div>
                                         </div>
                                     )}
@@ -694,17 +693,16 @@ export default function Products({
                             ) : (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                                     {filteredProducts.map((product) => {
-                                        const imageUrl =
-                                            getProductImage(product);
+                                        const imageUrl = getProductImage(product);
 
                                         return (
                                             <a
                                                 key={product.id}
                                                 href={`/products/${product.id}`}
-                                                className="group block bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 relative"
+                                                className="group block bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 relative flex flex-col"
                                             >
-                                                {/* Image Container - Relative for positioning */}
-                                                <div className="relative h-56 flex items-center justify-center bg-gray-50">
+                                                {/* Image Container - Fixed height */}
+                                                <div className="relative h-56 flex items-center justify-center bg-gray-50 flex-shrink-0">
                                                     {/* Product Image */}
                                                     <img
                                                         src={imageUrl}
@@ -714,92 +712,62 @@ export default function Products({
                                                             console.error(
                                                                 `Failed to load image: ${imageUrl}`,
                                                             );
-                                                            e.target.src =
-                                                                placeholderSVG;
+                                                            e.target.src = placeholderSVG;
                                                         }}
                                                     />
 
-                                                    {/* Wishlist Heart Button - Positioned Absolutely */}
+                                                    {/* Wishlist Heart Button */}
                                                     <button
                                                         onClick={(e) => {
                                                             e.preventDefault();
                                                             e.stopPropagation();
-                                                            toggleWishlist(
-                                                                product.id,
-                                                                e,
-                                                            );
+                                                            toggleWishlist(product.id, e);
                                                         }}
-                                                        disabled={
-                                                            wishlistLoading[
-                                                                product.id
-                                                            ]
-                                                        }
+                                                        disabled={wishlistLoading[product.id]}
                                                         className="absolute top-3 right-3 p-2 rounded-full z-10 bg-white/90 text-gray-600 hover:bg-red-50 shadow-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                        aria-label={
-                                                            isInWishlist(
-                                                                product.id,
-                                                            )
-                                                                ? "Remove from wishlist"
-                                                                : "Add to wishlist"
-                                                        }
+                                                        aria-label={isInWishlist(product.id) ? "Remove from wishlist" : "Add to wishlist"}
                                                     >
-                                                        <Heart className="w-5 h-5" />{" "}
-                                                        {/* No conditional fill */}
+                                                        <Heart className="w-5 h-5" />
                                                     </button>
 
-                                                    {/* Category Badge - Positioned Bottom Left */}
+                                                    {/* Category Badge */}
                                                     <div className="absolute top-3 left-3">
                                                         <span
-                                                            className={`px-2 py-1 rounded-full text-xs font-medium shadow-sm ${
-                                                                product.category_id ===
-                                                                categories.find(
-                                                                    (c) =>
-                                                                        c.name ===
-                                                                        "DIY",
-                                                                )?.id
+                                                            className={`px-2 py-1 rounded-full text-xs font-medium shadow-sm ${product.category_id === categories.find((c) => c.name === "DIY")?.id
                                                                     ? "bg-blue-100 text-blue-800"
-                                                                    : product.category_id ===
-                                                                        categories.find(
-                                                                            (
-                                                                                c,
-                                                                            ) =>
-                                                                                c.name ===
-                                                                                "Smart Homes",
-                                                                        )?.id
-                                                                      ? "bg-purple-100 text-purple-800"
-                                                                      : "bg-green-100 text-green-800"
-                                                            }`}
+                                                                    : product.category_id === categories.find((c) => c.name === "Smart Homes")?.id
+                                                                        ? "bg-purple-100 text-purple-800"
+                                                                        : "bg-green-100 text-green-800"
+                                                                }`}
                                                         >
-                                                            {getCategoryName(
-                                                                product.category_id,
-                                                            )}
+                                                            {getCategoryName(product.category_id)}
                                                         </span>
                                                     </div>
                                                 </div>
 
-                                                {/* Product Info - Outside the relative container */}
-                                                <div className="p-4">
-                                                    <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-300 mb-2 line-clamp-2">
-                                                        {product.name}
-                                                    </h3>
-                                                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                                                        {product.description}
-                                                    </p>
-                                                    <div className="flex items-center justify-between">
-                                                        <p className="text-xl font-bold text-gray-900">
-                                                            R{" "}
-                                                            {parseFloat(
-                                                                product.price,
-                                                            ).toLocaleString(
-                                                                "en-ZA",
-                                                                {
-                                                                    minimumFractionDigits: 2,
-                                                                },
-                                                            )}
+                                                {/* Product Info - Takes remaining space and pushes footer to bottom */}
+                                                <div className="p-4 flex flex-col flex-1">
+                                                    <div>
+                                                        <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-300 mb-2 line-clamp-2">
+                                                            {product.name}
+                                                        </h3>
+                                                        <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                                                            {product.description}
                                                         </p>
-                                                        <span className="text-blue-600 group-hover:text-blue-800 font-medium text-sm">
-                                                            View Details →
-                                                        </span>
+                                                    </div>
+
+                                                    {/* Footer - Always at bottom */}
+                                                    <div className="mt-auto pt-4">
+                                                        <div className="flex items-center justify-between">
+                                                            <p className="text-xl font-bold text-gray-900">
+                                                                R {parseFloat(product.price).toLocaleString("en-ZA", {
+                                                                    minimumFractionDigits: 2,
+                                                                })}
+                                                            </p>
+                                                            <span className="text-greycode-light-blue group-hover:text-blue-800 font-medium text-sm">
+                                                                View Details →
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </a>
