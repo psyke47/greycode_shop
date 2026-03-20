@@ -1,6 +1,7 @@
 import React from 'react'
 import { Head, Link, usePage, router } from '@inertiajs/react'
 import MainLayout from '../Layouts/MainLayout'
+import { Download } from 'lucide-react';
 
 
 export default function OrderDetails() {
@@ -41,6 +42,12 @@ export default function OrderDetails() {
       default: return 'bg-gray-100 text-gray-800'
     }
   }
+
+  // Add this function
+const downloadInvoice = () => {
+    window.open(`/order/${order.id}/invoice`, '_blank');
+  }
+
 
   return (
     <MainLayout>
@@ -86,9 +93,13 @@ export default function OrderDetails() {
                 <span className={`px-4 py-2 rounded-full font-medium ${getStatusColor(order.status)}`}>
                   {order.status_text}
                 </span>
-                <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                  Download Invoice
-                </button>
+                <button
+        onClick={downloadInvoice}
+        className="flex items-center gap-2 px-4 py-2 bg-greycode-light-blue text-white rounded-lg hover:bg-indigo-700 transition-colors"
+    >
+        <Download className="w-4 h-4" />
+        Download Invoice
+    </button>
               </div>
             </div>
 
