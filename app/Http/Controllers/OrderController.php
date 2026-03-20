@@ -10,6 +10,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class OrderController extends Controller
 {
@@ -225,21 +226,21 @@ class OrderController extends Controller
     }
 
     /**
-     * Get status display text.
-     */
-    private function getStatusText(string $status): string
-    {
-        return match ($status) {
-            'pending' => 'Pending Payment',
-            'processing' => 'Processing',
-            'shipped' => 'Shipped',
-            'delivered' => 'Delivered',
-            'cancelled' => 'Cancelled',
-            'refunded' => 'Refunded',
-            'return_requested' => 'Return Requested',
-            default => ucfirst($status),
-        };
-    }
+ * Get status display text.
+ */
+private function getStatusText(string $status): string
+{
+    return match ($status) {
+        'pending' => 'Pending Payment',
+        'processing' => 'Processing',
+        'shipped' => 'Shipped',
+        'delivered' => 'Delivered',
+        'cancelled' => 'Cancelled',
+        'refunded' => 'Refunded',
+        'return_requested' => 'Return Requested',
+        default => ucfirst($status),
+    };
+}
 
     /**
      * Get pagination data.
@@ -496,25 +497,38 @@ class OrderController extends Controller
         return back()->with('success', 'Return request submitted successfully.');
     }
 
-    /**
-     * Download invoice for an order.
-     */
-    public function downloadInvoice($id)
-    {
-        $user = Auth::user();
-        $order = Order::findOrFail($id);
+public function downloadInvoice($id)
+{
+    $user = Auth::user();
+    $order = Order::with([
+        'user', 
+        'items.product', 
+        'shippingAddress', 
+        'billingAddress',
+        'payments'
+    ])->findOrFail($id);
 
-        // Authorization
-        if ($order->user_id !== $user->id && !$user->is_admin) {
-            abort(403);
-        }
-
-        // TODO: Implement actual PDF generation
-        return response()->json([
-            'message' => 'Invoice download would be implemented here',
-            'order_number' => $order->order_number,
-        ]);
+    // Authorization
+    if ($order->user_id !== $user->id && !$user->is_admin) {
+        abort(403);
     }
+
+    // Add status text to the order
+    $statusTexts = [
+        'pending' => 'Pending Payment',
+        'processing' => 'Processing',
+        'shipped' => 'Shipped',
+        'delivered' => 'Delivered',
+        'cancelled' => 'Cancelled',
+        'refunded' => 'Refunded',
+        'return_requested' => 'Return Requested',
+    ];
+    
+    $order->status_text = $statusTexts[$order->order_status] ?? ucfirst($order->order_status);
+
+    $pdf = Pdf::loadView('invoices.order', ['order' => $order]);
+    return $pdf->download('invoice-' . $order->order_number . '.pdf');
+}
 
     /**
      * Update order status (admin only)
@@ -544,5 +558,7 @@ class OrderController extends Controller
         }
 
         return redirect()->back()->with('success', 'Order updated successfully.');
+        
     }
+    
 }
