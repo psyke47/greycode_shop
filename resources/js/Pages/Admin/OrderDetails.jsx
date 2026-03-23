@@ -61,6 +61,10 @@ export default function AdminOrderDetails() {
     }
   }
 
+  const downloadInvoice = () => {
+    window.open(`/order/${order.id}/invoice`, '_blank');
+  }
+
   return (
     <MainLayout>
       <Head title={`Admin - Order ${order.order_number}`} />
@@ -126,7 +130,10 @@ export default function AdminOrderDetails() {
                 <span className={`px-4 py-2 rounded-full font-medium ${getStatusColor(order.status)}`}>
                   {order.status_text}
                 </span>
-                <button className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+                <button 
+                  onClick={downloadInvoice}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                >
                   Download Invoice
                 </button>
               </div>
