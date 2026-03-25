@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use App\Models\Coupon;
+use App\Notifications\NewOrderNotification;
+use Illuminate\Support\Facades\Notification;
 
 class CheckoutController extends Controller
 {
@@ -206,6 +208,9 @@ class CheckoutController extends Controller
 
             // 7. Clear cart
             $cart->cartItems()->delete();
+
+            Notification::route('mail', config('app.admin_email', 'dakalo.munonde@greycode.co.za'))
+    ->notify(new NewOrderNotification($order));
 
             DB::commit();
 

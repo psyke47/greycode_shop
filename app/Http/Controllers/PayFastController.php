@@ -8,6 +8,9 @@ use App\Services\PayFastService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
+use App\Notifications\PaymentFailedNotification;
+use Illuminate\Support\Facades\Notification;
+
 
 class PayFastController extends Controller
 {
@@ -32,6 +35,14 @@ class PayFastController extends Controller
         if (!$order) {
             Log::error('Order not found: ' . $request->m_payment_id);
             return response('Order not found', 404);
+        }
+
+        if (in_array($request->payment_status, ['FAILED', 'CANCELLED'])) {
+            // Notify admin about failed payment
+            Notification::route('mail', config('app.admin_email', 'admin@greycode.co.za'))
+                ->notify(new PaymentFailedNotification($order, $request->payment_status));
+            
+            Log::warning('Payment failed for order: ' . $order->order_number);
         }
 
         if ($request->payment_status === 'COMPLETE') {
