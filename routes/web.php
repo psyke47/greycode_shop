@@ -16,6 +16,8 @@ use App\Http\Controllers\PayFastController;
 use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CouponController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\Admin\NotificationController;
 
 Route::get('/', function () {
     return Inertia::render('Homepage', ['name' => 'Greycode Shop']);
@@ -114,14 +116,24 @@ Route::middleware(['auth','verified'])->group(function () {
 
 });
     // Admin-only routes
-Route::middleware(['auth', 'verified','admin'])->prefix('admin')->name('admin.')->group(function () 
-{
+// Admin-only routes
+Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    // Order management
     Route::get('/order', [OrderController::class, 'index'])->name('order.index');
     Route::get('/order/{id}', [OrderController::class, 'show'])->name('order.show');
     Route::put('/order/{id}/status', [OrderController::class, 'updateStatus'])->name('order.updateStatus');
     Route::get('/order/dashboard', [OrderController::class, 'dashboard'])->name('order.dashboard');
 
-    //Route::get('/order/statistics', [AdminOrderController::class, 'statistics'])->name('order.statistics');
+    // Notifications
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
+    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount'])->name('notifications.unread-count');
+    Route::put('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::put('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+
+    //Products
+    Route::get('/admin/product', function () {
+        return Inertia::render('Admin/Product');
+    })->name('product');
 });
 
 // Tracking routes
@@ -181,6 +193,12 @@ Route::middleware(['auth'])->get('/wishlist/items', [WishlistController::class, 
 
 Route::post('/coupon/validate', [CouponController::class, 'validate'])->name('coupon.validate');
 
-Route::get('/testgoogle', function () {
-    return Inertia::render('TestGoogle');
-});
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+
+/* Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+    // existing admin routes...
+    Route::get('/notifications', [Admin\NotificationController::class, 'index'])->name('admin.notifications');
+    Route::get('/notifications/unread-count', [Admin\NotificationController::class, 'unreadCount'])->name('admin.notifications.unread-count');
+    Route::put('/notifications/{notification}/read', [Admin\NotificationController::class, 'markAsRead'])->name('admin.notifications.read');
+    Route::put('/notifications/read-all', [Admin\NotificationController::class, 'markAllAsRead'])->name('admin.notifications.read-all');
+}); */
