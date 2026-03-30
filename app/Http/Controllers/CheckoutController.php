@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\Address;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\User;
 use App\Services\PayFastService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -210,9 +211,19 @@ class CheckoutController extends Controller
             $cart->cartItems()->delete();
 
             Notification::route('mail', config('app.admin_email', 'dakalo.munonde@greycode.co.za'))
-    ->notify(new NewOrderNotification($order));
+                ->notify(new NewOrderNotification($order));
 
             DB::commit();
+
+            $adminUsers = User::where('is_admin', true)->get();
+foreach ($adminUsers as $admin) {
+    $admin->notify('new_order', [
+        'order_id' => $order->id,
+        'order_number' => $order->order_number,
+        'total' => $order->total_amount,
+        'customer_name' => $order->user->first_name . ' ' . $order->user->last_name,
+    ]);
+}
 
             // 8. If PayFast, redirect to payment page with HTML form
             if ($validated['payment_method'] === 'payfast') {
@@ -361,38 +372,38 @@ class CheckoutController extends Controller
     /**
      * Create or get existing address
      */
-private function createOrGetAddress($user, $addressData, $type)
-{
-    // Always check if this exact address already exists for this user
-    $existingAddress = Address::where('user_id', $user->id)
-        ->where('address_line1', $addressData['address_line1'])
-        ->where('address_line2', $addressData['address_line2'] ?? '')
-        ->where('surburb', $addressData['surburb'])
-        ->where('city', $addressData['city'])
-        ->where('province', $addressData['province'])
-        ->where('postal_code', $addressData['postal_code'])
-        ->first();
+    private function createOrGetAddress($user, $addressData, $type)
+    {
+        // Always check if this exact address already exists for this user
+        $existingAddress = Address::where('user_id', $user->id)
+            ->where('address_line1', $addressData['address_line1'])
+            ->where('address_line2', $addressData['address_line2'] ?? '')
+            ->where('surburb', $addressData['surburb'])
+            ->where('city', $addressData['city'])
+            ->where('province', $addressData['province'])
+            ->where('postal_code', $addressData['postal_code'])
+            ->first();
 
-    if ($existingAddress) {
-        // If address exists, just return it (don't create new one)
-        return $existingAddress;
+        if ($existingAddress) {
+            // If address exists, just return it (don't create new one)
+            return $existingAddress;
+        }
+
+        // Create new address only if it doesn't exist
+        return Address::create([
+            'user_id' => $user->id,
+            'address_type' => $type,
+            'is_default' => $addressData['is_default'] ?? false,
+            'address_line1' => $addressData['address_line1'],
+            'address_line2' => $addressData['address_line2'] ?? null,
+            'surburb' => $addressData['surburb'],
+            'city' => $addressData['city'],
+            'province' => $addressData['province'],
+            'postal_code' => $addressData['postal_code'],
+            'country' => 'South Africa',
+            'phone_number' => $addressData['phone_number'],
+        ]);
     }
-
-    // Create new address only if it doesn't exist
-    return Address::create([
-        'user_id' => $user->id,
-        'address_type' => $type,
-        'is_default' => $addressData['is_default'] ?? false,
-        'address_line1' => $addressData['address_line1'],
-        'address_line2' => $addressData['address_line2'] ?? null,
-        'surburb' => $addressData['surburb'],
-        'city' => $addressData['city'],
-        'province' => $addressData['province'],
-        'postal_code' => $addressData['postal_code'],
-        'country' => 'South Africa',
-        'phone_number' => $addressData['phone_number'],
-    ]);
-}
 
     /**
      * Generate unique order number

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Link, usePage, useForm } from "@inertiajs/react";
 import blackLogo from "../../images/Greycode_G_Logo_black.png";
 import axios from 'axios';
-import { User, LogOut, ShoppingCart, Settings, Shield, Heart } from "lucide-react";
+import { User, LogOut, ShoppingCart, Settings, Shield, Heart, Bell } from "lucide-react";
+import NotificationBell from "../Components/NotificationBell";
 
 const NavBar = ({ wishlistCount = 0 }) => {
     const { auth } = usePage().props;
@@ -49,7 +50,7 @@ const NavBar = ({ wishlistCount = 0 }) => {
 
     return (
         <>
-            {/* Overlay when menu is open - prevents clicking background */}
+            {/* Overlay when menu is open */}
             {isMenuOpen && (
                 <div 
                     className="fixed inset-0 bg-black/50 z-40 md:hidden"
@@ -70,21 +71,21 @@ const NavBar = ({ wishlistCount = 0 }) => {
                 {/* Desktop Navigation - Centered */}
                 <div className="hidden md:flex items-center justify-center flex-1">
                     <div className="flex items-center gap-8">
-                        <Link className="hover:text-greycode-light-blue hover:scale-105" href="/products">
+                        <Link className="hover:text-indigo-600" href="/products">
                             Products
                         </Link>
 
                         {auth.user && (
-                            <Link className="hover:text-greycode-light-blue hover:scale-105" href="/order">
+                            <Link className="hover:text-indigo-600" href="/order">
                                 Order History
                             </Link>
                         )}
 
-                        <Link className="hover:text-greycode-light-blue hover:scale-105" href="/tracking">
+                        <Link className="hover:text-indigo-600" href="/tracking">
                             Tracking
                         </Link>
 
-                        <Link className="hover:text-greycode-light-blue hover:scale-105" href="/contact">
+                        <Link className="hover:text-indigo-600" href="/contact">
                             Contact Us
                         </Link>
                     </div>
@@ -111,6 +112,13 @@ const NavBar = ({ wishlistCount = 0 }) => {
                             </span>
                         )}
                     </Link>
+
+                    {/* Notification Bell for Admin */}
+                    {isAdmin && (
+                        <div className="relative">
+                            <NotificationBell />
+                        </div>
+                    )}
 
                     {/* Admin Menu for desktop */}
                     {isAdmin && (
@@ -185,11 +193,11 @@ const NavBar = ({ wishlistCount = 0 }) => {
                 {/* Mobile Menu Button */}
                 <button
                     onClick={toggleMenu}
-                    className="md:hidden text-greycode-light-blue z-50 relative"
+                    className="md:hidden text-gray-600 z-50 relative"
                 >
                     {isMenuOpen ? (
                         <svg
-                            className="w-8 h-8"
+                            className="w-6 h-6"
                             fill="none"
                             stroke="currentColor"
                             strokeWidth="2"
@@ -201,7 +209,7 @@ const NavBar = ({ wishlistCount = 0 }) => {
                         </svg>
                     ) : (
                         <svg
-                            className="w-8 h-8"
+                            className="w-6 h-6"
                             fill="none"
                             stroke="currentColor"
                             strokeWidth="2"
@@ -216,14 +224,14 @@ const NavBar = ({ wishlistCount = 0 }) => {
 
                 {/* Mobile Navigation Menu - Full screen scrollable */}
                 <div
-                    className={`fixed top-0 left-0 w-full h-full bg-white/90 z-40 transition-transform duration-400 overflow-y-auto ${
+                    className={`fixed top-0 left-0 w-full h-full bg-white z-40 transition-transform duration-300 overflow-y-auto ${
                         isMenuOpen ? "translate-x-0" : "-translate-x-full"
                     } md:hidden`}
                     style={{ paddingTop: "80px" }}
                 >
                     <div className="flex flex-col items-center gap-6 py-8 px-4">
                         <Link
-                            className="text-lg hover:text-greycode-mid-blue"
+                            className="text-lg hover:text-indigo-600"
                             href="/products"
                             onClick={closeMenu}
                         >
@@ -232,7 +240,7 @@ const NavBar = ({ wishlistCount = 0 }) => {
 
                         {auth.user && (
                             <Link
-                                className="text-lg hover:text-greycode-mid-blue"
+                                className="text-lg hover:text-indigo-600"
                                 href="/order"
                                 onClick={closeMenu}
                             >
@@ -241,7 +249,7 @@ const NavBar = ({ wishlistCount = 0 }) => {
                         )}
 
                         <Link
-                            className="text-lg hover:text-greycode-mid-blue"
+                            className="text-lg hover:text-indigo-600"
                             href="/tracking"
                             onClick={closeMenu}
                         >
@@ -249,7 +257,7 @@ const NavBar = ({ wishlistCount = 0 }) => {
                         </Link>
 
                         <Link
-                            className="text-lg hover:text-greycode-mid-blue"
+                            className="text-lg hover:text-indigo-600"
                             href="/contact"
                             onClick={closeMenu}
                         >
@@ -259,12 +267,12 @@ const NavBar = ({ wishlistCount = 0 }) => {
                         {/* Admin Links for mobile */}
                         {isAdmin && (
                             <>
-                                <div className="flex items-center gap-2 text-greycode-mid-blue font-medium">
+                                <div className="flex items-center gap-2 text-indigo-700 font-medium">
                                     <Shield className="w-4 h-4" />
                                     <span>Admin Panel</span>
                                 </div>
                                 <Link
-                                    className="text-lg hover:text-greycode-mid-blue pl-4"
+                                    className="text-lg hover:text-indigo-600 pl-4"
                                     href="/admin/order"
                                     onClick={closeMenu}
                                 >
@@ -306,7 +314,7 @@ const NavBar = ({ wishlistCount = 0 }) => {
                                     <User className="w-4 h-4" />
                                     <span>Hi, {auth.user.first_name}</span>
                                     {isAdmin && (
-                                        <span className="text-xs bg-greycode-light-blue text-white px-2 py-1 rounded-full">
+                                        <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
                                             Admin
                                         </span>
                                     )}
@@ -323,14 +331,14 @@ const NavBar = ({ wishlistCount = 0 }) => {
                             <>
                                 <Link
                                     href="/login"
-                                    className="bg-greycode-dark-blue text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-greycode-mid-blue transition"
+                                    className="bg-black text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition"
                                     onClick={closeMenu}
                                 >
                                     Log in
                                 </Link>
                                 <Link
                                     href="/signup"
-                                    className="bg-greycode-light-blue text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-greycode-mid-blue transition"
+                                    className="bg-greycode-light-blue text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition"
                                     onClick={closeMenu}
                                 >
                                     Sign up

@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Notifications\LowStockNotification;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Notification;
+use App\Models\User;
 
 class CheckLowStock extends Command
 {
@@ -27,6 +28,18 @@ class CheckLowStock extends Command
         } else {
             $this->info('No low stock products found.');
         }
+        if ($lowStockProducts->count() > 0) {
+    $adminUsers = User::where('is_admin', true)->get();
+    foreach ($adminUsers as $admin) {
+        $admin->notify('low_stock', [
+            'products' => $lowStockProducts->map(fn($p) => [
+                'id' => $p->id,
+                'name' => $p->name,
+                'stock' => $p->stock_quantity,
+            ])->toArray(),
+        ]);
+    }
+}
 
         return Command::SUCCESS;
     }

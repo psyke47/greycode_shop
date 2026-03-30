@@ -99,4 +99,38 @@ class User extends Authenticatable
         return $this->hasOne(Address::class)->where('address_type', 'Billing');
         // REMOVED the incorrect second return statement
     }
+    /**
+ * Create a notification for this user
+ */
+public function notify(string $type, array $data = [])
+{
+    return $this->notifications()->create([
+        'type' => $type,
+        'data' => $data,
+    ]);
+}
+
+/**
+ * Get unread notifications
+ */
+public function unreadNotifications()
+{
+    return $this->notifications()->unread()->get();
+}
+
+/**
+ * Get unread count
+ */
+public function unreadNotificationsCount()
+{
+    return $this->notifications()->unread()->count();
+}
+
+/**
+ * Notifications relationship
+ */
+public function notifications()
+{
+    return $this->hasMany(Notification::class);
+}
 }
