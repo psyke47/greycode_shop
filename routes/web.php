@@ -18,6 +18,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\Admin\NotificationController;
+use App\Http\Controllers\Admin\ProductController as AdminProductController;
 
 Route::get('/', function () {
     return Inertia::render('Homepage', ['name' => 'Greycode Shop']);
@@ -131,9 +132,15 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::put('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
 
     //Products
-    Route::get('/admin/product', function () {
-        return Inertia::render('Admin/Product');
-    })->name('product');
+   // Admin product routes (inside admin middleware group)
+Route::get('/product', function () {
+    return Inertia::render('Admin/Product');
+})->name('product.form'); // This is your frontend-only add form
+
+Route::get('/products', [AdminProductController::class, 'index'])->name('products.index');
+Route::get('/products/{id}/edit', [AdminProductController::class, 'edit'])->name('products.edit');
+Route::put('/products/{id}', [AdminProductController::class, 'update'])->name('products.update');
+Route::put('/products/{product}/toggle-active', [AdminProductController::class, 'toggleActive'])->name('products.toggle-active');
 });
 
 // Tracking routes

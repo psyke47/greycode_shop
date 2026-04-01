@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, usePage, useForm } from "@inertiajs/react";
-import blackLogo from "../../images/Greycode_G_Logo_black.png";
+import blueLogo from "/public/images/Greycode-Blue-Logo.png";
 import axios from 'axios';
 import { User, LogOut, ShoppingCart, Settings, Shield, Heart, Bell } from "lucide-react";
 import NotificationBell from "../Components/NotificationBell";
@@ -60,17 +60,20 @@ const NavBar = ({ wishlistCount = 0 }) => {
 
             <header className="flex items-center justify-between px-6 py-3 md:py-4 shadow mx-auto w-full bg-white z-50 relative">
                 {/* Logo - Left side */}
-                <Link href="/">
+                <a href="https://www.greycode.co.za" target="_blank" rel="noopener noreferrer">
                     <img
-                        src={blackLogo}
-                        alt="Greycode Black Logo"
+                        src={blueLogo}
+                        alt="Greycode Blue Logo"
                         className="w-auto h-12"
                     />
-                </Link>
+                </a>
 
                 {/* Desktop Navigation - Centered */}
                 <div className="hidden md:flex items-center justify-center flex-1">
                     <div className="flex items-center gap-8">
+                        <Link className="hover:text-indigo-600" href="/">
+                            Home
+                        </Link>
                         <Link className="hover:text-indigo-600" href="/products">
                             Products
                         </Link>
@@ -128,7 +131,7 @@ const NavBar = ({ wishlistCount = 0 }) => {
                                 className="flex items-center gap-2 text-gray-700 hover:text-indigo-600 text-sm"
                             >
                                 <Settings className="w-4 h-4" />
-                                <span>Admin</span>
+                                <span>Panel</span>
                                 <svg
                                     className={`w-4 h-4 transition-transform ${isAdminMenuOpen ? "rotate-180" : ""}`}
                                     fill="none"
@@ -151,6 +154,13 @@ const NavBar = ({ wishlistCount = 0 }) => {
                                             onClick={() => setIsAdminMenuOpen(false)}
                                         >
                                             Manage Orders
+                                        </Link>
+                                        <Link
+                                            href="/admin/products"
+                                            className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
+                                            onClick={() => setIsAdminMenuOpen(false)}
+                                        >
+                                            Manage Products
                                         </Link>
                                     </div>
                                 </div>
@@ -232,6 +242,13 @@ const NavBar = ({ wishlistCount = 0 }) => {
                     <div className="flex flex-col items-center gap-6 py-8 px-4">
                         <Link
                             className="text-lg hover:text-indigo-600"
+                            href="/"
+                            onClick={closeMenu}
+                        >
+                            Home
+                        </Link>
+                        <Link
+                            className="text-lg hover:text-indigo-600"
                             href="/products"
                             onClick={closeMenu}
                         >
@@ -265,21 +282,46 @@ const NavBar = ({ wishlistCount = 0 }) => {
                         </Link>
 
                         {/* Admin Links for mobile */}
-                        {isAdmin && (
-                            <>
-                                <div className="flex items-center gap-2 text-indigo-700 font-medium">
-                                    <Shield className="w-4 h-4" />
-                                    <span>Admin Panel</span>
-                                </div>
-                                <Link
-                                    className="text-lg hover:text-indigo-600 pl-4"
-                                    href="/admin/order"
-                                    onClick={closeMenu}
-                                >
-                                    Manage Orders
-                                </Link>
-                            </>
-                        )}
+{isAdmin && (
+    <div className="w-full">
+        <button
+            onClick={() => setIsAdminMenuOpen(!isAdminMenuOpen)}
+            className="w-full flex items-center justify-between gap-2 text-indigo-700 font-medium py-2 px-4 rounded-lg hover:bg-indigo-50 transition"
+        >
+            <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4" />
+                <span>Admin Panel</span>
+            </div>
+            <svg
+                className={`w-4 h-4 transition-transform duration-200 ${isAdminMenuOpen ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+        </button>
+        
+        {isAdminMenuOpen && (
+            <div className="mt-2 space-y-2 pl-6">
+                <Link
+                    className="block text-md hover:text-indigo-600 py-2 px-4 rounded-lg hover:bg-indigo-50 transition"
+                    href="/admin/order"
+                    onClick={closeMenu}
+                >
+                    Manage Orders
+                </Link>
+                <Link
+                    className="block text-md hover:text-indigo-600 py-2 px-4 rounded-lg hover:bg-indigo-50 transition"
+                    href="/admin/products"
+                    onClick={closeMenu}
+                >
+                    Manage Products
+                </Link>
+            </div>
+        )}
+    </div>
+)}
 
                         {/* Wishlist for mobile */}
                         <Link href="/wishlist" className="relative flex items-center gap-2" onClick={closeMenu}>
