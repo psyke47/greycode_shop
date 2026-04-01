@@ -1,17 +1,17 @@
 import React from 'react'
 import { Head, Link, usePage, router } from '@inertiajs/react'
 import MainLayout from '../Layouts/MainLayout'
-import { Download } from 'lucide-react';
+import { Download, CheckCircle, ExternalLink } from 'lucide-react'
 
 
 export default function OrderDetails() {
-  const { order, flash } = usePage().props
+  const { order, flash, payment_success } = usePage().props
 
   if (!order) {
     return (
       <MainLayout>
         <Head title="Order Not Found" />
-       
+
         <div className="py-12 text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Order Not Found</h1>
           <Link href="/order" className="text-blue-600 hover:text-blue-800">
@@ -34,25 +34,31 @@ export default function OrderDetails() {
     switch(status) {
       case 'delivered': return 'bg-green-100 text-green-800'
       case 'shipped': return 'bg-blue-100 text-blue-800'
-      case 'processing': 
+      case 'processing':
       case 'pending': return 'bg-yellow-100 text-yellow-800'
-      case 'cancelled': 
+      case 'cancelled':
       case 'refunded': return 'bg-red-100 text-red-800'
       case 'return_requested': return 'bg-purple-100 text-purple-800'
       default: return 'bg-gray-100 text-gray-800'
     }
   }
 
-  // Add this function
-const downloadInvoice = () => {
-    window.open(`/order/${order.id}/invoice`, '_blank');
+  const downloadInvoice = () => {
+    window.open(`/order/${order.id}/invoice`, '_blank')
   }
 
+  // Build tracking link (example: you can change this based on your courier)
+  const getTrackingLink = () => {
+    if (!order.tracking_number) return null
+    // Example: if using FastShip, the URL might be https://fastship.co.za/track/{tracking}
+    // Adjust based on your actual courier.
+    return `https://www.fastway.co.za/track/${order.tracking_number}`
+  }
 
   return (
     <MainLayout>
       <Head title={`Order ${order.order_number}`} />
-      
+
 
       <section className="py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
@@ -62,10 +68,21 @@ const downloadInvoice = () => {
               {flash.success}
             </div>
           )}
-          
+
           {flash.error && (
             <div className="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
               {flash.error}
+            </div>
+          )}
+
+          {/* Payment success banner */}
+          {payment_success && (
+            <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
+              <CheckCircle className="w-6 h-6 text-green-600" />
+              <div>
+                <p className="font-semibold text-green-800">Payment Successful!</p>
+                <p className="text-green-700 text-sm">Your order has been confirmed and is being processed. We'll notify you when it ships.</p>
+              </div>
             </div>
           )}
 
@@ -94,12 +111,12 @@ const downloadInvoice = () => {
                   {order.status_text}
                 </span>
                 <button
-        onClick={downloadInvoice}
-        className="flex items-center gap-2 px-4 py-2 bg-greycode-light-blue text-white rounded-lg hover:bg-indigo-700 transition-colors"
-    >
-        <Download className="w-4 h-4" />
-        Download Invoice
-    </button>
+                  onClick={downloadInvoice}
+                  className="flex items-center gap-2 px-4 py-2 bg-greycode-light-blue text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  Download Invoice
+                </button>
               </div>
             </div>
 
@@ -110,7 +127,7 @@ const downloadInvoice = () => {
                 <span className="text-sm text-gray-600">{order.status_text}</span>
               </div>
               <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div 
+                <div
                   className="h-full bg-blue-600 transition-all duration-500"
                   style={{
                     width: order.status === 'delivered' ? '100%' :
@@ -156,8 +173,8 @@ const downloadInvoice = () => {
                       <div className="flex items-center">
                         <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mr-4 overflow-hidden">
                           {item.image ? (
-                            <img 
-                              src={item.image} 
+                            <img
+                              src={item.image}
                               alt={item.name}
                               className="w-full h-full object-cover"
                             />
@@ -168,7 +185,7 @@ const downloadInvoice = () => {
                           )}
                         </div>
                         <div>
-                          <Link 
+                          <Link
                             href={`/products/${item.product_slug || item.product_id}`}
                             className="font-medium text-gray-900 hover:text-blue-600"
                           >
@@ -184,7 +201,7 @@ const downloadInvoice = () => {
                       </div>
                       <div className="text-right">
                         <p className="font-semibold text-gray-900">{formatCurrency(item.total)}</p>
-                        <Link 
+                        <Link
                           href={`/products/${item.product_slug || item.product_id}`}
                           className="text-sm text-blue-600 hover:text-blue-800"
                         >
@@ -216,7 +233,7 @@ const downloadInvoice = () => {
             <div className="lg:col-span-1">
               <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 sticky top-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h2>
-                
+
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Subtotal</span>
@@ -281,10 +298,23 @@ const downloadInvoice = () => {
                   {order.tracking_number && (
                     <div>
                       <h3 className="font-medium text-gray-900 mb-1">Tracking Number</h3>
-                      <p className="text-gray-700 font-mono">{order.tracking_number}</p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-700 font-mono">{order.tracking_number}</span>
+                        {getTrackingLink() && (
+                          <a
+                            href={getTrackingLink()}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800"
+                            title="Track package"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        )}
+                      </div>
                     </div>
                   )}
-                  
+
                   {order.delivery_date ? (
                     <div>
                       <h3 className="font-medium text-gray-900 mb-1">Delivered On</h3>
@@ -329,7 +359,7 @@ const downloadInvoice = () => {
                       Cancel Order
                     </button>
                   )}
-                  
+
                   {order.status === 'delivered' && (
                     <button
                       onClick={() => {
@@ -343,7 +373,7 @@ const downloadInvoice = () => {
                       Request Return
                     </button>
                   )}
-                  
+
                   <Link
                     href="/products"
                     className="block w-full bg-blue-600 text-white text-center py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"

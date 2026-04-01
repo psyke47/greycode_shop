@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Head, Link, usePage, router, useForm } from '@inertiajs/react'
 import MainLayout from '../Layouts/MainLayout'
 import PageHead from '../Components/PageHead'
+import { ExternalLink } from 'lucide-react'
 
 
 export default function Order() {
@@ -360,10 +361,21 @@ export default function Order() {
                             <span className="font-medium">Delivery Address:</span> {order.address}
                           </p>
                           {order.tracking_number && (
-                            <p className="text-gray-700">
-                              <span className="font-medium">Tracking:</span> {order.tracking_number}
-                            </p>
-                          )}
+  <p className="text-gray-700 flex items-center gap-1">
+    <span className="font-medium">Tracking:</span> 
+    <span className="font-mono">{order.tracking_number}</span>
+    <a
+      href={`https://www.fastway.co.za/track/${order.tracking_number}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-blue-600 hover:text-blue-800"
+      title="Track package"
+    >
+      <ExternalLink className="w-4 h-4 inline" />
+    </a>
+  </p>
+)}
+
                           {order.delivery_date ? (
                             <p className="text-gray-700">
                               <span className="font-medium">Delivered:</span> {order.delivery_date}
