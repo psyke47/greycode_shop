@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Head, Link, usePage, router } from '@inertiajs/react'
-import MainLayout from '@/Layouts/MainLayout'
+import AdminLayout from '@/Layouts/AdminLayout'
 
 export default function AdminOrderDetails() {
   const { order, is_admin, flash } = usePage().props
@@ -15,7 +15,7 @@ export default function AdminOrderDetails() {
 
   if (!order) {
     return (
-      <MainLayout>
+      <AdminLayout>
         <Head title="Order Not Found" />
         <div className="py-12 text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Order Not Found</h1>
@@ -23,7 +23,7 @@ export default function AdminOrderDetails() {
             Return to Orders
           </Link>
         </div>
-      </MainLayout>
+      </AdminLayout>
     )
   }
 
@@ -66,7 +66,7 @@ export default function AdminOrderDetails() {
   }
 
   return (
-    <MainLayout>
+    <AdminLayout>
       <Head title={`Admin - Order ${order.order_number}`} />
 
       <section className="py-8 px-4 sm:px-6 lg:px-8">
@@ -424,6 +424,6 @@ export default function AdminOrderDetails() {
           </div>
         </div>
       </section>
-    </MainLayout>
+    </AdminLayout>
   )
 }

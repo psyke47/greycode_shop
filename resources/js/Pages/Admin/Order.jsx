@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Head, Link, usePage, router, useForm } from '@inertiajs/react'
-import MainLayout from '@/Layouts/MainLayout'
+import AdminLayout from '@/Layouts/AdminLayout'
 
 export default function AdminOrder() {
   const { orders, filters, pagination, stats, users, is_admin, flash } = usePage().props
@@ -88,7 +88,7 @@ export default function AdminOrder() {
   }
 
   return (
-    <MainLayout>
+    <AdminLayout>
       <Head title="Admin - Orders Management" />
 
       <section className="py-8 px-4 sm:px-6 lg:px-8">
@@ -450,6 +450,6 @@ export default function AdminOrder() {
           )}          
         </div>
       </section>
-    </MainLayout>
+    </AdminLayout>
   )
 }
