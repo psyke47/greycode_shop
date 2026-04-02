@@ -4,6 +4,7 @@ import gasSensor from '/./public/images/GasSensor.png';
 import gasSensor1 from '/./public/images/GasSensor1.png';
 import blackLogo from '../../images/Greycode_G_Logo_black.png'
 import PageHead from '../Components/PageHead';
+import AuthLayout from '@/Layouts/AuthLayout';
 
 export default function Login() {
   const { data, setData, post, processing, errors } = useForm({
@@ -18,6 +19,7 @@ export default function Login() {
   };
 
   return (
+    <AuthLayout>
     <div className="min-h-screen flex">
       <Head title="Login" />
       
@@ -137,6 +139,8 @@ export default function Login() {
         </div>
       </div>
     </div>
+    </AuthLayout>
   );
 }
+
 
