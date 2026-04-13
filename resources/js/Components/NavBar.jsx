@@ -84,24 +84,24 @@ const NavBar = ({ wishlistCount = 0 }) => {
                 {/* Desktop Navigation - Centered */}
                 <div className="hidden md:flex items-center justify-center flex-1">
                     <div className="flex items-center gap-8">
-                        <Link className={`hover:text-indigo-600 ${isActive('/') ? 'text-indigo-600 font-medium' : ''}`} href="/">
+                        <Link className={`hover:text-indigo-600 ${isActive('/') ? 'text-greycode-light-blue font-bold' : ''}`} href="/">
                             Home
                         </Link>
-                        <Link className={`hover:text-indigo-600 ${isActive('/products') ? 'text-indigo-600 font-medium' : ''}`} href="/products">
+                        <Link className={`hover:text-indigo-600 ${isActive('/products') ? 'text-greycode-light-blue font-bold' : ''}`} href="/products">
                             Products
                         </Link>
 
                         {auth.user && (
-                            <Link className={`hover:text-indigo-600 ${isActive('/order') ? 'text-indigo-600 font-medium' : ''}`} href="/order">
+                            <Link className={`hover:text-indigo-600 ${isActive('/order') ? 'text-greycode-light-blue font-bold' : ''}`} href="/order">
                                 Order History
                             </Link>
                         )}
 
-                        <Link className={`hover:text-indigo-600 ${isActive('/tracking') ? 'text-indigo-600 font-medium' : ''}`} href="/tracking">
+                        <Link className={`hover:text-indigo-600 ${isActive('/tracking') ? 'text-greycode-light-blue font-bold' : ''}`} href="/tracking">
                             Tracking
                         </Link>
 
-                        <Link className={`hover:text-indigo-600 ${isActive('/contact') ? 'text-indigo-600 font-medium' : ''}`} href="/contact">
+                        <Link className={`hover:text-indigo-600 ${isActive('/contact') ? 'text-greycode-light-blue font-bold' : ''}`} href="/contact">
                             Contact Us
                         </Link>
                     </div>
