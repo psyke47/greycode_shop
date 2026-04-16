@@ -102,7 +102,7 @@ class User extends Authenticatable
     /**
  * Create a notification for this user
  */
-public function notify(string $type, array $data = [])
+public function sendAdminNotification(string $type, array $data = [])
 {
     return $this->notifications()->create([
         'type' => $type,

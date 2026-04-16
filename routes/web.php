@@ -133,14 +133,17 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
 
     //Products
    // Admin product routes (inside admin middleware group)
-Route::get('/product', function () {
-    return Inertia::render('Admin/Product');
-})->name('product.form'); // This is your frontend-only add form
+
+
+Route::get('/product', [AdminProductController::class, 'create'])->name('admin.product.form');
 
 Route::get('/products', [AdminProductController::class, 'index'])->name('products.index');
 Route::get('/products/{id}/edit', [AdminProductController::class, 'edit'])->name('products.edit');
 Route::put('/products/{id}', [AdminProductController::class, 'update'])->name('products.update');
 Route::put('/products/{product}/toggle-active', [AdminProductController::class, 'toggleActive'])->name('products.toggle-active');
+Route::post('/products', [AdminProductController::class, 'store'])->name('admin.products.store');
+
+    // Add more admin routes as needed
 });
 
 // Tracking routes

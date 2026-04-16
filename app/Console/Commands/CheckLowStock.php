@@ -31,7 +31,7 @@ class CheckLowStock extends Command
         if ($lowStockProducts->count() > 0) {
     $adminUsers = User::where('is_admin', true)->get();
     foreach ($adminUsers as $admin) {
-        $admin->notify('low_stock', [
+        $admin->sendAdminNotification('low_stock', [
             'products' => $lowStockProducts->map(fn($p) => [
                 'id' => $p->id,
                 'name' => $p->name,

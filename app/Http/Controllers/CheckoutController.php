@@ -217,7 +217,7 @@ class CheckoutController extends Controller
 
             $adminUsers = User::where('is_admin', true)->get();
 foreach ($adminUsers as $admin) {
-    $admin->notify('new_order', [
+    $admin->sendAdminNotification('new_order', [
         'order_id' => $order->id,
         'order_number' => $order->order_number,
         'total' => $order->total_amount,

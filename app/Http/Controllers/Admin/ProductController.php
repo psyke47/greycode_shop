@@ -7,6 +7,9 @@ use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
+use App\Models\ProductImage;
 
 class ProductController extends Controller
 {
@@ -43,26 +46,46 @@ public function index()
      */
     public function store(Request $request)
     {
-        // Temporarily disabled – waiting for product list from supervisor
-        return back()->with('info', 'Product creation is currently disabled. Waiting for product list confirmation.');
-        
-        // Uncomment when ready:
-        /*
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-            'stock_quantity' => 'required|integer|min:0',
-            'category_id' => 'required|exists:categories,id',
-            'is_active' => 'boolean',
-            'is_featured' => 'boolean',
-        ]);
+            $validated = $request->validate([
+        'name'          => 'required|string|max:255',
+        'description'   => 'nullable|string',
+        'price'         => 'required|numeric|min:0',
+        'stock_quantity'=> 'required|integer|min:0',
+        'category_id'   => 'required|exists:categories,id',
+        'is_active'     => 'boolean',
+        'is_featured'   => 'boolean',
+        'image'         => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+    ]);
 
-        $product = Product::create($validated);
-        
-        return redirect()->route('admin.products.index')
-            ->with('success', 'Product created successfully.');
-        */
+    // Create product
+    $product = Product::create([
+        'name'           => $validated['name'],
+        'description'    => $validated['description'],
+        'price'          => $validated['price'],
+        'stock_quantity' => $validated['stock_quantity'],
+        'category_id'    => $validated['category_id'],
+        'is_active'      => $validated['is_active'] ?? true,
+        'is_featured'    => $validated['is_featured'] ?? false,
+    ]);
+
+    // Handle image upload
+    if ($request->hasFile('image')) {
+        $file = $request->file('image');
+        $filename = time() . '_' . $file->getClientOriginalName();
+        $file->move(public_path('images'), $filename);
+
+        // Save image record
+        \App\Models\ProductImage::create([
+            'product_id' => $product->id,
+            'url'        => $filename,
+            'alt_text'   => $product->name,
+            'is_primary' => true,
+            'sort_order' => 1,
+        ]);
+    }
+
+    return redirect()->route('admin.products.index')
+        ->with('success', 'Product created successfully.');
     }
 
     /**
