@@ -3,6 +3,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import MainLayout from '../Layouts/MainLayout';
 import axios from 'axios';
 import { Heart, ShoppingCart, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const placeholderSVG = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI0U1RTVFNSIvPjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOTk5Ij5Qcm9kdWN0IEltYWdlPC90ZXh0Pjwvc3ZnPg==';
 
@@ -27,13 +28,17 @@ export default function Wishlist() {
             });
     };
 
-    const removeFromWishlist = (productId) => {
-        axios.delete(`/wishlist/remove/${productId}`)
-            .then(() => {
-                setWishlistItems(prev => prev.filter(item => item.id !== productId));
-            })
-            .catch(error => console.error('Error removing:', error));
-    };
+   const removeFromWishlist = (productId) => {
+    axios.delete(`/wishlist/remove/${productId}`)
+        .then(() => {
+            setWishlistItems(prev => prev.filter(item => item.id !== productId));
+            toast.success('Removed from wishlist');
+        })
+        .catch(error => {
+            console.error('Error removing:', error);
+            toast.error('Failed to remove from wishlist');
+        });
+};
 
     const addToCart = (productId) => {
         // Prevent double-clicks
@@ -53,7 +58,7 @@ export default function Wishlist() {
                 },
                 onError: (errors) => {
                     console.error('Error adding to cart:', errors);
-                    alert(errors.message || 'Failed to add to cart');
+                    toast.error(errors.message || 'Failed to add to cart');
                     setCartLoading(prev => ({ ...prev, [productId]: false }));
                 }
             }

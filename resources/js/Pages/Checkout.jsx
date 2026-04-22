@@ -14,6 +14,7 @@ import {
 import PageHead from "../Components/PageHead";
 import PayfastLogo from "/public/images/Payfast-logo.png";
 import AddressSearch from "../Components/AddressSearch";
+import toast from 'react-hot-toast';
 
 export default function Checkout({
     cart,
@@ -42,16 +43,13 @@ export default function Checkout({
     const [couponError, setCouponError] = useState("");
     const [couponSuccess, setCouponSuccess] = useState("");
 
-    // Add this function to validate coupon via API
     const applyCoupon = () => {
         if (!couponCode.trim()) {
-            setCouponError("Please enter a coupon code");
+            toast.error('Please enter a coupon code');
             return;
         }
 
         setIsApplyingCoupon(true);
-        setCouponError("");
-        setCouponSuccess("");
 
         axios
             .post("/coupon/validate", {
@@ -61,14 +59,12 @@ export default function Checkout({
             .then((response) => {
                 if (response.data.valid) {
                     setAppliedCoupon(response.data.coupon);
-                    setCouponSuccess(response.data.message);
-                    setCouponError("");
+                    toast.success(response.data.message);
                 }
             })
             .catch((error) => {
-                setCouponError(
-                    error.response?.data?.message || "Invalid coupon code",
-                );
+                const message = error.response?.data?.message || "Invalid coupon code";
+                toast.error(message);
                 setAppliedCoupon(null);
             })
             .finally(() => {
@@ -79,7 +75,7 @@ export default function Checkout({
     const removeCoupon = () => {
         setAppliedCoupon(null);
         setCouponCode("");
-        setCouponSuccess("");
+        toast.success('Coupon removed');
     };
 
     // Calculate totals with coupon discount
@@ -182,7 +178,7 @@ export default function Checkout({
 
         if (!csrfToken) {
             console.error("CSRF token not found");
-            alert("Security token missing. Please refresh the page.");
+            toast.error("Security token missing. Please refresh the page.");
             setIsProcessing(false);
             return;
         }
@@ -275,31 +271,31 @@ export default function Checkout({
         { id: 3, name: "Review", icon: ShoppingBag },
     ];
 
-const handleAddressSelect = (addressData) => {
-  console.log('Address selected:', addressData)
-  
-  setData('shipping', {
-    ...data.shipping,
-    address_line1: addressData.street || addressData.formatted_address,
-    surburb: addressData.suburb || data.shipping.surburb,
-    city: addressData.city || data.shipping.city,
-    province: addressData.province || data.shipping.province,
-    postal_code: addressData.postal_code || data.shipping.postal_code
-  })
-}
+    const handleAddressSelect = (addressData) => {
+        console.log('Address selected:', addressData)
 
-// For billing address (if you want separate)
-const handleBillingAddressSelect = (addressData) => {
-  setData('billing', {
-    ...data.billing,
-    same_as_shipping: false,
-    address_line1: addressData.street || addressData.formatted_address,
-    surburb: addressData.suburb || data.billing.surburb,
-    city: addressData.city || data.billing.city,
-    province: addressData.province || data.billing.province,
-    postal_code: addressData.postal_code || data.billing.postal_code
-  })
-}
+        setData('shipping', {
+            ...data.shipping,
+            address_line1: addressData.street || addressData.formatted_address,
+            surburb: addressData.suburb || data.shipping.surburb,
+            city: addressData.city || data.shipping.city,
+            province: addressData.province || data.shipping.province,
+            postal_code: addressData.postal_code || data.shipping.postal_code
+        })
+    }
+
+    // For billing address (if you want separate)
+    const handleBillingAddressSelect = (addressData) => {
+        setData('billing', {
+            ...data.billing,
+            same_as_shipping: false,
+            address_line1: addressData.street || addressData.formatted_address,
+            surburb: addressData.suburb || data.billing.surburb,
+            city: addressData.city || data.billing.city,
+            province: addressData.province || data.billing.province,
+            postal_code: addressData.postal_code || data.billing.postal_code
+        })
+    }
 
     return (
         <MainLayout>
@@ -324,11 +320,10 @@ const handleBillingAddressSelect = (addressData) => {
                                         <div
                                             className={`
                       flex items-center justify-center w-10 h-10 rounded-full border-2 
-                      ${
-                          activeStep >= step.id
-                              ? "border-blue-600 bg-blue-600 text-white"
-                              : "border-gray-300 bg-white text-gray-500"
-                      }
+                      ${activeStep >= step.id
+                                                    ? "border-blue-600 bg-blue-600 text-white"
+                                                    : "border-gray-300 bg-white text-gray-500"
+                                                }
                     `}
                                         >
                                             <step.icon className="w-5 h-5" />
@@ -385,9 +380,9 @@ const handleBillingAddressSelect = (addressData) => {
                                                     .filter(
                                                         (a) =>
                                                             a.address_type ===
-                                                                "Shipping" ||
+                                                            "Shipping" ||
                                                             a.address_type ===
-                                                                "Both",
+                                                            "Both",
                                                     )
                                                     .map((address) => (
                                                         <option
@@ -409,20 +404,20 @@ const handleBillingAddressSelect = (addressData) => {
                                     <div className="space-y-4">
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div className="sm:col-span-2">
-    <label className="block text-sm font-medium text-gray-700 mb-1">
-      Street Address *
-    </label>
-    <AddressSearch
-      onAddressSelect={handleAddressSelect}
-      placeholder="Start typing your address..."
-      defaultValue={data.shipping.address_line1}
-    />
-    {errors["shipping.address_line1"] && (
-      <p className="mt-1 text-sm text-red-600">
-        {errors["shipping.address_line1"]}
-      </p>
-    )}
-  </div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Street Address *
+                                                </label>
+                                                <AddressSearch
+                                                    onAddressSelect={handleAddressSelect}
+                                                    placeholder="Start typing your address..."
+                                                    defaultValue={data.shipping.address_line1}
+                                                />
+                                                {errors["shipping.address_line1"] && (
+                                                    <p className="mt-1 text-sm text-red-600">
+                                                        {errors["shipping.address_line1"]}
+                                                    </p>
+                                                )}
+                                            </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                                     Address Line 2
@@ -470,7 +465,7 @@ const handleBillingAddressSelect = (addressData) => {
                                                     <p className="mt-1 text-sm text-red-600">
                                                         {
                                                             errors[
-                                                                "shipping.surburb"
+                                                            "shipping.surburb"
                                                             ]
                                                         }
                                                     </p>
@@ -497,7 +492,7 @@ const handleBillingAddressSelect = (addressData) => {
                                                     <p className="mt-1 text-sm text-red-600">
                                                         {
                                                             errors[
-                                                                "shipping.city"
+                                                            "shipping.city"
                                                             ]
                                                         }
                                                     </p>
@@ -537,14 +532,14 @@ const handleBillingAddressSelect = (addressData) => {
                                                 {errors[
                                                     "shipping.province"
                                                 ] && (
-                                                    <p className="mt-1 text-sm text-red-600">
-                                                        {
-                                                            errors[
+                                                        <p className="mt-1 text-sm text-red-600">
+                                                            {
+                                                                errors[
                                                                 "shipping.province"
-                                                            ]
-                                                        }
-                                                    </p>
-                                                )}
+                                                                ]
+                                                            }
+                                                        </p>
+                                                    )}
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -570,14 +565,14 @@ const handleBillingAddressSelect = (addressData) => {
                                                 {errors[
                                                     "shipping.postal_code"
                                                 ] && (
-                                                    <p className="mt-1 text-sm text-red-600">
-                                                        {
-                                                            errors[
+                                                        <p className="mt-1 text-sm text-red-600">
+                                                            {
+                                                                errors[
                                                                 "shipping.postal_code"
-                                                            ]
-                                                        }
-                                                    </p>
-                                                )}
+                                                                ]
+                                                            }
+                                                        </p>
+                                                    )}
                                             </div>
                                         </div>
 
@@ -604,14 +599,14 @@ const handleBillingAddressSelect = (addressData) => {
                                             {errors[
                                                 "shipping.phone_number"
                                             ] && (
-                                                <p className="mt-1 text-sm text-red-600">
-                                                    {
-                                                        errors[
+                                                    <p className="mt-1 text-sm text-red-600">
+                                                        {
+                                                            errors[
                                                             "shipping.phone_number"
-                                                        ]
-                                                    }
-                                                </p>
-                                            )}
+                                                            ]
+                                                        }
+                                                    </p>
+                                                )}
                                         </div>
 
                                         <div className="flex items-center space-x-4 pt-2">
@@ -678,31 +673,31 @@ const handleBillingAddressSelect = (addressData) => {
                                                 Billing Address
                                             </h2>
                                         </div>
-                                       <label className="flex items-center">
-    <input
-        type="checkbox"
-        checked={sameAsShipping}
-        onChange={(e) => {
-            setSameAsShipping(e.target.checked);
-            if (e.target.checked) {
-                // When checking "same as shipping", copy shipping data to billing
-                setData('billing', {
-                    ...data.billing,
-                    same_as_shipping: true,
-                    address_line1: data.shipping.address_line1,
-                    address_line2: data.shipping.address_line2,
-                    surburb: data.shipping.surburb,
-                    city: data.shipping.city,
-                    province: data.shipping.province,
-                    postal_code: data.shipping.postal_code,
-                    phone_number: data.shipping.phone_number
-                });
-            }
-        }}
-        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-    />
-    <span className="ml-2 text-sm text-white">Same as shipping</span>
-</label>
+                                        <label className="flex items-center">
+                                            <input
+                                                type="checkbox"
+                                                checked={sameAsShipping}
+                                                onChange={(e) => {
+                                                    setSameAsShipping(e.target.checked);
+                                                    if (e.target.checked) {
+                                                        // When checking "same as shipping", copy shipping data to billing
+                                                        setData('billing', {
+                                                            ...data.billing,
+                                                            same_as_shipping: true,
+                                                            address_line1: data.shipping.address_line1,
+                                                            address_line2: data.shipping.address_line2,
+                                                            surburb: data.shipping.surburb,
+                                                            city: data.shipping.city,
+                                                            province: data.shipping.province,
+                                                            postal_code: data.shipping.postal_code,
+                                                            phone_number: data.shipping.phone_number
+                                                        });
+                                                    }
+                                                }}
+                                                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                            />
+                                            <span className="ml-2 text-sm text-white">Same as shipping</span>
+                                        </label>
                                     </div>
                                 </div>
 
@@ -730,9 +725,9 @@ const handleBillingAddressSelect = (addressData) => {
                                                         .filter(
                                                             (a) =>
                                                                 a.address_type ===
-                                                                    "Billing" ||
+                                                                "Billing" ||
                                                                 a.address_type ===
-                                                                    "Both",
+                                                                "Both",
                                                         )
                                                         .map((address) => (
                                                             <option
@@ -759,16 +754,16 @@ const handleBillingAddressSelect = (addressData) => {
                                         <div className="space-y-4">
                                             {/* Copy the same address form fields here */}
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                 <div className="sm:col-span-2">
-      <label className="block text-sm font-medium text-gray-700 mb-1">
-        Billing Street Address *
-      </label>
-      <AddressSearch
-        onAddressSelect={handleBillingAddressSelect}
-        placeholder="Start typing billing address..."
-        defaultValue={data.billing.address_line1}
-      />
-    </div>
+                                                <div className="sm:col-span-2">
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                        Billing Street Address *
+                                                    </label>
+                                                    <AddressSearch
+                                                        onAddressSelect={handleBillingAddressSelect}
+                                                        placeholder="Start typing billing address..."
+                                                        defaultValue={data.billing.address_line1}
+                                                    />
+                                                </div>
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                                         Address Line 2
@@ -990,13 +985,13 @@ const handleBillingAddressSelect = (addressData) => {
                                                         </p>
                                                     </div>
                                                     {/* PayFast Logo */}
-                                                    
+
                                                     <div className="flex space-x-1">
                                                         <img
                                                             src={PayfastLogo}
                                                             alt="PayFast Logo"
                                                             className="h-6 object-contain"
-                                                        
+
                                                         />
                                                         {/* <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
                                                             Visa
@@ -1013,16 +1008,16 @@ const handleBillingAddressSelect = (addressData) => {
                                                 {/* PayFast Info Box - shown when selected */}
                                                 {paymentMethod ===
                                                     "payfast" && (
-                                                    <div className="mt-3 p-3 bg-blue-50 rounded-lg">
-                                                        <p className="text-xs text-blue-700 flex items-center">
-                                                            <CheckCircle className="w-4 h-4 mr-1" />
-                                                            You'll be redirected
-                                                            to PayFast to
-                                                            complete your
-                                                            payment securely.
-                                                        </p>
-                                                    </div>
-                                                )}
+                                                        <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                                                            <p className="text-xs text-blue-700 flex items-center">
+                                                                <CheckCircle className="w-4 h-4 mr-1" />
+                                                                You'll be redirected
+                                                                to PayFast to
+                                                                complete your
+                                                                payment securely.
+                                                            </p>
+                                                        </div>
+                                                    )}
                                             </div>
                                         </label>
 
@@ -1247,47 +1242,47 @@ const handleBillingAddressSelect = (addressData) => {
                                 {/* Totals */}
                                 <div className="p-6 border-t border-gray-100">
                                     {/* Price Breakdown */}
-<div className="space-y-3 mb-6">
-    <div className="flex justify-between text-sm">
-        <span className="text-gray-600">Subtotal</span>
-        <span className="font-medium">R {subtotal.toFixed(2)}</span>
-    </div>
-    
-    {discount > 0 && (
-        <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Discount ({appliedCoupon?.code})</span>
-            <span className="font-medium text-green-600">
-                -R {discount.toFixed(2)}
-            </span>
-        </div>
-    )}
-    
-    <div className="flex justify-between text-sm">
-        <span className="text-gray-600">Shipping</span>
-        <span className="font-medium">
-            {shipping > 0 ? `R ${shipping.toFixed(2)}` : 'FREE'}
-        </span>
-    </div>
-    
-    <div className="flex justify-between text-sm">
-        <span className="text-gray-600">VAT (15%)</span>
-        <span className="font-medium">R {vat.toFixed(2)}</span>
-    </div>
-    
-    <div className="border-t border-gray-200 pt-3 mt-3">
-        <div className="flex justify-between text-lg font-bold">
-            <span>Total</span>
-            <span className="text-greycode-light-blue">
-                R {total.toFixed(2)}
-            </span>
-        </div>
-        {discount > 0 && (
-            <p className="text-xs text-green-600 mt-1">
-                You saved R {discount.toFixed(2)} with this coupon!
-            </p>
-        )}
-    </div>
-</div>
+                                    <div className="space-y-3 mb-6">
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-600">Subtotal</span>
+                                            <span className="font-medium">R {subtotal.toFixed(2)}</span>
+                                        </div>
+
+                                        {discount > 0 && (
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-gray-600">Discount ({appliedCoupon?.code})</span>
+                                                <span className="font-medium text-green-600">
+                                                    -R {discount.toFixed(2)}
+                                                </span>
+                                            </div>
+                                        )}
+
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-600">Shipping</span>
+                                            <span className="font-medium">
+                                                {shipping > 0 ? `R ${shipping.toFixed(2)}` : 'FREE'}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-600">VAT (15%)</span>
+                                            <span className="font-medium">R {vat.toFixed(2)}</span>
+                                        </div>
+
+                                        <div className="border-t border-gray-200 pt-3 mt-3">
+                                            <div className="flex justify-between text-lg font-bold">
+                                                <span>Total</span>
+                                                <span className="text-greycode-light-blue">
+                                                    R {total.toFixed(2)}
+                                                </span>
+                                            </div>
+                                            {discount > 0 && (
+                                                <p className="text-xs text-green-600 mt-1">
+                                                    You saved R {discount.toFixed(2)} with this coupon!
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
 
                                     <button
                                         type="submit"
@@ -1295,11 +1290,10 @@ const handleBillingAddressSelect = (addressData) => {
                                         className={`
                       w-full mt-6 py-3 px-4 rounded-lg font-medium text-white
                       transition-all duration-300 flex items-center justify-center
-                      ${
-                          processing || isProcessing
-                              ? "bg-gray-400 cursor-not-allowed"
-                              : "bg-greycode-light-blue hover:bg-greycode-dark-blue hover:shadow-lg hover:shadow-greycode-mid-blue"
-                      }
+                      ${processing || isProcessing
+                                                ? "bg-gray-400 cursor-not-allowed"
+                                                : "bg-greycode-light-blue hover:bg-greycode-dark-blue hover:shadow-lg hover:shadow-greycode-mid-blue"
+                                            }
                     `}
                                     >
                                         {processing || isProcessing ? (

@@ -3,6 +3,7 @@ import { Head, usePage, Link, router } from "@inertiajs/react";
 import MainLayout from "../Layouts/MainLayout";
 import { Heart } from "lucide-react";
 import axios from 'axios'; // Add this import
+import toast from 'react-hot-toast';
 
 const placeholderSVG =
     "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI0U1RTVFNSIvPjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOTk5Ij5Qcm9kdWN0IEltYWdlPC90ZXh0Pjwvc3ZnPg==";
@@ -13,7 +14,7 @@ export default function ProductDetail({
 }) {
     const { props } = usePage();
     const { auth } = usePage().props; // Add this to get auth user
-    
+
     console.log("CSRF token from props:", props.csrf_token);
     console.log("All props:", props);
 
@@ -22,7 +23,7 @@ export default function ProductDetail({
 
     // Add wishlist state
     const [wishlistItems, setWishlistItems] = useState([]);
-    const [wishlistLoading, setWishlistLoading] = useState({}); 
+    const [wishlistLoading, setWishlistLoading] = useState({});
 
     // Check if product is in wishlist on load
     useEffect(() => {
@@ -52,12 +53,12 @@ export default function ProductDetail({
     const toggleWishlist = (productId, e) => {
         e.preventDefault();
         e.stopPropagation();
-        
+
         if (!auth?.user) {
             window.location.href = '/login';
             return;
         }
-        
+
         setWishlistLoading(true);
 
         if (isInWishlist) {
@@ -171,24 +172,19 @@ export default function ProductDetail({
             {
                 preserveScroll: true,
                 onSuccess: (page) => {
-                    alert("✅ Product added to cart!");
-                    console.log("Success response:", page);
+                    toast.success('Product added to cart!');
                 },
                 onError: (errors) => {
                     console.error("Add to cart errors:", errors);
-                    alert(
-                        errors.message ||
-                            errors.quantity?.[0] ||
-                            "Failed to add to cart",
-                    );
+                    toast.error(errors.message || "Failed to add to cart");
                 },
             },
         );
     };
     // Check if product is in wishlist
-const isInWishlist = (productId) => {
-    return wishlistItems.includes(productId);
-};
+    const isInWishlist = (productId) => {
+        return wishlistItems.includes(productId);
+    };
 
     return (
         <MainLayout>
@@ -252,11 +248,10 @@ const isInWishlist = (productId) => {
                                     <button
                                         onClick={(e) => toggleWishlist(product.id, e)}
                                         disabled={wishlistLoading}
-                                        className={`absolute top-4 right-4 p-3 rounded-full z-10 ${
-                                            isInWishlist
+                                        className={`absolute top-4 right-4 p-3 rounded-full z-10 ${isInWishlist
                                                 ? "bg-red-500 text-white"
                                                 : "bg-white/90 text-gray-600 hover:bg-red-50"
-                                        } shadow-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed`}
+                                            } shadow-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed`}
                                         aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
                                     >
                                         <Heart className={`w-6 h-6 ${isInWishlist ? "fill-current" : ""}`} />
@@ -280,11 +275,10 @@ const isInWishlist = (productId) => {
                                             onClick={() =>
                                                 setSelectedImageIndex(index)
                                             }
-                                            className={`flex-shrink-0 w-20 h-20 rounded-lg border-2 overflow-hidden ${
-                                                selectedImageIndex === index
+                                            className={`flex-shrink-0 w-20 h-20 rounded-lg border-2 overflow-hidden ${selectedImageIndex === index
                                                     ? "border-blue-500"
                                                     : "border-gray-200 hover:border-gray-300"
-                                            }`}
+                                                }`}
                                         >
                                             <img
                                                 src={getImageUrl(image)}
@@ -325,19 +319,18 @@ const isInWishlist = (productId) => {
                                     </p>
                                     {product.stock_quantity !== undefined && (
                                         <p
-                                            className={`mt-2 text-sm font-medium ${
-                                                product.stock_quantity > 10
+                                            className={`mt-2 text-sm font-medium ${product.stock_quantity > 10
                                                     ? "text-green-600"
                                                     : product.stock_quantity > 0
-                                                      ? "text-yellow-600"
-                                                      : "text-red-600"
-                                            }`}
+                                                        ? "text-yellow-600"
+                                                        : "text-red-600"
+                                                }`}
                                         >
                                             {product.stock_quantity > 10
                                                 ? "✓ In Stock"
                                                 : product.stock_quantity > 0
-                                                  ? `⚠ Only ${product.stock_quantity} left in stock`
-                                                  : "✗ Out of Stock"}
+                                                    ? `⚠ Only ${product.stock_quantity} left in stock`
+                                                    : "✗ Out of Stock"}
                                         </p>
                                     )}
                                 </div>
@@ -393,7 +386,7 @@ const isInWishlist = (productId) => {
                                         <div className="text-sm text-gray-600">
                                             Available:{" "}
                                             {product.stock_quantity !==
-                                            undefined
+                                                undefined
                                                 ? product.stock_quantity
                                                 : "N/A"}
                                         </div>
@@ -435,11 +428,10 @@ const isInWishlist = (productId) => {
                                         </dt>
                                         <dd className="text-sm">
                                             <span
-                                                className={`px-2 py-1 rounded-full ${
-                                                    product.is_active
+                                                className={`px-2 py-1 rounded-full ${product.is_active
                                                         ? "bg-green-100 text-green-800"
                                                         : "bg-red-100 text-red-800"
-                                                }`}
+                                                    }`}
                                             >
                                                 {product.is_active
                                                     ? "Active"
@@ -451,11 +443,10 @@ const isInWishlist = (productId) => {
                                         </dt>
                                         <dd className="text-sm">
                                             <span
-                                                className={`px-2 py-1 rounded-full ${
-                                                    product.is_featured
+                                                className={`px-2 py-1 rounded-full ${product.is_featured
                                                         ? "bg-blue-100 text-blue-800"
                                                         : "bg-gray-100 text-gray-800"
-                                                }`}
+                                                    }`}
                                             >
                                                 {product.is_featured
                                                     ? "Yes"
