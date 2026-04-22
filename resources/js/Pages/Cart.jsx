@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Head, Link, usePage, router } from '@inertiajs/react'
 import MainLayout from '../Layouts/MainLayout'
 import PageHead from '../Components/PageHead'
+import toast from 'react-hot-toast'
 
 
 const placeholderSVG = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI0U1RTVFNSIvPjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOTk5Ij5Qcm9kdWN0PC90ZXh0Pjwvc3ZnPg=='
@@ -9,7 +10,7 @@ const placeholderSVG = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaH
 export default function Cart({ cart: initialCart }) {
   const { props } = usePage()
   const cartData = props.cart || initialCart || {}
-  
+
   // State for cart items from database
   const [cartItems, setCartItems] = useState([])
   const [couponCode, setCouponCode] = useState('')
@@ -50,12 +51,13 @@ export default function Cart({ cart: initialCart }) {
       preserveScroll: true,
       onSuccess: (page) => {
         // Update local state if needed
-        setCartItems(prev => prev.map(item => 
+        setCartItems(prev => prev.map(item =>
           item.id === itemId ? { ...item, quantity: newQuantity } : item
         ));
       },
+
       onError: (errors) => {
-        alert(errors.message || 'Failed to update quantity');
+        toast.error(errors.message || 'Failed to update quantity');
       }
     })
   }
@@ -63,7 +65,7 @@ export default function Cart({ cart: initialCart }) {
   // Remove item from cart using Inertia router
   const removeItem = (itemId) => {
     if (!confirm('Are you sure you want to remove this item?')) return
-    
+
     router.delete(`/cart/remove/${itemId}`, {
       preserveScroll: true,
       onSuccess: () => {
@@ -71,7 +73,7 @@ export default function Cart({ cart: initialCart }) {
         setCartItems(items => items.filter(item => item.id !== itemId))
       },
       onError: (errors) => {
-        alert(errors.message || 'Failed to remove item');
+        toast.error(errors.message || 'Failed to remove item');
       }
     })
   }
@@ -79,14 +81,14 @@ export default function Cart({ cart: initialCart }) {
   // Clear entire cart using Inertia router
   const clearCart = () => {
     if (!confirm('Are you sure you want to clear your cart?')) return
-    
+
     router.delete('/cart/clear', {
       preserveScroll: true,
       onSuccess: () => {
         setCartItems([])
       },
       onError: (errors) => {
-        alert(errors.message || 'Failed to clear cart');
+        toast.error(errors.message || 'Failed to clear cart');
       }
     })
   }
@@ -103,14 +105,17 @@ export default function Cart({ cart: initialCart }) {
 
   // Apply coupon
   const applyCoupon = () => {
-    if (couponCode.trim() === '') return
-    if (couponCode.toUpperCase() === 'GREYCODE10') {
-      setCouponApplied(true)
-      alert('Coupon applied! 10% discount added.')
-    } else {
-      alert('Invalid coupon code.')
+    if (couponCode.trim() === '') {
+      toast.error('Please enter a coupon code');
+      return;
     }
-  }
+    if (couponCode.toUpperCase() === 'GREYCODE10') {
+      setCouponApplied(true);
+      toast.success('Coupon applied! 10% discount added.');
+    } else {
+      toast.error('Invalid coupon code.');
+    }
+  };
 
   const continueShopping = () => {
     window.history.back()
@@ -118,7 +123,7 @@ export default function Cart({ cart: initialCart }) {
 
   const proceedToCheckout = () => {
     if (cartItems.length === 0) {
-      alert('Your cart is empty')
+      toast.error('Your cart is empty');
       return
     }
 
@@ -129,7 +134,7 @@ export default function Cart({ cart: initialCart }) {
     })
 
     if (outOfStockItems.length > 0) {
-      alert('Please remove out-of-stock items before checkout')
+      toast.error('Please remove out-of-stock items before checkout');
       return
     }
 
@@ -157,7 +162,7 @@ export default function Cart({ cart: initialCart }) {
     return (
       <MainLayout>
         <Head title="Loading Cart..." />
-        
+
         <div className="py-20 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading your cart...</p>
@@ -169,7 +174,7 @@ export default function Cart({ cart: initialCart }) {
   return (
     <MainLayout>
       <PageHead title="Shopping Cart" />
-      
+
 
       <section className="py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
@@ -223,22 +228,22 @@ export default function Cart({ cart: initialCart }) {
                       Clear Cart
                     </button>
                   </div>
-                  
+
                   <div className="divide-y divide-gray-100">
                     {cartItems.map((item) => {
                       const product = item.product || {}
                       const inStock = isInStock(item)
                       const stockCount = getStockCount(item)
                       const categoryName = getCategoryName(item)
-                      
+
                       return (
                         <div key={item.id} className="p-6">
                           <div className="flex flex-col sm:flex-row sm:items-center gap-6">
                             {/* Product Image */}
                             <div className="flex-shrink-0">
                               <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden">
-                                <img 
-                                  src={getProductImage(product)} 
+                                <img
+                                  src={getProductImage(product)}
                                   alt={product.name}
                                   className="w-full h-full object-cover"
                                   onError={(e) => {
@@ -247,7 +252,7 @@ export default function Cart({ cart: initialCart }) {
                                 />
                               </div>
                             </div>
-                            
+
                             {/* Product Info */}
                             <div className="flex-1">
                               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
@@ -260,16 +265,15 @@ export default function Cart({ cart: initialCart }) {
                                         </Link>
                                       </h3>
                                       <p className="text-gray-600 text-sm mb-2">{product.description?.substring(0, 100)}...</p>
-                                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
-                                        categoryName === 'DIY' ? 'bg-blue-100 text-blue-800' :
+                                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${categoryName === 'DIY' ? 'bg-blue-100 text-blue-800' :
                                         categoryName === 'Smart Homes' ? 'bg-purple-100 text-purple-800' :
-                                        'bg-green-100 text-green-800'
-                                      }`}>
+                                          'bg-green-100 text-green-800'
+                                        }`}>
                                         {categoryName}
                                       </span>
                                     </div>
                                   </div>
-                                  
+
                                   {/* Stock Status */}
                                   <div className="mt-4">
                                     {inStock ? (
@@ -289,13 +293,13 @@ export default function Cart({ cart: initialCart }) {
                                     )}
                                   </div>
                                 </div>
-                                
+
                                 {/* Price and Quantity */}
                                 <div className="flex flex-col items-end space-y-4">
                                   <p className="text-2xl font-bold text-gray-900">
                                     R {formatPrice(item.price * item.quantity)}
                                   </p>
-                                  
+
                                   <div className="flex items-center space-x-4">
                                     {/* Quantity Selector */}
                                     <div className="flex items-center border border-gray-300 rounded-lg">
@@ -317,7 +321,7 @@ export default function Cart({ cart: initialCart }) {
                                         +
                                       </button>
                                     </div>
-                                    
+
                                     {/* Remove Button */}
                                     <button
                                       onClick={() => removeItem(item.id)}
@@ -329,7 +333,7 @@ export default function Cart({ cart: initialCart }) {
                                       </svg>
                                     </button>
                                   </div>
-                                  
+
                                   <p className="text-gray-600 text-sm">
                                     R {formatPrice(item.price)} each
                                   </p>
@@ -342,10 +346,10 @@ export default function Cart({ cart: initialCart }) {
                     })}
                   </div>
                 </div>
-                
+
                 {/* Continue Shopping */}
                 <div className="mt-6">
-                  <Link 
+                  <Link
                     href="/products"
                     className="flex items-center text-blue-600 hover:text-blue-800 font-medium"
                   >
@@ -356,12 +360,12 @@ export default function Cart({ cart: initialCart }) {
                   </Link>
                 </div>
               </div>
-              
+
               {/* Order Summary */}
               <div className="lg:w-1/3">
                 <div className="bg-white rounded-xl shadow-sm p-6 sticky top-6">
                   <h2 className="text-xl font-bold text-gray-900 mb-6">Order Summary</h2>
-                  
+
                   {/* Coupon Code */}
                   <div className="mb-6">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -391,7 +395,7 @@ export default function Cart({ cart: initialCart }) {
                       </p>
                     )}
                   </div>
-                  
+
                   {/* Price Breakdown */}
                   <div className="space-y-3 mb-6">
                     <div className="flex justify-between">
@@ -424,7 +428,7 @@ export default function Cart({ cart: initialCart }) {
                       <p className="text-sm text-gray-600 mt-1">All prices in ZAR (South African Rand)</p>
                     </div>
                   </div>
-                  
+
                   {/* Shipping Info */}
                   <div className="mb-6 p-4 bg-blue-50 rounded-lg">
                     <div className="flex items-center mb-2">
@@ -434,13 +438,13 @@ export default function Cart({ cart: initialCart }) {
                       <span className="font-medium text-blue-700">Free Shipping</span>
                     </div>
                     <p className="text-sm text-blue-600">
-                      {subtotal >= 500 
+                      {subtotal >= 500
                         ? 'Free shipping applied!'
                         : `Add R ${formatPrice(500 - subtotal)} more for free shipping`
                       }
                     </p>
                   </div>
-                  
+
                   {/* Checkout Button */}
                   <button
                     onClick={proceedToCheckout}
@@ -449,13 +453,13 @@ export default function Cart({ cart: initialCart }) {
                   >
                     Proceed to Checkout
                   </button>
-                  
+
                   {cartItems.some(item => !isInStock(item)) && (
                     <p className="text-red-600 text-sm text-center mb-4">
                       Please remove out-of-stock items before checkout
                     </p>
                   )}
-                  
+
                   {/* Payment Methods */}
                   <div className="border-t border-gray-200 pt-4">
                     <p className="text-sm text-gray-600 mb-3">Secure payment with:</p>
