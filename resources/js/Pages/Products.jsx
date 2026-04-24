@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Head, usePage, router } from "@inertiajs/react";
 import MainLayout from "../Layouts/MainLayout";
 import PageHead from "../Components/PageHead";
-import { Heart } from "lucide-react";
+import { Heart, ShoppingCart } from "lucide-react";
 import axios from "axios";
+import toast from 'react-hot-toast';
+import LoadingSpinner from "../Components/LoadingSpinner";
 
 // Define the SVG data URL as a string
 const placeholderSVG =
@@ -43,6 +45,7 @@ export default function Products({
     const { props } = usePage();
     const products = props.products || initialProducts || [];
     const categories = props.categories || initialCategories || [];
+    const [cartLoading, setCartLoading] = useState({});
 
     // Initialize temp filters with all categories
     useEffect(() => {
@@ -226,6 +229,7 @@ export default function Products({
     const [wishlistItems, setWishlistItems] = useState([]);
     const [wishlistLoading, setWishlistLoading] = useState({}); // ADD THIS LINE
 
+
     // Check if product is in wishlist
     const isInWishlist = (productId) => {
         return wishlistItems.includes(productId);
@@ -285,6 +289,35 @@ export default function Products({
                     }));
                 });
         }
+    };
+    const handleAddToCart = (productId, e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Check if user is logged in
+        if (!auth?.user) {
+            window.location.href = "/login";
+            return;
+        }
+
+        // Prevent double-clicks
+        if (cartLoading[productId]) return;
+
+        setCartLoading(prev => ({ ...prev, [productId]: true }));
+
+        router.post(`/cart/add/${productId}`, {
+            quantity: 1,
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Product added to cart!');
+                setCartLoading(prev => ({ ...prev, [productId]: false }));
+            },
+            onError: (errors) => {
+                toast.error(errors.message || 'Failed to add to cart');
+                setCartLoading(prev => ({ ...prev, [productId]: false }));
+            },
+        });
     };
 
     return (
@@ -578,8 +611,8 @@ export default function Products({
                                         onClick={handleApplyFilters}
                                         disabled={!hasFilterChanges()}
                                         className={`w-full py-3 px-4 rounded-lg font-medium transition-colors duration-300 ${hasFilterChanges()
-                                                ? "bg-blue-600 text-white hover:bg-blue-700"
-                                                : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                                            ? "bg-blue-600 text-white hover:bg-blue-700"
+                                            : "bg-gray-200 text-gray-500 cursor-not-allowed"
                                             }`}
                                     >
                                         {hasFilterChanges()
@@ -702,7 +735,7 @@ export default function Products({
                                                 className="group block bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 relative flex flex-col"
                                             >
                                                 {/* Image Container - Fixed height */}
-                                                <div className="relative h-56 flex items-center justify-center bg-gray-50 flex-shrink-0">
+                                                <div className="relative h-56 flex items-center justify-center bg-white flex-shrink-0">
                                                     {/* Product Image */}
                                                     <img
                                                         src={imageUrl}
@@ -734,10 +767,10 @@ export default function Products({
                                                     <div className="absolute top-3 left-3">
                                                         <span
                                                             className={`px-2 py-1 rounded-full text-xs font-medium shadow-sm ${product.category_id === categories.find((c) => c.name === "DIY")?.id
-                                                                    ? "bg-blue-100 text-blue-800"
-                                                                    : product.category_id === categories.find((c) => c.name === "Smart Homes")?.id
-                                                                        ? "bg-purple-100 text-purple-800"
-                                                                        : "bg-green-100 text-green-800"
+                                                                ? "bg-blue-100 text-blue-800"
+                                                                : product.category_id === categories.find((c) => c.name === "Smart Homes")?.id
+                                                                    ? "bg-purple-100 text-purple-800"
+                                                                    : "bg-green-100 text-green-800"
                                                                 }`}
                                                         >
                                                             {getCategoryName(product.category_id)}
@@ -757,13 +790,40 @@ export default function Products({
                                                     </div>
 
                                                     {/* Footer - Always at bottom */}
+
                                                     <div className="mt-auto pt-4">
-                                                        <div className="flex items-center justify-between">
+                                                        {/* Price and Cart Button Row */}
+                                                        <div className="flex items-center justify-between mb-2">
                                                             <p className="text-xl font-bold text-gray-900">
                                                                 R {parseFloat(product.price).toLocaleString("en-ZA", {
                                                                     minimumFractionDigits: 2,
                                                                 })}
                                                             </p>
+
+                                                            {/* Add to Cart Button - auto width */}
+                                                            <button
+                                                                onClick={(e) => handleAddToCart(product.id, e)}
+                                                                disabled={cartLoading[product.id] || product.stock_quantity === 0}
+                                                                className="py-2 px-4 bg-greycode-light-blue text-white rounded-lg font-medium hover:bg-black hover:scale-105 hover:shadow-lg hover:shadow-greycode-light-blue transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                                            >
+                                                                {cartLoading[product.id] ? (
+                                                                    <>
+                                                                        <LoadingSpinner size="sm" color="white" />
+                                                                        Adding...
+                                                                    </>
+                                                                ) : product.stock_quantity === 0 ? (
+                                                                    'Out of Stock'
+                                                                ) : (
+                                                                    <>
+                                                                        <ShoppingCart className="w-4 h-4" />
+                                                                        Add to Cart
+                                                                    </>
+                                                                )}
+                                                            </button>
+                                                        </div>
+
+                                                        {/* View Details Link */}
+                                                        <div className="text-right">
                                                             <span className="text-greycode-light-blue group-hover:text-blue-800 font-medium text-sm">
                                                                 View Details →
                                                             </span>

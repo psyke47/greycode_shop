@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import MainLayout from '../Layouts/MainLayout';
 import { User, Mail, Phone, Calendar, Lock, ShoppingBag, Home, MapPin, Edit2, Check, X } from 'lucide-react';
 import AddressSearch from '../Components/AddressSearch';
+import LoadingSpinner from '../Components/LoadingSpinner';
+import toast from "react-hot-toast";
 
 export default function UserProfile() {
     // Get all props including the new addresses array
@@ -27,7 +29,10 @@ export default function UserProfile() {
     const submitProfile = (e) => {
         e.preventDefault();
         patch('/user-profile', {
-            onSuccess: () => setIsEditing(false),
+            onSuccess: () => {
+                setIsEditing(false);
+                toast.success('Profile updated successfully!');
+            },
         });
     };
 
@@ -121,13 +126,13 @@ export default function UserProfile() {
             onSuccess: () => {
                 setIsEditingShipping(false);
                 setSelectedAddressId(null);
+                toast.success('Shipping address updated!');
             },
         });
     };
 
     // Submit billing address
     const submitBillingAddress = () => {
-        // If billing same as shipping, use shipping values
         if (addressData.billing_same_as_shipping) {
             setAddressData({
                 ...addressData,
@@ -157,6 +162,7 @@ export default function UserProfile() {
             onSuccess: () => {
                 setIsEditingBilling(false);
                 setSelectedAddressId(null);
+                toast.success('Billing address updated!');
             },
         });
     };
@@ -241,7 +247,10 @@ export default function UserProfile() {
     const submitPassword = (e) => {
         e.preventDefault();
         updatePassword('/password', {
-            onSuccess: () => resetPassword(),
+            onSuccess: () => {
+                resetPassword();
+                toast.success('Password changed successfully!');
+            },
         });
     };
 
@@ -453,11 +462,21 @@ export default function UserProfile() {
                                                 Cancel
                                             </button>
                                             <button
-                                                type="submit"
-                                                disabled={processing}
-                                                className="px-4 py-2 bg-greycode-light-blue text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
+                                                type="button"
+                                                onClick={submitShippingAddress}
+                                                disabled={addressProcessing}
+                                                className="px-4 py-2 bg-greycode-light-blue text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-1"
                                             >
-                                                {processing ? 'Saving...' : 'Save Changes'}
+                                                {addressProcessing ? (
+                                                    <>
+                                                        <LoadingSpinner size="sm" color="white" />
+                                                        Updating...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Check className="w-4 h-4" /> Update Address
+                                                    </>
+                                                )}
                                             </button>
                                         </div>
                                     </form>
@@ -639,7 +658,16 @@ export default function UserProfile() {
                                                 disabled={addressProcessing}
                                                 className="px-4 py-2 bg-greycode-light-blue text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-1"
                                             >
-                                                <Check className="w-4 h-4" /> Update Address
+                                                {addressProcessing ? (
+                                                    <>
+                                                        <LoadingSpinner size="sm" color="white" />
+                                                        Updating...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Check className="w-4 h-4" /> Update Address
+                                                    </>
+                                                )}
                                             </button>
                                         </div>
                                     </div>
@@ -647,7 +675,7 @@ export default function UserProfile() {
                             </div>
                         </div>
 
-                                                {/* Billing Address Card */}
+                        {/* Billing Address Card */}
                         <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
                             <div className="px-6 py-4 border-b border-greycode-light-blue border-b-5 flex justify-between items-center">
                                 <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
@@ -834,7 +862,16 @@ export default function UserProfile() {
                                                 disabled={addressProcessing}
                                                 className="px-4 py-2 bg-greycode-light-blue text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-1"
                                             >
-                                                <Check className="w-4 h-4" /> Update Address
+                                                {addressProcessing ? (
+                                                    <>
+                                                        <LoadingSpinner size="sm" color="white" />
+                                                        Updating...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Check className="w-4 h-4" /> Update Address
+                                                    </>
+                                                )}
                                             </button>
                                         </div>
                                     </div>
@@ -901,9 +938,16 @@ export default function UserProfile() {
                                         <button
                                             type="submit"
                                             disabled={passwordProcessing}
-                                            className="px-4 py-2 bg-greycode-light-blue text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
+                                            className="px-4 py-2 bg-greycode-light-blue text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-2"
                                         >
-                                            {passwordProcessing ? 'Updating...' : 'Update Password'}
+                                            {passwordProcessing ? (
+                                                <>
+                                                    <LoadingSpinner size="sm" color="white" />
+                                                    Updating...
+                                                </>
+                                            ) : (
+                                                'Update Password'
+                                            )}
                                         </button>
                                     </div>
                                 </form>

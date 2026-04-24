@@ -1,7 +1,9 @@
-import React from 'react'
+import {React, useState } from 'react'
 import { Head, Link, usePage, router } from '@inertiajs/react'
 import MainLayout from '../Layouts/MainLayout'
 import { Download, CheckCircle, ExternalLink } from 'lucide-react'
+import LoadingSpinner from '../Components/LoadingSpinner';
+import toast from 'react-hot-toast';
 
 
 export default function OrderDetails() {
@@ -21,6 +23,9 @@ export default function OrderDetails() {
       </MainLayout>
     )
   }
+
+  const [isCancelling, setIsCancelling] = useState(false);
+const [isReturning, setIsReturning] = useState(false);
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-ZA', {
@@ -348,31 +353,73 @@ export default function OrderDetails() {
                 {/* Actions */}
                 <div className="mt-6 space-y-3">
                   {order.status === 'processing' && (
-                    <button
-                      onClick={() => {
-                        if (confirm('Are you sure you want to cancel this order?')) {
-                          router.post(`/order/${order.id}/cancel`)
-                        }
-                      }}
-                      className="w-full bg-red-600 text-white py-3 rounded-lg font-medium hover:bg-red-700 transition-colors"
-                    >
-                      Cancel Order
-                    </button>
-                  )}
+    <button
+        onClick={() => {
+            if (confirm('Are you sure you want to cancel this order?')) {
+                setIsCancelling(true);
+                router.post(`/order/${order.id}/cancel`, {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        setIsCancelling(false);
+                        toast.success('Order cancelled successfully');
+                        router.reload();
+                    },
+                    onError: (errors) => {
+                        setIsCancelling(false);
+                        toast.error(errors.message || 'Failed to cancel order');
+                    }
+                });
+            }
+        }}
+        disabled={isCancelling}
+        className="w-full bg-red-600 text-white py-3 rounded-lg font-medium hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+    >
+        {isCancelling ? (
+            <>
+                <LoadingSpinner size="sm" color="white" />
+                Cancelling...
+            </>
+        ) : (
+            'Cancel Order'
+        )}
+    </button>
+)}
 
                   {order.status === 'delivered' && (
-                    <button
-                      onClick={() => {
-                        const reason = prompt('Please enter the reason for return:')
-                        if (reason) {
-                          router.post(`/order/${order.id}/return`, { reason })
-                        }
-                      }}
-                      className="w-full bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors"
-                    >
-                      Request Return
-                    </button>
-                  )}
+    <button
+        onClick={() => {
+            const reason = prompt('Please enter the reason for return:');
+            if (reason) {
+                setIsReturning(true);
+                router.post(`/order/${order.id}/return`, { 
+                    reason 
+                }, {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        setIsReturning(false);
+                        toast.success('Return requested successfully');
+                        router.reload();
+                    },
+                    onError: (errors) => {
+                        setIsReturning(false);
+                        toast.error(errors.message || 'Failed to request return');
+                    }
+                });
+            }
+        }}
+        disabled={isReturning}
+        className="w-full bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+    >
+        {isReturning ? (
+            <>
+                <LoadingSpinner size="sm" color="white" />
+                Requesting...
+            </>
+        ) : (
+            'Request Return'
+        )}
+    </button>
+)}
 
                   <Link
                     href="/products"

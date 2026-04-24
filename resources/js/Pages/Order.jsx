@@ -3,6 +3,8 @@ import { Head, Link, usePage, router, useForm } from '@inertiajs/react'
 import MainLayout from '../Layouts/MainLayout'
 import PageHead from '../Components/PageHead'
 import { ExternalLink } from 'lucide-react'
+import LoadingSpinner from '../Components/LoadingSpinner';
+import toast from 'react-hot-toast';
 
 
 export default function Order() {
@@ -12,6 +14,8 @@ export default function Order() {
   const [isLoading, setIsLoading] = useState(false)
 
   const { post } = useForm()
+  const [cancellingOrder, setCancellingOrder] = useState(null);
+  const [returningOrder, setReturningOrder] = useState(null);
 
   // Debounced search
   useEffect(() => {
@@ -30,47 +34,63 @@ export default function Order() {
   const handleTabChange = (status) => {
     setActiveTab(status)
     router.get(route('/order'), { search: searchTerm, status }, { // Use named route
-        preserveState: true,
-        replace: true,
+      preserveState: true,
+      replace: true,
     })
   }
 
- 
-<Link href="/order">Back to Orders</Link>
+
+  <Link href="/order">Back to Orders</Link>
 
   const handleCancelOrder = (orderId, e) => {
-    e.preventDefault()
+    e.preventDefault();
     if (confirm('Are you sure you want to cancel this order? This action cannot be undone.')) {
+      setCancellingOrder(orderId);
+
       post(`/order/${orderId}/cancel`, {
         preserveScroll: true,
         onSuccess: () => {
-          router.reload()
+          setCancellingOrder(null);
+          toast.success('Order cancelled successfully');
+          router.reload();
+        },
+        onError: (errors) => {
+          setCancellingOrder(null);
+          toast.error(errors.message || 'Failed to cancel order');
         }
-      })
+      });
     }
-  }
+  };
 
   const handleRequestReturn = (orderId, e) => {
-    e.preventDefault()
-    const reason = prompt('Please enter the reason for return:')
+    e.preventDefault();
+    const reason = prompt('Please enter the reason for return:');
     if (reason) {
+      setReturningOrder(orderId);
+
       post(`/order/${orderId}/return`, {
         reason: reason,
         preserveScroll: true,
         onSuccess: () => {
-          router.reload()
+          setReturningOrder(null);
+          toast.success('Return requested successfully');
+          router.reload();
+        },
+        onError: (errors) => {
+          setReturningOrder(null);
+          toast.error(errors.message || 'Failed to request return');
         }
-      })
+      });
     }
-  }
+  };
 
   const getStatusColor = (status) => {
-    switch(status) {
+    switch (status) {
       case 'delivered': return 'bg-green-100 text-green-800'
       case 'shipped': return 'bg-blue-100 text-blue-800'
-      case 'processing': 
+      case 'processing':
       case 'pending': return 'bg-yellow-100 text-yellow-800'
-      case 'cancelled': 
+      case 'cancelled':
       case 'refunded': return 'bg-red-100 text-red-800'
       case 'return_requested': return 'bg-purple-100 text-purple-800'
       default: return 'bg-gray-100 text-gray-800'
@@ -102,7 +122,7 @@ export default function Order() {
   // Get order actions based on status
   const getOrderActions = (order) => {
     const actions = []
-    
+
     if (order.status === 'processing' || order.status === 'pending') {
       actions.push({
         label: 'Cancel Order',
@@ -110,7 +130,7 @@ export default function Order() {
         onClick: (e) => handleCancelOrder(order.id, e)
       })
     }
-    
+
     if (order.status === 'delivered') {
       actions.push({
         label: 'Request Return',
@@ -118,13 +138,13 @@ export default function Order() {
         onClick: (e) => handleRequestReturn(order.id, e)
       })
     }
-    
+
     actions.push({
       label: 'View Details',
       color: 'blue',
       href: `/order/${order.id}`
     })
-    
+
     return actions
   }
 
@@ -141,7 +161,7 @@ export default function Order() {
               {flash.success}
             </div>
           )}
-          
+
           {flash.error && (
             <div className="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
               {flash.error}
@@ -183,7 +203,7 @@ export default function Order() {
               <div className="flex-1">
                 <div className="relative">
                   <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
-                       fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                   <input
@@ -223,7 +243,7 @@ export default function Order() {
                 Showing <span className="font-semibold">{orders?.length || 0}</span> of <span className="font-semibold">{pagination?.total || 0}</span> orders
               </p>
             </div>
-            
+
             {pagination && pagination.last_page > 1 && (
               <div className="flex items-center space-x-2">
                 <button
@@ -270,8 +290,8 @@ export default function Order() {
                 </svg>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">No orders found</h3>
                 <p className="text-gray-600 mb-6">
-                  {activeTab !== 'all' 
-                    ? `You have no ${activeTab} orders.` 
+                  {activeTab !== 'all'
+                    ? `You have no ${activeTab} orders.`
                     : "You haven't placed any orders yet."}
                 </p>
                 <Link
@@ -284,7 +304,7 @@ export default function Order() {
             ) : (
               orders.map((order) => {
                 const actions = getOrderActions(order)
-                
+
                 return (
                   <div key={order.id} className="bg-white rounded-xl shadow-sm hover:shadow-2xl hover:shadow-greycode-light-blue overflow-hidden border border-gray-200 lg:px-4">
                     {/* Order Header */}
@@ -299,11 +319,10 @@ export default function Order() {
                           </div>
                           <p className="text-gray-600">Placed on {order.date}</p>
                           <p className="text-gray-600 text-sm mt-1">
-                            Payment: <span className={`font-medium ${
-                              order.payment_status === 'paid' ? 'text-green-600' : 
-                              order.payment_status === 'refunded' ? 'text-red-600' : 
-                              'text-yellow-600'
-                            }`}>
+                            Payment: <span className={`font-medium ${order.payment_status === 'paid' ? 'text-green-600' :
+                                order.payment_status === 'refunded' ? 'text-red-600' :
+                                  'text-yellow-600'
+                              }`}>
                               {order.payment_status.charAt(0).toUpperCase() + order.payment_status.slice(1)}
                             </span>
                             {order.payment_method && ` via ${order.payment_method}`}
@@ -326,8 +345,8 @@ export default function Order() {
                             <div className="flex items-center">
                               <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mr-4 overflow-hidden">
                                 {item.image ? (
-                                  <img 
-                                    src={item.image} 
+                                  <img
+                                    src={item.image}
                                     alt={item.name}
                                     className="w-full h-full object-cover"
                                   />
@@ -361,20 +380,20 @@ export default function Order() {
                             <span className="font-medium">Delivery Address:</span> {order.address}
                           </p>
                           {order.tracking_number && (
-  <p className="text-gray-700 flex items-center gap-1">
-    <span className="font-medium">Tracking:</span> 
-    <span className="font-mono">{order.tracking_number}</span>
-    <a
-      href={`https://www.fastway.co.za/track/${order.tracking_number}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="text-blue-600 hover:text-blue-800"
-      title="Track package"
-    >
-      <ExternalLink className="w-4 h-4 inline" />
-    </a>
-  </p>
-)}
+                            <p className="text-gray-700 flex items-center gap-1">
+                              <span className="font-medium">Tracking:</span>
+                              <span className="font-mono">{order.tracking_number}</span>
+                              <a
+                                href={`https://www.fastway.co.za/track/${order.tracking_number}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:text-blue-800"
+                                title="Track package"
+                              >
+                                <ExternalLink className="w-4 h-4 inline" />
+                              </a>
+                            </p>
+                          )}
 
                           {order.delivery_date ? (
                             <p className="text-gray-700">
@@ -393,7 +412,7 @@ export default function Order() {
                               <Link
                                 key={index}
                                 href={action.href}
-                                className={`px-6 py-2 bg-${action.color}-600 text-white rounded-lg font-medium hover:bg-${action.color}-700 transition-colors duration-300`}
+                                className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors duration-300"
                               >
                                 {action.label}
                               </Link>
@@ -401,9 +420,22 @@ export default function Order() {
                               <button
                                 key={index}
                                 onClick={action.onClick}
-                                className={`px-6 py-2 bg-${action.color}-600 text-white rounded-lg font-medium hover:bg-${action.color}-700 transition-colors duration-300`}
+                                disabled={
+                                  (action.label === 'Cancel Order' && cancellingOrder === order.id) ||
+                                  (action.label === 'Request Return' && returningOrder === order.id)
+                                }
+                                className={`px-6 py-2 ${action.color === 'red' ? 'bg-red-600 hover:bg-red-700' : 'bg-purple-600 hover:bg-purple-700'
+                                  } text-white rounded-lg font-medium transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2`}
                               >
-                                {action.label}
+                                {((action.label === 'Cancel Order' && cancellingOrder === order.id) ||
+                                  (action.label === 'Request Return' && returningOrder === order.id)) ? (
+                                  <>
+                                    <LoadingSpinner size="sm" color="white" />
+                                    {action.label === 'Cancel Order' ? 'Cancelling...' : 'Requesting...'}
+                                  </>
+                                ) : (
+                                  action.label
+                                )}
                               </button>
                             )
                           ))}
@@ -427,7 +459,7 @@ export default function Order() {
                 >
                   &laquo;
                 </button>
-                
+
                 {Array.from({ length: Math.min(5, pagination.last_page) }, (_, i) => {
                   let pageNum
                   if (pagination.last_page <= 5) {
@@ -439,22 +471,21 @@ export default function Order() {
                   } else {
                     pageNum = pagination.current_page - 2 + i
                   }
-                  
+
                   return (
                     <button
                       key={i}
                       onClick={() => router.get(pagination.links[pageNum]?.url, {}, { preserveState: true })}
-                      className={`px-4 py-2 border rounded-lg ${
-                        pagination.current_page === pageNum
+                      className={`px-4 py-2 border rounded-lg ${pagination.current_page === pageNum
                           ? 'bg-blue-600 text-white border-blue-600'
                           : 'border-gray-300 hover:bg-gray-50'
-                      }`}
+                        }`}
                     >
                       {pageNum}
                     </button>
                   )
                 })}
-                
+
                 <button
                   onClick={() => router.get(pagination.links[pagination.links.length - 1].url, {}, { preserveState: true })}
                   disabled={pagination.current_page === pagination.last_page}

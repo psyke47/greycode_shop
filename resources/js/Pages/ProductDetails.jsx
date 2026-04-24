@@ -4,6 +4,7 @@ import MainLayout from "../Layouts/MainLayout";
 import { Heart } from "lucide-react";
 import axios from 'axios'; // Add this import
 import toast from 'react-hot-toast';
+import LoadingSpinner from "../Components/LoadingSpinner";
 
 const placeholderSVG =
     "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI0U1RTVFNSIvPjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOTk5Ij5Qcm9kdWN0IEltYWdlPC90ZXh0Pjwvc3ZnPg==";
@@ -22,8 +23,8 @@ export default function ProductDetail({
     const relatedProducts = props.relatedProducts || initialRelated || [];
 
     // Add wishlist state
-    const [wishlistItems, setWishlistItems] = useState([]);
-    const [wishlistLoading, setWishlistLoading] = useState({});
+    /*     const [wishlistItems, setWishlistItems] = useState([]); */
+    const [wishlistLoading, setWishlistLoading] = useState(false);
 
     // Check if product is in wishlist on load
     useEffect(() => {
@@ -48,6 +49,8 @@ export default function ProductDetail({
 
     const [quantity, setQuantity] = useState(1);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+    const [addingToCart, setAddingToCart] = useState(false);
+    const [isInWishlist, setIsInWishlist] = useState(false);
 
     // Add toggleWishlist function
     const toggleWishlist = (productId, e) => {
@@ -59,16 +62,19 @@ export default function ProductDetail({
             return;
         }
 
+        if (wishlistLoading) return;
+
         setWishlistLoading(true);
 
         if (isInWishlist) {
             axios.delete(`/wishlist/remove/${productId}`)
                 .then(response => {
                     setIsInWishlist(false);
-                    console.log('Removed from wishlist:', response.data.message);
+                    toast.success('Removed from wishlist');
                 })
                 .catch(error => {
                     console.error('Error removing from wishlist:', error);
+                    toast.error('Failed to remove from wishlist');
                 })
                 .finally(() => {
                     setWishlistLoading(false);
@@ -77,10 +83,11 @@ export default function ProductDetail({
             axios.post(`/wishlist/add/${productId}`)
                 .then(response => {
                     setIsInWishlist(true);
-                    console.log('Added to wishlist:', response.data.message);
+                    toast.success('Added to wishlist');
                 })
                 .catch(error => {
                     console.error('Error adding to wishlist:', error);
+                    toast.error('Failed to add to wishlist');
                 })
                 .finally(() => {
                     setWishlistLoading(false);
@@ -164,27 +171,28 @@ export default function ProductDetail({
     };
 
     const handleAddToCart = () => {
+        if (addingToCart) return;
+
+        setAddingToCart(true);
+
         router.post(
             `/cart/add/${product.id}`,
-            {
-                quantity: quantity,
-            },
+            { quantity: quantity },
             {
                 preserveScroll: true,
                 onSuccess: (page) => {
                     toast.success('Product added to cart!');
+                    setAddingToCart(false);
                 },
                 onError: (errors) => {
                     console.error("Add to cart errors:", errors);
                     toast.error(errors.message || "Failed to add to cart");
+                    setAddingToCart(false);
                 },
             },
         );
     };
-    // Check if product is in wishlist
-    const isInWishlist = (productId) => {
-        return wishlistItems.includes(productId);
-    };
+
 
     return (
         <MainLayout>
@@ -234,7 +242,7 @@ export default function ProductDetail({
                         <div>
                             {/* Main Image with Wishlist Button */}
                             <div className="bg-white rounded-xl shadow-lg p-4 mb-4 relative">
-                                <div className="relative h-80 sm:h-96 flex items-center justify-center bg-gray-50 rounded-lg overflow-hidden">
+                                <div className="relative h-80 sm:h-96 flex items-center justify-center bg-white rounded-lg overflow-hidden">
                                     <img
                                         src={getImageUrl(mainImage)}
                                         alt={product.name}
@@ -249,12 +257,16 @@ export default function ProductDetail({
                                         onClick={(e) => toggleWishlist(product.id, e)}
                                         disabled={wishlistLoading}
                                         className={`absolute top-4 right-4 p-3 rounded-full z-10 ${isInWishlist
-                                                ? "bg-red-500 text-white"
-                                                : "bg-white/90 text-gray-600 hover:bg-red-50"
+                                            ? "bg-red-500 text-white"
+                                            : "bg-white/90 text-gray-600 hover:bg-red-50"
                                             } shadow-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed`}
                                         aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
                                     >
-                                        <Heart className={`w-6 h-6 ${isInWishlist ? "fill-current" : ""}`} />
+                                        {wishlistLoading ? (
+                                            <LoadingSpinner size="sm" color={isInWishlist ? "white" : "gray"} />
+                                        ) : (
+                                            <Heart className={`w-6 h-6 ${isInWishlist ? "fill-current" : ""}`} />
+                                        )}
                                     </button>
 
                                     {product.is_featured && (
@@ -276,8 +288,8 @@ export default function ProductDetail({
                                                 setSelectedImageIndex(index)
                                             }
                                             className={`flex-shrink-0 w-20 h-20 rounded-lg border-2 overflow-hidden ${selectedImageIndex === index
-                                                    ? "border-blue-500"
-                                                    : "border-gray-200 hover:border-gray-300"
+                                                ? "border-blue-500"
+                                                : "border-gray-200 hover:border-gray-300"
                                                 }`}
                                         >
                                             <img
@@ -320,10 +332,10 @@ export default function ProductDetail({
                                     {product.stock_quantity !== undefined && (
                                         <p
                                             className={`mt-2 text-sm font-medium ${product.stock_quantity > 10
-                                                    ? "text-green-600"
-                                                    : product.stock_quantity > 0
-                                                        ? "text-yellow-600"
-                                                        : "text-red-600"
+                                                ? "text-green-600"
+                                                : product.stock_quantity > 0
+                                                    ? "text-yellow-600"
+                                                    : "text-red-600"
                                                 }`}
                                         >
                                             {product.stock_quantity > 10
@@ -351,61 +363,52 @@ export default function ProductDetail({
 
                                 {/* Quantity and Add to Cart */}
                                 <div className="mb-8">
-                                    <div className="flex items-center space-x-4 mb-6">
-                                        <div className="flex items-center border border-gray-300 rounded-lg">
-                                            <button
-                                                onClick={decrementQuantity}
-                                                disabled={quantity <= 1}
-                                                className="px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                                            >
-                                                −
-                                            </button>
-                                            <input
-                                                type="number"
-                                                min="1"
-                                                max={
-                                                    product.stock_quantity ||
-                                                    999
-                                                }
-                                                value={quantity}
-                                                onChange={handleQuantityChange}
-                                                className="w-16 text-center border-0 focus:ring-0 focus:outline-none"
-                                            />
-                                            <button
-                                                onClick={incrementQuantity}
-                                                disabled={
-                                                    quantity >=
-                                                    (product.stock_quantity ||
-                                                        999)
-                                                }
-                                                className="px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                                            >
-                                                +
-                                            </button>
-                                        </div>
-                                        <div className="text-sm text-gray-600">
-                                            Available:{" "}
-                                            {product.stock_quantity !==
-                                                undefined
-                                                ? product.stock_quantity
-                                                : "N/A"}
-                                        </div>
-                                    </div>
+    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 lg:justify-between">
+        {/* Quantity Selector */}
+        <div className="flex items-center border border-gray-300 rounded-lg">
+            <button
+                onClick={decrementQuantity}
+                disabled={quantity <= 1}
+                className="px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                −
+            </button>
+            <input
+                type="number"
+                min="1"
+                max={product.stock_quantity || 999}
+                value={quantity}
+                onChange={handleQuantityChange}
+                className="w-16 text-center border-0 focus:ring-0 focus:outline-none"
+            />
+            <button
+                onClick={incrementQuantity}
+                disabled={quantity >= (product.stock_quantity || 999)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                +
+            </button>
+        </div>
 
-                                    <div className="flex flex-col sm:flex-row gap-4">
-                                        <button
-                                            onClick={handleAddToCart}
-                                            disabled={
-                                                product.stock_quantity === 0
-                                            }
-                                            className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                                        >
-                                            {product.stock_quantity === 0
-                                                ? "Out of Stock"
-                                                : "Add to Cart"}
-                                        </button>
-                                    </div>
-                                </div>
+        {/* Add to Cart Button */}
+        <button
+            onClick={handleAddToCart}
+            disabled={product.stock_quantity === 0 || addingToCart}
+            className="flex-1 sm:flex-initial bg-greycode-light-blue text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+            {addingToCart ? (
+                <>
+                    <LoadingSpinner size="sm" color="white" />
+                    Adding to Cart...
+                </>
+            ) : product.stock_quantity === 0 ? (
+                "Out of Stock"
+            ) : (
+                "Add to Cart"
+            )}
+        </button>
+    </div>
+</div>
 
                                 {/* Product Details */}
                                 <div className="border-t border-gray-200 pt-6">
@@ -429,8 +432,8 @@ export default function ProductDetail({
                                         <dd className="text-sm">
                                             <span
                                                 className={`px-2 py-1 rounded-full ${product.is_active
-                                                        ? "bg-green-100 text-green-800"
-                                                        : "bg-red-100 text-red-800"
+                                                    ? "bg-green-100 text-green-800"
+                                                    : "bg-red-100 text-red-800"
                                                     }`}
                                             >
                                                 {product.is_active
@@ -444,8 +447,8 @@ export default function ProductDetail({
                                         <dd className="text-sm">
                                             <span
                                                 className={`px-2 py-1 rounded-full ${product.is_featured
-                                                        ? "bg-blue-100 text-blue-800"
-                                                        : "bg-gray-100 text-gray-800"
+                                                    ? "bg-blue-100 text-blue-800"
+                                                    : "bg-gray-100 text-gray-800"
                                                     }`}
                                             >
                                                 {product.is_featured

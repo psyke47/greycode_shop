@@ -15,6 +15,8 @@ import PageHead from "../Components/PageHead";
 import PayfastLogo from "/public/images/Payfast-logo.png";
 import AddressSearch from "../Components/AddressSearch";
 import toast from 'react-hot-toast';
+import LoadingSpinner from "../Components/LoadingSpinner";
+import axios from "axios";
 
 export default function Checkout({
     cart,
@@ -1141,15 +1143,17 @@ export default function Checkout({
                                             />
                                             <button
                                                 onClick={applyCoupon}
-                                                disabled={
-                                                    isApplyingCoupon ||
-                                                    !couponCode.trim()
-                                                }
-                                                className="bg-blue-600 text-white px-4 py-2 rounded-r-lg font-medium hover:bg-blue-700 transition-colors duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                                disabled={isApplyingCoupon || !couponCode.trim()}
+                                                className="bg-blue-600 text-white px-4 py-2 rounded-r-lg font-medium hover:bg-blue-700 transition-colors duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-w-[80px]"
                                             >
-                                                {isApplyingCoupon
-                                                    ? "Applying..."
-                                                    : "Apply"}
+                                                {isApplyingCoupon ? (
+                                                    <>
+                                                        <LoadingSpinner size="sm" color="white" />
+                                                        Applying
+                                                    </>
+                                                ) : (
+                                                    'Apply'
+                                                )}
                                             </button>
                                         </div>
                                     ) : (
@@ -1286,42 +1290,16 @@ export default function Checkout({
 
                                     <button
                                         type="submit"
-                                        disabled={processing || isProcessing}
-                                        className={`
-                      w-full mt-6 py-3 px-4 rounded-lg font-medium text-white
-                      transition-all duration-300 flex items-center justify-center
-                      ${processing || isProcessing
-                                                ? "bg-gray-400 cursor-not-allowed"
-                                                : "bg-greycode-light-blue hover:bg-greycode-dark-blue hover:shadow-lg hover:shadow-greycode-mid-blue"
-                                            }
-                    `}
+                                        disabled={isProcessing}
+                                        className="w-full bg-greycode-light-blue text-white py-3 rounded-lg font-medium hover:bg-black hover:scale-105 hover:shadow-lg transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
                                     >
-                                        {processing || isProcessing ? (
+                                        {isProcessing ? (
                                             <>
-                                                <svg
-                                                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    fill="none"
-                                                    viewBox="0 0 24 24"
-                                                >
-                                                    <circle
-                                                        className="opacity-25"
-                                                        cx="12"
-                                                        cy="12"
-                                                        r="10"
-                                                        stroke="currentColor"
-                                                        strokeWidth="4"
-                                                    ></circle>
-                                                    <path
-                                                        className="opacity-75"
-                                                        fill="currentColor"
-                                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                                    ></path>
-                                                </svg>
-                                                Processing...
+                                                <LoadingSpinner size="sm" color="white" />
+                                                Processing Order...
                                             </>
                                         ) : (
-                                            "Place Order"
+                                            'Place Order'
                                         )}
                                     </button>
 
