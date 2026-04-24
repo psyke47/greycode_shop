@@ -3,6 +3,8 @@ import { Head, Link, usePage, router } from '@inertiajs/react'
 import MainLayout from '../Layouts/MainLayout'
 import PageHead from '../Components/PageHead'
 import toast from 'react-hot-toast'
+import LoadingSpinner from '../Components/LoadingSpinner'
+import { Trash2 } from 'lucide-react'
 
 
 const placeholderSVG = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI0U1RTVFNSIvPjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOTk5Ij5Qcm9kdWN0PC90ZXh0Pjwvc3ZnPg=='
@@ -16,6 +18,11 @@ export default function Cart({ cart: initialCart }) {
   const [couponCode, setCouponCode] = useState('')
   const [couponApplied, setCouponApplied] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+
+  const [updatingItem, setUpdatingItem] = useState(null);
+  const [removingItem, setRemovingItem] = useState(null);
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
+  const [clearingCart, setClearingCart] = useState(false);
 
   // Load cart data from props
   useEffect(() => {
@@ -44,54 +51,67 @@ export default function Cart({ cart: initialCart }) {
   }
 
   // Update quantity using Inertia router
-  const updateQuantity = (itemId, newQuantity) => {
-    router.put(`/cart/update/${itemId}`, {
-      quantity: newQuantity
-    }, {
-      preserveScroll: true,
-      onSuccess: (page) => {
-        // Update local state if needed
-        setCartItems(prev => prev.map(item =>
-          item.id === itemId ? { ...item, quantity: newQuantity } : item
-        ));
-      },
-
-      onError: (errors) => {
-        toast.error(errors.message || 'Failed to update quantity');
-      }
-    })
-  }
+ const handleQuantityChange = (itemId, newQuantity) => {
+  if (newQuantity < 1) return;
+  
+  setUpdatingItem(itemId);  // ADD THIS
+  
+  router.put(`/cart/update/${itemId}`, {
+    quantity: newQuantity
+  }, {
+    preserveScroll: true,
+    onSuccess: (page) => {
+      setCartItems(prev => prev.map(item =>
+        item.id === itemId ? { ...item, quantity: newQuantity } : item
+      ));
+      setUpdatingItem(null);  // ADD THIS
+    },
+    onError: (errors) => {
+      toast.error(errors.message || 'Failed to update quantity');
+      setUpdatingItem(null);  // ADD THIS
+    }
+  })
+}
 
   // Remove item from cart using Inertia router
-  const removeItem = (itemId) => {
-    if (!confirm('Are you sure you want to remove this item?')) return
+  const handleRemoveItem = (itemId) => {
+  if (!confirm('Are you sure you want to remove this item?')) return;
+  
+  setRemovingItem(itemId);  // ADD THIS
 
-    router.delete(`/cart/remove/${itemId}`, {
-      preserveScroll: true,
-      onSuccess: () => {
-        // Update local state
-        setCartItems(items => items.filter(item => item.id !== itemId))
-      },
-      onError: (errors) => {
-        toast.error(errors.message || 'Failed to remove item');
-      }
-    })
-  }
+  router.delete(`/cart/remove/${itemId}`, {
+    preserveScroll: true,
+    onSuccess: () => {
+      setCartItems(items => items.filter(item => item.id !== itemId));
+      setRemovingItem(null);  // ADD THIS
+      toast.success('Item removed from cart');  // ADD THIS
+    },
+    onError: (errors) => {
+      toast.error(errors.message || 'Failed to remove item');
+      setRemovingItem(null);  // ADD THIS
+    }
+  })
+}
 
   // Clear entire cart using Inertia router
-  const clearCart = () => {
-    if (!confirm('Are you sure you want to clear your cart?')) return
+const handleClearCart = () => {
+  if (!confirm('Are you sure you want to clear your cart?')) return;
+  
+  setClearingCart(true);  // ADD THIS
 
-    router.delete('/cart/clear', {
-      preserveScroll: true,
-      onSuccess: () => {
-        setCartItems([])
-      },
-      onError: (errors) => {
-        toast.error(errors.message || 'Failed to clear cart');
-      }
-    })
-  }
+  router.delete('/cart/clear', {
+    preserveScroll: true,
+    onSuccess: () => {
+      setCartItems([]);
+      setClearingCart(false);  // ADD THIS
+      toast.success('Cart cleared');  // ADD THIS
+    },
+    onError: (errors) => {
+      toast.error(errors.message || 'Failed to clear cart');
+      setClearingCart(false);  // ADD THIS
+    }
+  })
+}
 
   // Calculate totals based on database data
   const subtotal = cartItems.reduce((sum, item) => {
@@ -104,18 +124,25 @@ export default function Cart({ cart: initialCart }) {
   const total = subtotal + shipping + tax - discount
 
   // Apply coupon
-  const applyCoupon = () => {
-    if (couponCode.trim() === '') {
-      toast.error('Please enter a coupon code');
-      return;
-    }
+const handleApplyCoupon = () => {
+  if (couponCode.trim() === '') {
+    toast.error('Please enter a coupon code');
+    return;
+  }
+  
+  setApplyingCoupon(true);  // ADD THIS
+  
+  // Simulate API call delay
+  setTimeout(() => {
     if (couponCode.toUpperCase() === 'GREYCODE10') {
       setCouponApplied(true);
       toast.success('Coupon applied! 10% discount added.');
     } else {
       toast.error('Invalid coupon code.');
     }
-  };
+    setApplyingCoupon(false);
+  }, 500);
+};
 
   const continueShopping = () => {
     window.history.back()
@@ -219,13 +246,21 @@ export default function Cart({ cart: initialCart }) {
                   <div className="p-6 border-b border-gray-100 flex justify-between items-center">
                     <h2 className="text-xl font-bold text-gray-900">Cart Items</h2>
                     <button
-                      onClick={clearCart}
-                      className="text-red-600 hover:text-red-800 font-medium flex items-center"
+                      onClick={handleClearCart}
+                      disabled={clearingCart}
+                      className="text-red-600 hover:text-red-800 disabled:opacity-50 flex items-center gap-2"
                     >
-                      <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                      Clear Cart
+                      {clearingCart ? (
+                        <>
+                          <LoadingSpinner size="sm" color="gray" />
+                          Clearing...
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 className="w-4 h-4" />
+                          Clear Cart
+                        </>
+                      )}
                     </button>
                   </div>
 
@@ -302,21 +337,25 @@ export default function Cart({ cart: initialCart }) {
 
                                   <div className="flex items-center space-x-4">
                                     {/* Quantity Selector */}
-                                    <div className="flex items-center border border-gray-300 rounded-lg">
+                                    <div className="flex items-center border rounded-lg">
                                       <button
-                                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                        className="px-3 py-1 text-gray-600 hover:text-gray-900 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                                        disabled={item.quantity <= 1}
+                                        onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                                        disabled={updatingItem === item.id}
+                                        className="px-3 py-1 hover:bg-gray-100 disabled:opacity-50"
                                       >
-                                        −
+                                        -
                                       </button>
-                                      <span className="px-4 py-1 text-lg font-medium min-w-12 text-center">
-                                        {item.quantity}
+                                      <span className="px-4 py-1 min-w-[40px] text-center">
+                                        {updatingItem === item.id ? (
+                                          <LoadingSpinner size="sm" color="gray" />
+                                        ) : (
+                                          item.quantity
+                                        )}
                                       </span>
                                       <button
-                                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                        className="px-3 py-1 text-gray-600 hover:text-gray-900 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                                        disabled={!inStock}
+                                        onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                                        disabled={updatingItem === item.id}
+                                        className="px-3 py-1 hover:bg-gray-100 disabled:opacity-50"
                                       >
                                         +
                                       </button>
@@ -324,13 +363,15 @@ export default function Cart({ cart: initialCart }) {
 
                                     {/* Remove Button */}
                                     <button
-                                      onClick={() => removeItem(item.id)}
-                                      className="text-red-600 hover:text-red-800 p-2"
-                                      title="Remove item"
+                                      onClick={() => handleRemoveItem(item.id)}
+                                      disabled={removingItem === item.id}
+                                      className="text-red-600 hover:text-red-800 disabled:opacity-50"
                                     >
-                                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                      </svg>
+                                      {removingItem === item.id ? (
+                                        <LoadingSpinner size="sm" color="gray" />
+                                      ) : (
+                                        'Remove'
+                                      )}
                                     </button>
                                   </div>
 
@@ -368,9 +409,9 @@ export default function Cart({ cart: initialCart }) {
 
                   {/* Coupon Code */}
                   <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {/* <label className="block text-sm font-medium text-gray-700 mb-2">
                       Coupon Code
-                    </label>
+                    </label> */}
                     <div className="flex">
                       <input
                         type="text"
@@ -380,10 +421,18 @@ export default function Cart({ cart: initialCart }) {
                         className="flex-1 px-4 py-2 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       />
                       <button
-                        onClick={applyCoupon}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-r-lg font-medium hover:bg-blue-700 transition-colors duration-300"
+                        onClick={handleApplyCoupon}
+                        disabled={applyingCoupon || !couponCode.trim()}
+                        className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-black disabled:opacity-50 flex items-center gap-2"
                       >
-                        Apply
+                        {applyingCoupon ? (
+                          <>
+                            <LoadingSpinner size="sm" color="white" />
+                            Applying...
+                          </>
+                        ) : (
+                          'Apply'
+                        )}
                       </button>
                     </div>
                     {couponApplied && (
@@ -449,7 +498,7 @@ export default function Cart({ cart: initialCart }) {
                   <button
                     onClick={proceedToCheckout}
                     className="w-full bg-green-600 text-white py-4 px-6 rounded-lg font-bold text-lg hover:bg-green-700 transition-colors duration-300 mb-4 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                    disabled={cartItems.length === 0 || cartItems.some(item => !isInStock(item))}
+                    disabled={cartItems.length === 0}
                   >
                     Proceed to Checkout
                   </button>
@@ -462,7 +511,7 @@ export default function Cart({ cart: initialCart }) {
 
                   {/* Payment Methods */}
                   <div className="border-t border-gray-200 pt-4">
-                    <p className="text-sm text-gray-600 mb-3">Secure payment with:</p>
+                    {/* <p className="text-sm text-gray-600 mb-3">Secure payment with:</p>
                     <div className="flex space-x-3">
                       <div className="w-10 h-6 bg-blue-500 rounded flex items-center justify-center text-white text-xs font-bold">
                         VISA
@@ -476,7 +525,7 @@ export default function Cart({ cart: initialCart }) {
                       <div className="w-10 h-6 bg-gray-800 rounded flex items-center justify-center text-white text-xs font-bold">
                         COD
                       </div>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               </div>

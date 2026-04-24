@@ -4,6 +4,7 @@ import MainLayout from '../Layouts/MainLayout';
 import axios from 'axios';
 import { Heart, ShoppingCart, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import LoadingSpinner from '../Components/LoadingSpinner';
 
 const placeholderSVG = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI0U1RTVFNSIvPjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOTk5Ij5Qcm9kdWN0IEltYWdlPC90ZXh0Pjwvc3ZnPg==';
 
@@ -11,6 +12,7 @@ export default function Wishlist() {
     const [wishlistItems, setWishlistItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [cartLoading, setCartLoading] = useState({});
+    const [removingItems, setRemovingItems] = useState({});
 
     useEffect(() => {
         fetchWishlist();
@@ -28,31 +30,35 @@ export default function Wishlist() {
             });
     };
 
-   const removeFromWishlist = (productId) => {
-    axios.delete(`/wishlist/remove/${productId}`)
-        .then(() => {
-            setWishlistItems(prev => prev.filter(item => item.id !== productId));
-            toast.success('Removed from wishlist');
-        })
-        .catch(error => {
-            console.error('Error removing:', error);
-            toast.error('Failed to remove from wishlist');
-        });
-};
+    const removeFromWishlist = (productId) => {
+        setRemovingItems(prev => ({ ...prev, [productId]: true }));
+
+        axios.delete(`/wishlist/remove/${productId}`)
+            .then(() => {
+                setWishlistItems(prev => prev.filter(item => item.id !== productId));
+                toast.success('Removed from wishlist');
+            })
+            .catch(error => {
+                console.error('Error removing:', error);
+                toast.error('Failed to remove from wishlist');
+            })
+            .finally(() => {
+                setRemovingItems(prev => ({ ...prev, [productId]: false }));
+            });
+    };
 
     const addToCart = (productId) => {
-        // Prevent double-clicks
         if (cartLoading[productId]) return;
-        
+
         setCartLoading(prev => ({ ...prev, [productId]: true }));
 
         router.post(
-            `/cart/add/${productId}`, 
+            `/cart/add/${productId}`,
             { quantity: 1 },
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    // Remove from wishlist after adding to cart
+                    toast.success('Product added to cart!');
                     removeFromWishlist(productId);
                     setCartLoading(prev => ({ ...prev, [productId]: false }));
                 },
@@ -145,18 +151,27 @@ export default function Wishlist() {
                                             <div className="flex space-x-2">
                                                 <button
                                                     onClick={() => addToCart(product.id)}
-                                                    disabled={cartLoading[product.id]}
-                                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    disabled={cartLoading[product.id] || removingItems[product.id]}
+                                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed relative"
                                                     title="Add to Cart"
                                                 >
-                                                    <ShoppingCart className="w-5 h-5" />
+                                                    {cartLoading[product.id] ? (
+                                                        <LoadingSpinner size="sm" color="blue" />
+                                                    ) : (
+                                                        <ShoppingCart className="w-5 h-5" />
+                                                    )}
                                                 </button>
                                                 <button
                                                     onClick={() => removeFromWishlist(product.id)}
-                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                                                    disabled={removingItems[product.id] || cartLoading[product.id]}
+                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed relative"
                                                     title="Remove from Wishlist"
                                                 >
-                                                    <Trash2 className="w-5 h-5" />
+                                                    {removingItems[product.id] ? (
+                                                        <LoadingSpinner size="sm" color="red" />
+                                                    ) : (
+                                                        <Trash2 className="w-5 h-5" />
+                                                    )}
                                                 </button>
                                             </div>
                                         </div>
