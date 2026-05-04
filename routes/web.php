@@ -73,7 +73,8 @@ Route::get('/signup', function () {
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login'])
+        ->middleware('throttle:5,10'); // Limit to 5 attempts per minute
     Route::get('/signup', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
 });
@@ -87,9 +88,6 @@ Route::get('/test-redirect', function () {
     return redirect('/test-destination');
 });
 
-Route::get('/test-destination', function () {
-    return Inertia::render('Test', ['message' => 'Redirect worked!']);
-});
 
 //Product routes
 Route::get('/products', [ProductController::class, 'index'])->name('products');
