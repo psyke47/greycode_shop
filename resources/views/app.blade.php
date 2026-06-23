@@ -13,11 +13,11 @@
     <link rel="manifest" href="/images/favicons/site.webmanifest" />
 
 <script async
-    src="https://maps.googleapis.com/maps/api/js?key={{ env('VITE_GOOGLE_MAPS_API_KEY') }}&loading=async&libraries=places&callback=Function.prototype">
+    src="https://maps.googleapis.com/maps/api/js?key={{ env('VITE_Google_MAPS_API_KEY') }}&loading=async&libraries=places&callback=Function.prototype">
 </script>
 
-    @viteReactRefresh
-    @vite(['resources/css/app.css', 'resources/js/app.jsx']) 
+    <link rel="stylesheet" href="{{ asset('build/assets/app-DOXoX807.css') }}">
+    <script type="module" src="{{ asset('build/assets/app-C68igyUj.js') }}"></script>
     @inertiaHead
 </head>
 <body>
