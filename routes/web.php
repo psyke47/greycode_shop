@@ -19,6 +19,7 @@ use App\Http\Controllers\CouponController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\SitemapController;
 
 Route::get('/', function () {
     return Inertia::render('Homepage', ['name' => 'Greycode Shop']);
@@ -210,3 +211,13 @@ Route::post('/contact', [ContactController::class, 'store'])->name('contact.stor
     Route::put('/notifications/{notification}/read', [Admin\NotificationController::class, 'markAsRead'])->name('admin.notifications.read');
     Route::put('/notifications/read-all', [Admin\NotificationController::class, 'markAllAsRead'])->name('admin.notifications.read-all');
 }); */
+
+Route::get('/test-404', function () {
+    return Inertia::render('Errors/NotFound');
+});
+
+Route::get('/test-500', function () {
+    return Inertia::render('Errors/ServerError');
+});
+
+Route::get('/sitemap.xml', [SitemapController::class, 'index']);
