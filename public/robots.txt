@@ -1,2 +1,4 @@
 User-agent: *
 Disallow:
+Allow: /
+Sitemap: https://store.greycode.co.za/sitemap.xml

@@ -334,7 +334,15 @@ export default function Products({
 
     return (
         <MainLayout>
-            <PageHead title="Products" />
+            <PageHead
+                title="Products"
+                meta={[
+                    { name: 'description', content: 'Shop our full range of electronic components, DIY kits, IoT sensors, and smart home devices. Fast, reliable delivery across South Africa.' },
+                    { name: 'keywords', content: 'electronic components, DIY electronics, Arduino, Raspberry Pi, IoT kits, smart home, South Africa' },
+                ]}
+            >
+                <link rel="canonical" href="https://store.greycode.co.za/products" />
+            </PageHead>
 
             <section className="py-8 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-7xl mx-auto">
