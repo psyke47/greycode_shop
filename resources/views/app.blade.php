@@ -17,7 +17,7 @@
 </script>
 
     <link rel="stylesheet" href="{{ asset('build/assets/app-DOXoX807.css') }}">
-    <script type="module" src="{{ asset('build/assets/app-C68igyUj.js') }}"></script>
+    <script type="module" src="{{ asset('build/assets/pp-YQStDm48.js') }}"></script>
     @inertiaHead
 </head>
 <body>
