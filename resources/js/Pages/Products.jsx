@@ -46,6 +46,7 @@ export default function Products({
     const products = props.products || initialProducts || [];
     const categories = props.categories || initialCategories || [];
     const [cartLoading, setCartLoading] = useState({});
+    const [showBackToTop, setShowBackToTop] = useState(false);
 
     // Initialize temp filters with all categories
     useEffect(() => {
@@ -319,10 +320,29 @@ export default function Products({
             },
         });
     };
+    useEffect(() => {
+        const handleScroll = () => {
+            setShowBackToTop(window.scrollY > 300);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    const scrollToTop = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     return (
         <MainLayout>
-            <PageHead title="Products" />
+            <PageHead
+                title="Products"
+                meta={[
+                    { name: 'description', content: 'Shop our full range of electronic components, DIY kits, IoT sensors, and smart home devices. Fast, reliable delivery across South Africa.' },
+                    { name: 'keywords', content: 'electronic components, DIY electronics, Arduino, Raspberry Pi, IoT kits, smart home, South Africa' },
+                ]}
+            >
+                <link rel="canonical" href="https://store.greycode.co.za/products" />
+            </PageHead>
 
             <section className="py-8 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-7xl mx-auto">
@@ -839,6 +859,17 @@ export default function Products({
                     </div>
                 </div>
             </section>
+            {showBackToTop && (
+                <button
+                    onClick={scrollToTop}
+                    className="fixed bottom-6 right-6 z-50 p-3 bg-greycode-light-blue text-white rounded-full shadow-lg hover:bg-black hover:scale-105 focus:ring focus:ring-white focus:ring-2 transition-all duration-300 animate-fade-in"
+                    aria-label="Back to top"
+                >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                    </svg>
+                </button>
+            )}
         </MainLayout>
     );
 }

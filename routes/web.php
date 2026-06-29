@@ -19,6 +19,7 @@ use App\Http\Controllers\CouponController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\SitemapController;
 
 Route::get('/', function () {
     return Inertia::render('Homepage', ['name' => 'Greycode Shop']);
@@ -73,7 +74,8 @@ Route::get('/signup', function () {
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login'])
+        ->middleware('throttle:5,10'); // Limit to 5 attempts per minute
     Route::get('/signup', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
 });
@@ -87,9 +89,6 @@ Route::get('/test-redirect', function () {
     return redirect('/test-destination');
 });
 
-Route::get('/test-destination', function () {
-    return Inertia::render('Test', ['message' => 'Redirect worked!']);
-});
 
 //Product routes
 Route::get('/products', [ProductController::class, 'index'])->name('products');
@@ -212,3 +211,13 @@ Route::post('/contact', [ContactController::class, 'store'])->name('contact.stor
     Route::put('/notifications/{notification}/read', [Admin\NotificationController::class, 'markAsRead'])->name('admin.notifications.read');
     Route::put('/notifications/read-all', [Admin\NotificationController::class, 'markAllAsRead'])->name('admin.notifications.read-all');
 }); */
+
+Route::get('/test-404', function () {
+    return Inertia::render('Errors/NotFound');
+});
+
+Route::get('/test-500', function () {
+    return Inertia::render('Errors/ServerError');
+});
+
+Route::get('/sitemap.xml', [SitemapController::class, 'index']);

@@ -5,6 +5,7 @@ import { Heart } from "lucide-react";
 import axios from 'axios'; // Add this import
 import toast from 'react-hot-toast';
 import LoadingSpinner from "../Components/LoadingSpinner";
+import PageHead from "../Components/PageHead";
 
 const placeholderSVG =
     "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI0U1RTVFNSIvPjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOTk5Ij5Qcm9kdWN0IEltYWdlPC90ZXh0Pjwvc3ZnPg==";
@@ -196,7 +197,35 @@ export default function ProductDetail({
 
     return (
         <MainLayout>
-            <Head title={product.name} />
+            <PageHead
+                title={product.name}
+                meta={[
+                    { name: 'description', content: `Buy ${product.name} for only R ${product.price}. ${product.description?.substring(0, 150)}. Fast delivery in South Africa.` },
+                    { name: 'keywords', content: `${product.name}, ${category.name}, electronic component, buy online South Africa` },
+                ]}
+            >
+                <link rel="canonical" href={`https://store.greycode.co.za/products/${product.id}`} />
+                <script type="application/ld+json">
+                    {JSON.stringify({
+                        "@context": "https://schema.org/",
+                        "@type": "Product",
+                        "name": product.name,
+                        "image": getImageUrl(mainImage),
+                        "description": product.description?.substring(0, 200),
+                        "sku": product.sku || product.id,
+                        "offers": {
+                            "@type": "Offer",
+                            "url": `https://store.greycode.co.za/products/${product.id}`,
+                            "priceCurrency": "ZAR",
+                            "price": product.price,
+                            "itemCondition": "https://schema.org/NewCondition",
+                            "availability": product.stock_quantity > 0
+                                ? "https://schema.org/InStock"
+                                : "https://schema.org/OutOfStock"
+                        }
+                    })}
+                </script>
+            </PageHead>
 
             <div className="py-8 px-4 sm:px-6 lg:px-8 bg-gray-50">
                 <div className="max-w-7xl mx-auto">
@@ -363,52 +392,52 @@ export default function ProductDetail({
 
                                 {/* Quantity and Add to Cart */}
                                 <div className="mb-8">
-    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 lg:justify-between">
-        {/* Quantity Selector */}
-        <div className="flex items-center border border-gray-300 rounded-lg">
-            <button
-                onClick={decrementQuantity}
-                disabled={quantity <= 1}
-                className="px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-                −
-            </button>
-            <input
-                type="number"
-                min="1"
-                max={product.stock_quantity || 999}
-                value={quantity}
-                onChange={handleQuantityChange}
-                className="w-16 text-center border-0 focus:ring-0 focus:outline-none"
-            />
-            <button
-                onClick={incrementQuantity}
-                disabled={quantity >= (product.stock_quantity || 999)}
-                className="px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-                +
-            </button>
-        </div>
+                                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 lg:justify-between">
+                                        {/* Quantity Selector */}
+                                        <div className="flex items-center border border-gray-300 rounded-lg">
+                                            <button
+                                                onClick={decrementQuantity}
+                                                disabled={quantity <= 1}
+                                                className="px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                −
+                                            </button>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                max={product.stock_quantity || 999}
+                                                value={quantity}
+                                                onChange={handleQuantityChange}
+                                                className="w-16 text-center border-0 focus:ring-0 focus:outline-none"
+                                            />
+                                            <button
+                                                onClick={incrementQuantity}
+                                                disabled={quantity >= (product.stock_quantity || 999)}
+                                                className="px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                +
+                                            </button>
+                                        </div>
 
-        {/* Add to Cart Button */}
-        <button
-            onClick={handleAddToCart}
-            disabled={product.stock_quantity === 0 || addingToCart}
-            className="flex-1 sm:flex-initial bg-greycode-light-blue text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-        >
-            {addingToCart ? (
-                <>
-                    <LoadingSpinner size="sm" color="white" />
-                    Adding to Cart...
-                </>
-            ) : product.stock_quantity === 0 ? (
-                "Out of Stock"
-            ) : (
-                "Add to Cart"
-            )}
-        </button>
-    </div>
-</div>
+                                        {/* Add to Cart Button */}
+                                        <button
+                                            onClick={handleAddToCart}
+                                            disabled={product.stock_quantity === 0 || addingToCart}
+                                            className="flex-1 sm:flex-initial bg-greycode-light-blue text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                        >
+                                            {addingToCart ? (
+                                                <>
+                                                    <LoadingSpinner size="sm" color="white" />
+                                                    Adding to Cart...
+                                                </>
+                                            ) : product.stock_quantity === 0 ? (
+                                                "Out of Stock"
+                                            ) : (
+                                                "Add to Cart"
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
 
                                 {/* Product Details */}
                                 <div className="border-t border-gray-200 pt-6">
