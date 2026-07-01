@@ -4,6 +4,7 @@ import Footer from "../Components/Footer";
 import { usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { Toaster, toast } from 'react-hot-toast';
+import GoogleAnalytics from '../Components/GoogleAnalytics';
 
 const MainLayout = ({ children }) => {
     const { props, flash } = usePage();
@@ -34,6 +35,11 @@ const MainLayout = ({ children }) => {
 
     return (
         <div className="min-h-screen bg-gray-50">
+            {/* GA4 - only in production */}
+            {import.meta.env.VITE_GOOGLE_ANALYTICS_ID && import.meta.env.APP_ENV === 'production' && (
+                <GoogleAnalytics />
+            )}
+
             <NavBar wishlistCount={wishlistCount} />
             <main>{children}</main>
             <Footer />

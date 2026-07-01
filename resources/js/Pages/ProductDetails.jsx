@@ -6,6 +6,7 @@ import axios from 'axios'; // Add this import
 import toast from 'react-hot-toast';
 import LoadingSpinner from "../Components/LoadingSpinner";
 import PageHead from "../Components/PageHead";
+import { trackViewItem } from '@/utils/analytics';
 
 const placeholderSVG =
     "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI0U1RTVFNSIvPjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOTk5Ij5Qcm9kdWN0IEltYWdlPC90ZXh0Pjwvc3ZnPg==";
@@ -193,6 +194,12 @@ export default function ProductDetail({
             },
         );
     };
+
+    useEffect(() => {
+        if (product) {
+            trackViewItem(product);
+        }
+    }, [product]);
 
 
     return (
