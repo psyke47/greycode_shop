@@ -15,9 +15,9 @@
 <script async
     src="https://maps.googleapis.com/maps/api/js?key={{ env('VITE_Google_MAPS_API_KEY') }}&loading=async&libraries=places&callback=Function.prototype">
 </script>
-
-    <link rel="stylesheet" href="{{ asset('build/assets/app-DOXoX807.css') }}">
-    <script type="module" src="{{ asset('build/assets/pp-YQStDm48.js') }}"></script>
+    @viteReactRefresh
+    @vite(['resources/css/app.css', 'resources/js/app.jsx'])
+    
     @inertiaHead
 </head>
 <body>
