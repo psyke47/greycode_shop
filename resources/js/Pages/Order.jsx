@@ -5,6 +5,7 @@ import PageHead from '../Components/PageHead'
 import { ExternalLink } from 'lucide-react'
 import LoadingSpinner from '../Components/LoadingSpinner';
 import toast from 'react-hot-toast';
+import { trackPurchase } from '../utilis/analytics';
 
 
 export default function Order() {
@@ -16,6 +17,17 @@ export default function Order() {
   const { post } = useForm()
   const [cancellingOrder, setCancellingOrder] = useState(null);
   const [returningOrder, setReturningOrder] = useState(null);
+
+  const [purchaseTracked, setPurchaseTracked] = useState(false);
+
+  useEffect(() => {
+    // Track purchase when order is loaded
+    if (orders && orders.length > 0 && !purchaseTracked) {
+      const latestOrder = orders[0]; // Assuming latest order is first
+      trackPurchase(latestOrder, latestOrder.items || []);
+      setPurchaseTracked(true);
+    }
+  }, [orders, purchaseTracked]);
 
   // Debounced search
   useEffect(() => {
@@ -320,8 +332,8 @@ export default function Order() {
                           <p className="text-gray-600">Placed on {order.date}</p>
                           <p className="text-gray-600 text-sm mt-1">
                             Payment: <span className={`font-medium ${order.payment_status === 'paid' ? 'text-green-600' :
-                                order.payment_status === 'refunded' ? 'text-red-600' :
-                                  'text-yellow-600'
+                              order.payment_status === 'refunded' ? 'text-red-600' :
+                                'text-yellow-600'
                               }`}>
                               {order.payment_status.charAt(0).toUpperCase() + order.payment_status.slice(1)}
                             </span>
@@ -477,8 +489,8 @@ export default function Order() {
                       key={i}
                       onClick={() => router.get(pagination.links[pageNum]?.url, {}, { preserveState: true })}
                       className={`px-4 py-2 border rounded-lg ${pagination.current_page === pageNum
-                          ? 'bg-blue-600 text-white border-blue-600'
-                          : 'border-gray-300 hover:bg-gray-50'
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'border-gray-300 hover:bg-gray-50'
                         }`}
                     >
                       {pageNum}

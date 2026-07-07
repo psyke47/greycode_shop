@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Head, usePage, Link, router } from "@inertiajs/react";
 import MainLayout from "../Layouts/MainLayout";
 import { Heart } from "lucide-react";
-import axios from 'axios'; // Add this import
+import axios from 'axios';
 import toast from 'react-hot-toast';
 import LoadingSpinner from "../Components/LoadingSpinner";
 import PageHead from "../Components/PageHead";
+import { trackViewItem, trackAddToCart } from '../utilis/analytics'; // ✅ Added trackAddToCart
 
 const placeholderSVG =
     "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI0U1RTVFNSIvPjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOTk5Ij5Qcm9kdWN0IEltYWdlPC90ZXh0Pjwvc3ZnPg==";
@@ -15,7 +16,7 @@ export default function ProductDetail({
     relatedProducts: initialRelated,
 }) {
     const { props } = usePage();
-    const { auth } = usePage().props; // Add this to get auth user
+    const { auth } = usePage().props;
 
     console.log("CSRF token from props:", props.csrf_token);
     console.log("All props:", props);
@@ -23,8 +24,6 @@ export default function ProductDetail({
     const product = props.product || initialProduct;
     const relatedProducts = props.relatedProducts || initialRelated || [];
 
-    // Add wishlist state
-    /*     const [wishlistItems, setWishlistItems] = useState([]); */
     const [wishlistLoading, setWishlistLoading] = useState(false);
 
     // Check if product is in wishlist on load
@@ -174,6 +173,9 @@ export default function ProductDetail({
     const handleAddToCart = () => {
         if (addingToCart) return;
 
+        // ✅ Track add to cart
+        trackAddToCart(product, quantity);
+
         setAddingToCart(true);
 
         router.post(
@@ -194,6 +196,12 @@ export default function ProductDetail({
         );
     };
 
+    // ✅ Track product view
+    useEffect(() => {
+        if (product) {
+            trackViewItem(product);
+        }
+    }, [product]);
 
     return (
         <MainLayout>
@@ -204,7 +212,7 @@ export default function ProductDetail({
                     { name: 'keywords', content: `${product.name}, ${category.name}, electronic component, buy online South Africa` },
                 ]}
             >
-                <link rel="canonical" href={`https://store.greycode.co.za/products/${product.id}`} />
+                <link rel="canonical" href={`https://store.greycode.co.za/products/${product.slug}`} />
                 <script type="application/ld+json">
                     {JSON.stringify({
                         "@context": "https://schema.org/",
@@ -215,7 +223,7 @@ export default function ProductDetail({
                         "sku": product.sku || product.id,
                         "offers": {
                             "@type": "Offer",
-                            "url": `https://store.greycode.co.za/products/${product.id}`,
+                            "url": `https://store.greycode.co.za/products/${product.slug}`, // ✅ CHANGED: using slug
                             "priceCurrency": "ZAR",
                             "price": product.price,
                             "itemCondition": "https://schema.org/NewCondition",
@@ -512,7 +520,7 @@ export default function ProductDetail({
                                     .map((relatedProduct) => (
                                         <Link
                                             key={relatedProduct.id}
-                                            href={`/products/${relatedProduct.id}`}
+                                            href={`/products/${relatedProduct.slug}`} // ✅ CHANGED: using slug instead of id
                                             className="group block bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100"
                                         >
                                             <div className="relative h-48 bg-gray-100 flex items-center justify-center">
