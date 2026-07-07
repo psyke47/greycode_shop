@@ -6,6 +6,7 @@ import { Heart, ShoppingCart } from "lucide-react";
 import axios from "axios";
 import toast from 'react-hot-toast';
 import LoadingSpinner from "../Components/LoadingSpinner";
+import { trackViewItemList, trackSelectItem } from '../utilis/analytics';
 
 // Define the SVG data URL as a string
 const placeholderSVG =
@@ -114,6 +115,12 @@ export default function Products({
                 });
         }
     }, [props.auth?.user]);
+
+    useEffect(() => {
+        if (filteredProducts.length > 0) {
+            trackViewItemList(filteredProducts, 'Product Catalog');
+        }
+    }, [filteredProducts]);
 
     const toggleSection = (section) => {
         setOpenSections((prev) => ({
@@ -330,6 +337,14 @@ export default function Products({
 
     const scrollToTop = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handleProductClick = (product, index) => {
+        // Track product selection
+        trackSelectItem(product, index, 'Product Catalog');
+
+        // Your existing navigation
+        window.location.href = `/products/${product.slug}`;
     };
 
     return (
@@ -751,7 +766,8 @@ export default function Products({
                                         return (
                                             <a
                                                 key={product.id}
-                                                href={`/products/${product.id}`}
+                                                href={`/products/${product.slug}`}
+                                                onClick={() => handleProductClick(product, index)}
                                                 className="group block bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 relative flex flex-col"
                                             >
                                                 {/* Image Container - Fixed height */}

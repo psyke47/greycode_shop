@@ -5,7 +5,7 @@ import PageHead from '../Components/PageHead'
 import toast from 'react-hot-toast'
 import LoadingSpinner from '../Components/LoadingSpinner'
 import { Trash2 } from 'lucide-react'
-import { trackAddToCart } from '../utilis/analytics'
+import { trackAddToCart, trackRemoveFromCart, trackViewCart } from '../utilis/analytics'
 
 
 const placeholderSVG = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI0U1RTVFNSIvPjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOTk5Ij5Qcm9kdWN0PC90ZXh0Pjwvc3ZnPg=='
@@ -52,67 +52,82 @@ export default function Cart({ cart: initialCart }) {
   }
 
   // Update quantity using Inertia router
- const handleQuantityChange = (itemId, newQuantity) => {
-  if (newQuantity < 1) return;
-  
-  setUpdatingItem(itemId);  // ADD THIS
-  
-  router.put(`/cart/update/${itemId}`, {
-    quantity: newQuantity
-  }, {
-    preserveScroll: true,
-    onSuccess: (page) => {
-      setCartItems(prev => prev.map(item =>
-        item.id === itemId ? { ...item, quantity: newQuantity } : item
-      ));
-      setUpdatingItem(null);  // ADD THIS
-    },
-    onError: (errors) => {
-      toast.error(errors.message || 'Failed to update quantity');
-      setUpdatingItem(null);  // ADD THIS
+  const handleQuantityChange = (itemId, newQuantity) => {
+    if (newQuantity < 1) return;
+
+    // Find the item to track
+    const item = cartItems.find(i => i.id === itemId);
+    if (item && newQuantity > item.quantity) {
+      // Track add to cart if quantity increased
+      trackAddToCart(item.product, newQuantity - item.quantity);
+    } else if (item && newQuantity < item.quantity) {
+      // Track remove from cart if quantity decreased
+      trackRemoveFromCart(item.product, item.quantity - newQuantity);
     }
-  })
-}
+
+    setUpdatingItem(itemId);  // ADD THIS
+
+    router.put(`/cart/update/${itemId}`, {
+      quantity: newQuantity
+    }, {
+      preserveScroll: true,
+      onSuccess: (page) => {
+        setCartItems(prev => prev.map(item =>
+          item.id === itemId ? { ...item, quantity: newQuantity } : item
+        ));
+        setUpdatingItem(null);  // ADD THIS
+      },
+      onError: (errors) => {
+        toast.error(errors.message || 'Failed to update quantity');
+        setUpdatingItem(null);  // ADD THIS
+      }
+    })
+  }
 
   // Remove item from cart using Inertia router
   const handleRemoveItem = (itemId) => {
-  if (!confirm('Are you sure you want to remove this item?')) return;
-  
-  setRemovingItem(itemId);  // ADD THIS
+    if (!confirm('Are you sure you want to remove this item?')) return;
 
-  router.delete(`/cart/remove/${itemId}`, {
-    preserveScroll: true,
-    onSuccess: () => {
-      setCartItems(items => items.filter(item => item.id !== itemId));
-      setRemovingItem(null);  // ADD THIS
-      toast.success('Item removed from cart');  // ADD THIS
-    },
-    onError: (errors) => {
-      toast.error(errors.message || 'Failed to remove item');
-      setRemovingItem(null);  // ADD THIS
+    const item = cartItems.find(i => i.id === itemId);
+    if (item) {
+      trackRemoveFromCart(item.product, item.quantity);
     }
-  })
-}
+
+    setRemovingItem(itemId);  // ADD THIS
+
+    router.delete(`/cart/remove/${itemId}`, {
+      preserveScroll: true,
+      onSuccess: () => {
+        setCartItems(items => items.filter(item => item.id !== itemId));
+        setRemovingItem(null);  // ADD THIS
+        toast.success('Item removed from cart');  // ADD THIS
+      },
+      onError: (errors) => {
+        toast.error(errors.message || 'Failed to remove item');
+        setRemovingItem(null);  // ADD THIS
+      }
+    })
+  }
 
   // Clear entire cart using Inertia router
-const handleClearCart = () => {
-  if (!confirm('Are you sure you want to clear your cart?')) return;
-  
-  setClearingCart(true);  // ADD THIS
+  const handleClearCart = () => {
+    if (!confirm('Are you sure you want to clear your cart?')) return;
 
-  router.delete('/cart/clear', {
-    preserveScroll: true,
-    onSuccess: () => {
-      setCartItems([]);
-      setClearingCart(false);  // ADD THIS
-      toast.success('Cart cleared');  // ADD THIS
-    },
-    onError: (errors) => {
-      toast.error(errors.message || 'Failed to clear cart');
-      setClearingCart(false);  // ADD THIS
-    }
-  })
-}
+    setClearingCart(true);  // ADD THIS
+
+    router.delete('/cart/clear', {
+      preserveScroll: true,
+      onSuccess: () => {
+        setCartItems([]);
+        setClearingCart(false);  // ADD THIS
+        toast.success('Cart cleared');  // ADD THIS
+      },
+      onError: (errors) => {
+        toast.error(errors.message || 'Failed to clear cart');
+        setClearingCart(false);  // ADD THIS
+      }
+    })
+  }
 
   // Calculate totals based on database data
   const subtotal = cartItems.reduce((sum, item) => {
@@ -125,25 +140,32 @@ const handleClearCart = () => {
   const total = subtotal + shipping + tax - discount
 
   // Apply coupon
-const handleApplyCoupon = () => {
-  if (couponCode.trim() === '') {
-    toast.error('Please enter a coupon code');
-    return;
-  }
-  
-  setApplyingCoupon(true);  // ADD THIS
-  
-  // Simulate API call delay
-  setTimeout(() => {
-    if (couponCode.toUpperCase() === 'GREYCODE10') {
-      setCouponApplied(true);
-      toast.success('Coupon applied! 10% discount added.');
-    } else {
-      toast.error('Invalid coupon code.');
+  const handleApplyCoupon = () => {
+    if (couponCode.trim() === '') {
+      toast.error('Please enter a coupon code');
+      return;
     }
-    setApplyingCoupon(false);
-  }, 500);
-};
+
+    setApplyingCoupon(true);  // ADD THIS
+
+    // Simulate API call delay
+    setTimeout(() => {
+      if (couponCode.toUpperCase() === 'GREYCODE10') {
+        setCouponApplied(true);
+        toast.success('Coupon applied! 10% discount added.');
+      } else {
+        toast.error('Invalid coupon code.');
+      }
+      setApplyingCoupon(false);
+    }, 500);
+  };
+
+  useEffect(() => {
+    if (cartItems.length > 0) {
+      const total = cartItems.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+      trackViewCart(cartItems, total);
+    }
+  }, [cartItems]);
 
   const continueShopping = () => {
     window.history.back()

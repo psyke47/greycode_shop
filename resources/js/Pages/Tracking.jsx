@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Head, Link, useForm, router, usePage } from "@inertiajs/react";
 import MainLayout from "../Layouts/MainLayout";
 import PageHead from "../Components/PageHead";
+import { trackSearch } from '@/utilis/analytics';
 
 export default function Tracking({
     trackingInfo: initialTrackingInfo,
@@ -20,6 +21,9 @@ export default function Tracking({
 
     const handleSubmit = (e) => {
         e.preventDefault();
+
+        // Track the search
+        trackSearch(data.search_input, trackingInfo ? 1 : 0);
 
         // Determine if input is order number or tracking number
         const searchValue = data.search_input.trim();
@@ -417,20 +421,19 @@ export default function Tracking({
                                                     {/* Left side - Circle and connecting line (except last) */}
                                                     <div className="flex flex-col items-center mr-4">
                                                         <div
-                                                            className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                                                                event.completed
+                                                            className={`w-10 h-10 rounded-full flex items-center justify-center ${event.completed
                                                                     ? event.status ===
-                                                                      "Delivered"
+                                                                        "Delivered"
                                                                         ? "bg-green-500"
                                                                         : event.status ===
                                                                             "Shipped"
-                                                                          ? "bg-blue-500"
-                                                                          : event.status ===
-                                                                              "In Transit"
-                                                                            ? "bg-purple-500"
-                                                                            : "bg-gray-500"
+                                                                            ? "bg-blue-500"
+                                                                            : event.status ===
+                                                                                "In Transit"
+                                                                                ? "bg-purple-500"
+                                                                                : "bg-gray-500"
                                                                     : "bg-gray-300 border-2 border-gray-400"
-                                                            }`}
+                                                                }`}
                                                         >
                                                             {event.completed ? (
                                                                 <svg
@@ -458,25 +461,24 @@ export default function Tracking({
                                                             trackingInfo
                                                                 .timeline
                                                                 .length -
-                                                                1 && (
-                                                            <div className="flex-1 w-0.5 bg-gray-200 mt-2"></div>
-                                                        )}
+                                                            1 && (
+                                                                <div className="flex-1 w-0.5 bg-gray-200 mt-2"></div>
+                                                            )}
                                                     </div>
 
                                                     {/* Right side - Content */}
                                                     <div className="flex-1 pb-6">
                                                         <div
-                                                            className={`rounded-xl p-5 ${
-                                                                event.completed
+                                                            className={`rounded-xl p-5 ${event.completed
                                                                     ? event.status ===
-                                                                      "Delivered"
+                                                                        "Delivered"
                                                                         ? "bg-green-50 border-l-4 border-green-500"
                                                                         : event.status ===
                                                                             "Shipped"
-                                                                          ? "bg-blue-50 border-l-4 border-blue-500"
-                                                                          : "bg-gray-50 border-l-4 border-gray-500"
+                                                                            ? "bg-blue-50 border-l-4 border-blue-500"
+                                                                            : "bg-gray-50 border-l-4 border-gray-500"
                                                                     : "bg-gray-50 border-l-4 border-gray-300"
-                                                            }`}
+                                                                }`}
                                                         >
                                                             <div className="mb-3">
                                                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between">
@@ -681,10 +683,10 @@ export default function Tracking({
                                 </h3>
                                 <div className={`
                 grid gap-6 mt-6
-                ${auth?.user 
-                    ? 'grid-cols-1 md:grid-cols-2 max-w-2xl mx-auto'  // 2 columns when logged in
-                    : 'grid-cols-1 md:grid-cols-3'                     // 3 columns when guest
-                }
+                ${auth?.user
+                                        ? 'grid-cols-1 md:grid-cols-2 max-w-2xl mx-auto'  // 2 columns when logged in
+                                        : 'grid-cols-1 md:grid-cols-3'                     // 3 columns when guest
+                                    }
             `}>
                                     <div className="bg-white p-6 rounded-xl h-full">
                                         <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">

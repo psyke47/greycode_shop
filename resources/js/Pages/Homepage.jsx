@@ -4,6 +4,8 @@ import MainLayout from "../Layouts/MainLayout";
 import greycodeBoard from "/public/images/greycode-board.png";
 import leftPlug from "/public/images/leftplug-removebg-preview.png";
 import rightPlug from "/public/images/rightplug-removebg-preview.png";
+import { useEffect } from 'react';
+import { trackViewItemList } from '@/utilis/analytics';
 
 const Homepage = () => {
     // Separate refs for desktop and mobile 3D containers
@@ -29,6 +31,10 @@ const Homepage = () => {
         setRotation({ x: 0, y: 0 });
         setPosition({ x: 0, y: 0 });
     };
+    useEffect(() => {
+        // Track homepage view
+        trackViewItemList([], 'Homepage Featured');
+    }, []);
 
     // Reusable 3D board component
     const ThreeDBoard = ({ refProp }) => (

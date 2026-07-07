@@ -92,7 +92,7 @@ Route::get('/test-redirect', function () {
 
 //Product routes
 Route::get('/products', [ProductController::class, 'index'])->name('products');
-Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
+Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name('products.show');
 
 /// Cart routes
 Route::middleware(['auth'])->group(function () {

@@ -3,6 +3,7 @@ import { Head, useForm } from "@inertiajs/react";
 import MainLayout from "../Layouts/MainLayout";
 import { ClockIcon, PhoneIcon, MailIcon } from "lucide-react";
 import PageHead from "../Components/PageHead";
+import { trackContact } from '../utilis/analytics';
 
 const Contact = () => {
     const { data, setData, post, processing, errors, recentlySuccessful } = useForm({
@@ -14,6 +15,10 @@ const Contact = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+
+        // Track contact form submission
+        trackContact('general');
+
         post('/contact');
     };
 

@@ -5,6 +5,7 @@ import axios from 'axios';
 import { Heart, ShoppingCart, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '../Components/LoadingSpinner';
+import { trackAddToWishlist, trackRemoveFromWishlist } from '../utilis/analytics';
 
 const placeholderSVG = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI0U1RTVFNSIvPjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOTk5Ij5Qcm9kdWN0IEltYWdlPC90ZXh0Pjwvc3ZnPg==';
 
@@ -31,6 +32,12 @@ export default function Wishlist() {
     };
 
     const removeFromWishlist = (productId) => {
+
+        const product = wishlistItems.find(item => item.id === productId);
+        if (product) {
+            trackRemoveFromWishlist(product);
+        }
+
         setRemovingItems(prev => ({ ...prev, [productId]: true }));
 
         axios.delete(`/wishlist/remove/${productId}`)
@@ -49,6 +56,11 @@ export default function Wishlist() {
 
     const addToCart = (productId) => {
         if (cartLoading[productId]) return;
+
+        const product = wishlistItems.find(item => item.id === productId);
+        if (product) {
+            trackAddToCart(product, 1);
+        }
 
         setCartLoading(prev => ({ ...prev, [productId]: true }));
 

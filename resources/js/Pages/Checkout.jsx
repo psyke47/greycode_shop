@@ -17,6 +17,7 @@ import AddressSearch from "../Components/AddressSearch";
 import toast from 'react-hot-toast';
 import LoadingSpinner from "../Components/LoadingSpinner";
 import axios from "axios";
+import { trackBeginCheckout } from '../utilis/analytics';
 
 export default function Checkout({
     cart,
@@ -114,7 +115,22 @@ export default function Checkout({
         payment_method: "payfast",
         customer_note: "",
     });
-
+    useEffect(() => {
+        if (cart?.cart_items?.length > 0) {
+            trackBeginCheckout(
+                cart.cart_items.map(item => ({
+                    id: item.product_id,
+                    name: item.product?.name,
+                    price: item.price,
+                    quantity: item.quantity,
+                    category: item.product?.category?.name
+                })),
+                subtotal,
+                shipping,
+                vat
+            );
+        }
+    }, [cart]); // Only run once when cart loads
     // Handle shipping address selection
     useEffect(() => {
         if (selectedShippingId !== "new" && addresses) {
