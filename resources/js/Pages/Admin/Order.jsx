@@ -59,14 +59,14 @@ export default function AdminOrder() {
 
   const getStatusColor = (status) => {
     switch(status) {
-      case 'delivered': return 'bg-green-100 text-green-800'
-      case 'shipped': return 'bg-blue-100 text-blue-800'
+      case 'delivered': return 'text-green-800'
+      case 'shipped': return 'text-blue-800'
       case 'processing': 
-      case 'pending': return 'bg-yellow-100 text-yellow-800'
+      case 'pending': return 'text-yellow-800'
       case 'cancelled': 
-      case 'refunded': return 'bg-red-100 text-red-800'
-      case 'return_requested': return 'bg-purple-100 text-purple-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'refunded': return 'text-red-800'
+      case 'return_requested': return 'text-purple-800'
+      default: return 'text-gray-800'
     }
   }
 
@@ -373,10 +373,10 @@ export default function AdminOrder() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          order.payment_status === 'paid' ? 'bg-green-100 text-green-800' :
-                          order.payment_status === 'refunded' ? 'bg-blue-100 text-blue-800' :
-                          'bg-red-100 text-red-800'
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${
+                          order.payment_status === 'paid' ? 'text-green-800' :
+                          order.payment_status === 'refunded' ? 'text-blue-800' :
+                          'text-red-800'
                         }`}>
                           {order.payment_status}
                         </span>
