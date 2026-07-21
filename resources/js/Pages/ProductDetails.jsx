@@ -180,7 +180,7 @@ export default function ProductDetail({
         setAddingToCart(true);
 
         router.post(
-            `/cart/add/${product.id}`,
+            `/cart/add/${product.slug}`,
             { quantity: quantity },
             {
                 preserveScroll: true,
