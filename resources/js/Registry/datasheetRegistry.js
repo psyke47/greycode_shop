@@ -1,4 +1,5 @@
 import DHT22Datasheet from "../Components/ProductComponents/Dht22datasheet";
+import UltrasonicSensorDatasheet from "../Components/ProductComponents/UltrasonicSensorDatasheet";
 
 /**
  * Map of product slug -> datasheet component.
@@ -12,6 +13,7 @@ import DHT22Datasheet from "../Components/ProductComponents/Dht22datasheet";
  */
 const datasheetRegistry = {
     "dht22": DHT22Datasheet,
+    "ultrasonic-sensor": UltrasonicSensorDatasheet,
     // "dht11-temperature-sensor": DHT11Datasheet,
     // "mpu6050-sensor-module": MPU6050Datasheet,
     // "ultrasonic-sensor": UltrasonicDatasheet,
