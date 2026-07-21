@@ -298,7 +298,7 @@ export default function Products({
                 });
         }
     };
-    const handleAddToCart = (productId, e) => {
+    const handleAddToCart = (product, e) => {
         e.preventDefault();
         e.stopPropagation();
 
@@ -309,21 +309,21 @@ export default function Products({
         }
 
         // Prevent double-clicks
-        if (cartLoading[productId]) return;
+        if (cartLoading[product.slug]) return;
 
-        setCartLoading(prev => ({ ...prev, [productId]: true }));
+        setCartLoading(prev => ({ ...prev, [product.slug]: true }));
 
-        router.post(`/cart/add/${productId}`, {
+        router.post(`/cart/add/${product.slug}`, {
             quantity: 1,
         }, {
             preserveScroll: true,
             onSuccess: () => {
                 toast.success('Product added to cart!');
-                setCartLoading(prev => ({ ...prev, [productId]: false }));
+                setCartLoading(prev => ({ ...prev, [product.slug]: false }));
             },
             onError: (errors) => {
                 toast.error(errors.message || 'Failed to add to cart');
-                setCartLoading(prev => ({ ...prev, [productId]: false }));
+                setCartLoading(prev => ({ ...prev, [product.slug]: false }));
             },
         });
     };
@@ -343,8 +343,8 @@ export default function Products({
         // Track product selection
         trackSelectItem(product, index, 'Product Catalog');
 
-        // Your existing navigation
-        window.location.href = `/products/${product.slug}`;
+        // Use Inertia router for proper SPA navigation
+        router.get(`/products/${product.slug}`);
     };
 
     return (
@@ -760,7 +760,7 @@ export default function Products({
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                                    {filteredProducts.map((product) => {
+                                    {filteredProducts.map((product, index) => {
                                         const imageUrl = getProductImage(product);
 
                                         return (
@@ -838,11 +838,11 @@ export default function Products({
 
                                                             {/* Add to Cart Button - auto width */}
                                                             <button
-                                                                onClick={(e) => handleAddToCart(product.id, e)}
-                                                                disabled={cartLoading[product.id] || product.stock_quantity === 0}
+                                                                onClick={(e) => handleAddToCart(product, e)}
+                                                                disabled={cartLoading[product.slug] || product.stock_quantity === 0}
                                                                 className="py-2 px-4 bg-greycode-light-blue text-white rounded-lg font-medium hover:bg-black hover:scale-105 hover:shadow-lg hover:shadow-greycode-light-blue transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                                             >
-                                                                {cartLoading[product.id] ? (
+                                                                {cartLoading[product.slug] ? (
                                                                     <>
                                                                         <LoadingSpinner size="sm" color="white" />
                                                                         Adding...

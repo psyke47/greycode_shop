@@ -1,8 +1,9 @@
+// resources/js/Components/GoogleAnalytics.jsx
 import { useEffect } from 'react';
 import { usePage } from '@inertiajs/react';
 
 export default function GoogleAnalytics() {
-    const { url, component } = usePage();
+    const { url } = usePage();
     const gaId = import.meta.env.VITE_GOOGLE_ANALYTICS_ID;
     const isDev = import.meta.env.APP_ENV === 'local' || import.meta.env.APP_ENV === 'development';
 

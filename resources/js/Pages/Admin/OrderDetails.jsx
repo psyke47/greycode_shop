@@ -50,14 +50,14 @@ export default function AdminOrderDetails() {
 
   const getStatusColor = (status) => {
     switch(status) {
-      case 'delivered': return 'bg-green-100 text-green-800'
-      case 'shipped': return 'bg-blue-100 text-blue-800'
+      case 'delivered': return 'text-green-800'
+      case 'shipped': return 'text-blue-800'
       case 'processing': 
-      case 'pending': return 'bg-yellow-100 text-yellow-800'
+      case 'pending': return 'text-yellow-800'
       case 'cancelled': 
-      case 'refunded': return 'bg-red-100 text-red-800'
-      case 'return_requested': return 'bg-purple-100 text-purple-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'refunded': return 'text-red-800'
+      case 'return_requested': return 'text-purple-800'
+      default: return 'text-gray-800'
     }
   }
 
@@ -113,7 +113,7 @@ export default function AdminOrderDetails() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                  Order #{order.order_number}
+                  Order <span className="text-greycode-light-blue">#{order.order_number}</span>
                 </h1>
                 <p className="text-gray-600">Placed on {order.date}</p>
                 {order.user && (
