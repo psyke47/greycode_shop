@@ -48,7 +48,7 @@ export default function ServoDatasheet() {
 
             <Section title="Circuit Diagram">
                 <Figure
-                    src="/images/docs/servo/servo-circuit.png"
+                    src="/images/DocImages/servo/servo-circuit.png"
                     alt="Servo motor wiring diagram"
                     caption="Servo motor connected to an ESP32/Arduino"
                 />

@@ -53,7 +53,7 @@ export default function RoundLcdDatasheet() {
 
             <Section title="Circuit Diagram">
                 <Figure
-                    src="/images/docs/240x240-rgb-tft-displayscreen-lcd-modules/round-lcd-circuit.png"
+                    src="/images/DocImages/240x240-rgb-tft-displayscreen-lcd-modules/round-lcd-circuit.png"
                     alt="Round TFT LCD wiring diagram"
                     caption="Round TFT LCD connected to an ESP32"
                 />

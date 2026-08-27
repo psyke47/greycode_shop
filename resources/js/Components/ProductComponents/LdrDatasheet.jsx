@@ -39,7 +39,7 @@ export default function LdrDatasheet() {
 
             <Section title="Circuit Diagram">
                 <Figure
-                    src="/images/docs/ldr-photoresistor/ldr-circuit.png"
+                    src="/images/DocImages/ldr-photoresistor/ldr-circuit.png"
                     alt="LDR wiring diagram"
                     caption="LDR connected to an ESP32/Arduino"
                 />

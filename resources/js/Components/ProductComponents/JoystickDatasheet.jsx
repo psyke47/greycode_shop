@@ -46,7 +46,7 @@ export default function JoystickDatasheet() {
 
             <Section title="Circuit Diagram">
                 <Figure
-                    src="/images/docs/ky-023-ps2-game-joystickmodule/joystick-circuit.png"
+                    src="/images/DocImages/ky-023-ps2-game-joystickmodule/joystick-circuit.png"
                     alt="Joystick wiring diagram"
                     caption="Joystick module connected to an ESP32/Arduino"
                 />

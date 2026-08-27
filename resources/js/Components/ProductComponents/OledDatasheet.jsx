@@ -60,7 +60,7 @@ export default function OledDatasheet() {
 
             <Section title="Circuit Diagram">
                 <Figure
-                    src="/images/docs/096-oled-display/oled-circuit.png"
+                    src="/images/DocImages/096-oled-display/oled-circuit.png"
                     alt="OLED wiring diagram"
                     caption="0.96&quot; OLED (I2C) connected to an ESP32/Arduino"
                 />
