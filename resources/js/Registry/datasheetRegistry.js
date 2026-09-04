@@ -6,6 +6,10 @@ import RoundLcdDatasheet from "../Components/ProductComponents/RoundLcdDatasheet
 import ServoDatasheet from "../Components/ProductComponents/ServoDatasheet";
 import LdrDatasheet from "../Components/ProductComponents/LdrDatasheet";
 import PotentiometerDatasheet from "../Components/ProductComponents/PotentiometerDatasheet";
+import BuzzerDatasheet from "../Components/ProductComponents/BuzzerDatasheet";
+import GyroDatasheet from "../Components/ProductComponents/GyroDatasheet";
+import SmokeDetectorDatasheet from "../Components/ProductComponents/SmokeDetectorDatasheet";
+import I2cDisplayDatasheet from "../Components/ProductComponents/I2cDisplayDatasheet";
 
 /**
  * Map of product slug -> datasheet component.
@@ -25,6 +29,10 @@ const datasheetRegistry = {
     "240x240-rgb-tft-displayscreen-lcd-modules": RoundLcdDatasheet,
     "ldr-photoresistor": LdrDatasheet,
     "potentiometer": PotentiometerDatasheet,
+    "buzzer": BuzzerDatasheet,
+    "mpu6050-sensor-module": GyroDatasheet,
+    "mq-2-gas-sensor-module": SmokeDetectorDatasheet,
+    "lcd-1602-i2c-screen": I2cDisplayDatasheet,
 
     // Same generic servo write-up for all three servo products
     // (was a single invalid "servo-motor" key before):
