@@ -531,7 +531,7 @@ export default function ProductDetail({
                                             href={`/products/${relatedProduct.slug}`} // ✅ CHANGED: using slug instead of id
                                             className="group block bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100"
                                         >
-                                            <div className="relative h-48 bg-gray-100 flex items-center justify-center">
+                                            <div className="relative h-48 bg-white flex items-center justify-center">
                                                 <img
                                                     src={getRelatedProductImage(
                                                         relatedProduct,
